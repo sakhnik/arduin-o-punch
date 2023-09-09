@@ -4,8 +4,10 @@
 
 * MIFARE Classic 1k tags/cards for runners
 * Base stations built with Arduino and MFRC 522 RFID reader/writer
-* Android application for base station configuration, time calibration and
-    start/finish base station
+* Configuration station: base station + serial interface + PC application
+* (maybe) Android application for base station configuration, time calibration
+    and start/finish base station:
+    [guide](https://developer.android.com/guide/topics/connectivity/nfc/nfc).
 
 ## Operation modes
 
@@ -14,13 +16,13 @@
 Arduino CPU clock is used because there's no real time clock. The base station
 must be configured with the number, actual crypto key.
 
-* A service card is programmed with the Android app containing station number
+* A service card is programmed with the configurator containing station number
     and marking current timestamp.
 * A base station configures itself from the
     service card by assigning itself the next station number and writing the
     number and current timestamp to the card
-* The service card is read again in the Android app to map base station's clock
-    offset: Tﬆ -> t₁ + ½(t₂ - t₁)
+* The service card is read again in the configurator app to map base station's
+    clock offset: Tﬆ -> t₁ + ½(t₂ - t₁)
 
 This data should be distributed to perform punch times readout.
 
@@ -62,7 +64,7 @@ The same way Android punching should function for the data consistency.
 
 ### Card reset
 
-Android app should be used to authorize with the actual key and reset the card
+Configurator should be used to authorize with the actual key and reset the card
 to the pristine state, set default encryption keys in all blocks, reset access
 bits.
 The application could also track the configured cards to collect statistics
