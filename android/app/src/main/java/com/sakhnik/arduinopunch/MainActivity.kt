@@ -11,12 +11,18 @@ import android.util.Log
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.RadioButton
+import android.widget.SeekBar
+import android.widget.TableLayout
+import android.widget.TableRow
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.time.Duration
+import java.time.LocalTime
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,11 +73,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun handleMifare(mifare: MifareClassic?) {
+    private fun getTimestamp(): Long {
+        return Duration.between(LocalTime.of(8, 0), LocalTime.now()).seconds
+    }
+
+    private fun handleMifare(mifare: MifareClassic?) {
         mifare?.use { mifareClassic ->
             mifareClassic.connect()
             if (mifareClassic.type != MifareClassic.TYPE_CLASSIC || mifareClassic.size != MifareClassic.SIZE_1K) {
-                Toast.makeText(this, "Only 1k MIFARE Classic cards are expected", Toast.LENGTH_LONG).show()
+                runOnUiThread {
+                    Toast.makeText(this, "Only 1k MIFARE Classic cards are expected", Toast.LENGTH_LONG).show()
+                }
                 return
             }
             val editKey = findViewById<EditText>(R.id.editTextKey)
@@ -80,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             val key =
                 keyHex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
             assert(key.size == 6)
-            val punchCard = PunchCard(mifareClassic, key)
+            val punchCard = PunchCard(MifareImpl(mifareClassic), key)
             Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
 
             val progress = findViewById<ProgressBar>(R.id.progressBar)
@@ -90,16 +102,43 @@ class MainActivity : AppCompatActivity() {
             }
             try {
                 if (findViewById<RadioButton>(R.id.radioButtonPrepare).isChecked) {
-                    punchCard.prepare(progressCb)
-                }
-                if (findViewById<RadioButton>(R.id.radioButtonReset).isChecked) {
+                    punchCard.prepare(getTimestamp(), progressCb)
+                } else if (findViewById<RadioButton>(R.id.radioButtonReset).isChecked) {
                     punchCard.reset(progressCb)
+                } else if (findViewById<RadioButton>(R.id.radioButtonPunch).isChecked) {
+                    val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
+                    punchCard.punch(Punch(station, getTimestamp()), progressCb)
+                } else if (findViewById<RadioButton>(R.id.radioButtonReadOut).isChecked) {
+                    val readOut = punchCard.readOut(progressCb)
+                    runOnUiThread {
+                        val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+                        for (i in tableLayout.childCount - 1 downTo 1) {
+                            tableLayout.removeViewAt(i)
+                        }
+
+                        for (punch in readOut) {
+                            val tableRow = TableRow(this)
+                            val cell1 = TextView(this)
+                            cell1.text = punch.station.toString()
+                            tableRow.addView(cell1)
+                            val cell2 = TextView(this)
+                            cell2.text = punch.timestamp.toString()
+                            tableRow.addView(cell2)
+                            tableLayout.addView(tableRow)
+                        }
+                    }
                 }
 
             } catch (ex: IOException) {
-                Toast.makeText(this, "IOException $ex", Toast.LENGTH_LONG).show()
+                Log.e(null, "IO exception $ex")
+                runOnUiThread {
+                    Toast.makeText(this, "IOException $ex", Toast.LENGTH_LONG).show()
+                }
             } catch (ex: RuntimeException) {
-                Toast.makeText(this, "RuntimeException $ex", Toast.LENGTH_LONG).show()
+                Log.e(null, "Runtime exception $ex")
+                runOnUiThread {
+                    Toast.makeText(this, "RuntimeException $ex", Toast.LENGTH_LONG).show()
+                }
             } finally {
                 progressCb(0, 1)
             }
