@@ -31,20 +31,20 @@ struct TestMifare : AOP::IMifare
         return block / 4;
     }
 
-    int AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) override
+    uint8_t AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) override
     {
         return memcmp(key, blocks[4 * sector + 3].data(), sizeof(DEF_KEY));
     }
 
-    int ReadBlock(uint8_t block, uint8_t *data) override
+    uint8_t ReadBlock(uint8_t block, uint8_t *data, uint8_t &) override
     {
         memcpy(data, blocks[block].data(), IMifare::BLOCK_SIZE);
         return 0;
     }
 
-    int WriteBlock(uint8_t block, uint8_t *data) override
+    uint8_t WriteBlock(uint8_t block, const uint8_t *data, uint8_t blockSize) override
     {
-        memcpy(blocks[block].data(), data, IMifare::BLOCK_SIZE);
+        memcpy(blocks[block].data(), data, blockSize);
         return 0;
     }
 };
@@ -89,7 +89,7 @@ TEST_CASE("PunchCard max punches")
         CHECK(0 == punchCard.Punch(testPunch(i)));
     }
     // No more space
-    REQUIRE(-1 == punchCard.Punch(Punch(1, 65000)));
+    REQUIRE(1 == punchCard.Punch(Punch(1, 65000)));
 
     std::vector<Punch> readOut;
     REQUIRE(0 == punchCard.ReadOut(readOut));

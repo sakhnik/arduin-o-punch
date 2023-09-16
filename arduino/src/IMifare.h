@@ -11,9 +11,9 @@ struct IMifare
 
     virtual ~IMifare() {}
     virtual uint8_t BlockToSector(uint8_t block) const = 0;
-    virtual int AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) = 0;
-    virtual int ReadBlock(uint8_t block, uint8_t *data) = 0;
-    virtual int WriteBlock(uint8_t block, uint8_t *data) = 0;
+    virtual uint8_t AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) = 0;
+    virtual uint8_t ReadBlock(uint8_t block, uint8_t *data, uint8_t &dataSize) = 0;
+    virtual uint8_t WriteBlock(uint8_t block, const uint8_t *data, uint8_t dataSize) = 0;
 };
 
 } //namespace AOP;

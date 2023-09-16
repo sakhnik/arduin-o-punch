@@ -12,27 +12,29 @@ PunchCard::PunchCard(IMifare *mifare, const uint8_t *key)
 {
 }
 
-int PunchCard::Punch(AOP::Punch punch, void(*progress)(int, int))
+uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
 {
-    int stages = 8;
+    uint8_t stages = 8;
     progress(0, stages);
 
     // 1. read the index
     auto headerSector = _mifare->BlockToSector(HEADER_BLOCK);
-    if (int res = _Authenticate(headerSector))
+    if (auto res = _Authenticate(headerSector))
         return res;
     progress(1, stages);
-    uint8_t header[IMifare::BLOCK_SIZE];
-    if (int res = _mifare->ReadBlock(HEADER_BLOCK, header))
+    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
+    uint8_t headerSize = sizeof(header);
+    if (auto res = _mifare->ReadBlock(HEADER_BLOCK, header, headerSize))
         return res;
     progress(2, stages);
     uint8_t index = header[5];
     auto addr = _GetPunchAddr(index - 1);
-    if (int res = _Authenticate(_mifare->BlockToSector(addr.block)))
+    if (auto res = _Authenticate(_mifare->BlockToSector(addr.block)))
         return res;
     progress(3, stages);
-    uint8_t punchBlock[IMifare::BLOCK_SIZE];
-    if (int res = _mifare->ReadBlock(addr.block, punchBlock))
+    uint8_t punchBlock[IMifare::BLOCK_SIZE + 2];
+    uint8_t punchBlockSize = sizeof(punchBlock);
+    if (auto res = _mifare->ReadBlock(addr.block, punchBlock, punchBlockSize))
         return res;
     progress(4, stages);
 
@@ -50,32 +52,34 @@ int PunchCard::Punch(AOP::Punch punch, void(*progress)(int, int))
     if (newAddr.block == addr.block)
     {
         punch.Serialize(punchBlock, newAddr.offset);
-        _mifare->WriteBlock(newAddr.block, punchBlock);
+        if (auto res = _mifare->WriteBlock(newAddr.block, punchBlock, IMifare::BLOCK_SIZE))
+            return res;
     }
     else
     {
         if (newAddr.block >= IMifare::BLOCK_COUNT)
-            return -1;  // The card is full
+            return 1;  // The card is full
 #ifdef BUILD_TEST
         assert(newAddr.offset == 0);
 #endif // BUILD_TEST
-        if (int res = _Authenticate(_mifare->BlockToSector(newAddr.block)))
+        if (auto res = _Authenticate(_mifare->BlockToSector(newAddr.block)))
             return res;
         progress(5, stages);
-        if (int res = _mifare->ReadBlock(newAddr.block, punchBlock))
+        punchBlockSize = sizeof(punchBlock);
+        if (auto res = _mifare->ReadBlock(newAddr.block, punchBlock, punchBlockSize))
             return res;
         progress(6, stages);
         punch.Serialize(punchBlock, newAddr.offset);
-        if (int res = _mifare->WriteBlock(newAddr.block, punchBlock))
+        if (auto res = _mifare->WriteBlock(newAddr.block, punchBlock, IMifare::BLOCK_SIZE))
             return res;
     }
     progress(7, stages);
 
     // 4. update the index
     header[5] = index + 1;
-    if (int res = _Authenticate(headerSector))
+    if (auto res = _Authenticate(headerSector))
         return res;
-    if (int res = _mifare->WriteBlock(HEADER_BLOCK, header))
+    if (auto res = _mifare->WriteBlock(HEADER_BLOCK, header, IMifare::BLOCK_SIZE))
         return res;
     progress(stages, stages);
     return 0;
@@ -83,16 +87,17 @@ int PunchCard::Punch(AOP::Punch punch, void(*progress)(int, int))
 
 #ifdef BUILD_TEST
 
-int PunchCard::ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, int))
+uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches, ProgressT progress)
 {
     progress(0, 1);
     // Read everything
     // Reconstruct timestamps
     auto headerSector = _mifare->BlockToSector(HEADER_BLOCK);
-    if (int res = _Authenticate(headerSector))
+    if (uint8_t res = _Authenticate(headerSector))
         return res;
-    uint8_t data[IMifare::BLOCK_SIZE];
-    if (int res = _mifare->ReadBlock(HEADER_BLOCK, data))
+    uint8_t data[IMifare::BLOCK_SIZE + 2];
+    uint8_t dataSize = sizeof(data);
+    if (uint8_t res = _mifare->ReadBlock(HEADER_BLOCK, data, dataSize))
         return res;
     uint8_t count = data[5];
 
@@ -109,9 +114,10 @@ int PunchCard::ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, i
         if (block != prevBlock)
         {
             prevBlock = block;
-            if (int res = _Authenticate(_mifare->BlockToSector(block)))
+            if (uint8_t res = _Authenticate(_mifare->BlockToSector(block)))
                 return res;
-            if (int res = _mifare->ReadBlock(block, data))
+            dataSize = sizeof(data);
+            if (uint8_t res = _mifare->ReadBlock(block, data, dataSize))
                 return res;
         }
         punches.push_back(AOP::Punch(data, offset));
@@ -122,14 +128,12 @@ int PunchCard::ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, i
 
 #endif //BUILD_TEST
 
-int PunchCard::_Authenticate(uint8_t sector)
+uint8_t PunchCard::_Authenticate(uint8_t sector)
 {
     if (sector != _auth_sector)
     {
-        if (int res = _mifare->AuthenticateSectorWithKeyA(sector, _key))
-        {
+        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, _key))
             return res;
-        }
         _auth_sector = sector;
     }
     return 0;

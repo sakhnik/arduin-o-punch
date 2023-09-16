@@ -14,20 +14,21 @@ class PunchCard
 
     IMifare *_mifare;
     const uint8_t *_key;
-    int _auth_sector = -1;
+    uint8_t _auth_sector = 0xff;
 
 public:
     PunchCard(IMifare *, const uint8_t *key);
 
-    static void DummyProgress(int, int) { }
+    static void DummyProgress(uint8_t, uint8_t) { }
+    using ProgressT = decltype(&DummyProgress);
 
-    int Punch(Punch punch, void(*progress)(int, int) = &DummyProgress);
+    uint8_t Punch(Punch punch, ProgressT progress = &DummyProgress);
 #ifdef BUILD_TEST
-    int ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, int) = &DummyProgress);
+    uint8_t ReadOut(std::vector<AOP::Punch> &punches, ProgressT progress = &DummyProgress);
 #endif
 
 private:
-    int _Authenticate(uint8_t sector);
+    uint8_t _Authenticate(uint8_t sector);
 
     struct _Address
     {
