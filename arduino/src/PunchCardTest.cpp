@@ -1,3 +1,5 @@
+#ifdef BUILD_TEST
+
 #include "doctest/doctest.h"
 #include "PunchCard.h"
 #include <array>
@@ -97,3 +99,5 @@ TEST_CASE("PunchCard max punches")
         CHECK(testPunch(i) == readOut[i]);
     }
 }
+
+#endif //BUILD_TEST

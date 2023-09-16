@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(AopTest)
 
 set(CMAKE_CXX_STANDARD 11)
+add_definitions(-DBUILD_TEST)
 
 add_executable(test-aop
     IMifare.h

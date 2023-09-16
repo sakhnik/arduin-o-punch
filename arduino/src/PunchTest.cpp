@@ -1,3 +1,5 @@
+#ifdef BUILD_TEST
+
 #include "doctest/doctest.h"
 #include "Punch.h"
 
@@ -28,3 +30,5 @@ TEST_CASE("Punch deserialize")
     CHECK(0xad == p2.GetStation());
     CHECK(0xefbe == p2.GetTimestamp());
 }
+
+#endif //BUILD_TEST

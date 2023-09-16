@@ -1,8 +1,10 @@
 
 #include "Punch.h"
 #include "IMifare.h"
-#include <utility>
-#include <vector>
+
+#ifdef BUILD_TEST
+# include <vector>
+#endif
 
 namespace AOP {
 
@@ -20,11 +22,19 @@ public:
     static void DummyProgress(int, int) { }
 
     int Punch(Punch punch, void(*progress)(int, int) = &DummyProgress);
+#ifdef BUILD_TEST
     int ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, int) = &DummyProgress);
+#endif
 
 private:
     int _Authenticate(uint8_t sector);
-    std::pair<uint8_t, uint8_t> _GetPunchAddr(uint8_t index);
+
+    struct _Address
+    {
+        uint8_t block;
+        uint8_t offset;
+    };
+    _Address _GetPunchAddr(uint8_t index);
 };
 
 } //namespace AOP;

@@ -1,5 +1,9 @@
 #include "PunchCard.h"
 
+#ifdef BUILD_TEST
+# include <cassert>
+#endif
+
 namespace AOP {
 
 PunchCard::PunchCard(IMifare *mifare, const uint8_t *key)
@@ -23,17 +27,17 @@ int PunchCard::Punch(AOP::Punch punch, void(*progress)(int, int))
         return res;
     progress(2, stages);
     uint8_t index = header[5];
-    auto blockOffset = _GetPunchAddr(index - 1);
-    if (int res = _Authenticate(_mifare->BlockToSector(blockOffset.first)))
+    auto addr = _GetPunchAddr(index - 1);
+    if (int res = _Authenticate(_mifare->BlockToSector(addr.block)))
         return res;
     progress(3, stages);
     uint8_t punchBlock[IMifare::BLOCK_SIZE];
-    if (int res = _mifare->ReadBlock(blockOffset.first, punchBlock))
+    if (int res = _mifare->ReadBlock(addr.block, punchBlock))
         return res;
     progress(4, stages);
 
     // 2. read the last record
-    AOP::Punch prevPunch{punchBlock, blockOffset.second};
+    AOP::Punch prevPunch{punchBlock, addr.offset};
     //   a. check the station is different
     if (prevPunch.GetStation() == punch.GetStation())
     {
@@ -42,25 +46,27 @@ int PunchCard::Punch(AOP::Punch punch, void(*progress)(int, int))
     }
 
     // 3. write the next record
-    auto newBlockOffset = _GetPunchAddr(index);
-    if (newBlockOffset.first == blockOffset.first)
+    auto newAddr = _GetPunchAddr(index);
+    if (newAddr.block == addr.block)
     {
-        punch.Serialize(punchBlock, newBlockOffset.second);
-        _mifare->WriteBlock(newBlockOffset.first, punchBlock);
+        punch.Serialize(punchBlock, newAddr.offset);
+        _mifare->WriteBlock(newAddr.block, punchBlock);
     }
     else
     {
-        if (newBlockOffset.first >= IMifare::BLOCK_COUNT)
+        if (newAddr.block >= IMifare::BLOCK_COUNT)
             return -1;  // The card is full
-        //assert(newBlockOffset.second == 0);
-        if (int res = _Authenticate(_mifare->BlockToSector(newBlockOffset.first)))
+#ifdef BUILD_TEST
+        assert(newAddr.offset == 0);
+#endif // BUILD_TEST
+        if (int res = _Authenticate(_mifare->BlockToSector(newAddr.block)))
             return res;
         progress(5, stages);
-        if (int res = _mifare->ReadBlock(newBlockOffset.first, punchBlock))
+        if (int res = _mifare->ReadBlock(newAddr.block, punchBlock))
             return res;
         progress(6, stages);
-        punch.Serialize(punchBlock, newBlockOffset.second);
-        if (int res = _mifare->WriteBlock(newBlockOffset.first, punchBlock))
+        punch.Serialize(punchBlock, newAddr.offset);
+        if (int res = _mifare->WriteBlock(newAddr.block, punchBlock))
             return res;
     }
     progress(7, stages);
@@ -74,6 +80,8 @@ int PunchCard::Punch(AOP::Punch punch, void(*progress)(int, int))
     progress(stages, stages);
     return 0;
 }
+
+#ifdef BUILD_TEST
 
 int PunchCard::ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, int))
 {
@@ -95,9 +103,9 @@ int PunchCard::ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, i
     for (uint8_t index = 1; index < count; ++index)
     {
         progress(index, count);
-        auto blockOffset = _GetPunchAddr(index);
-        uint8_t block = blockOffset.first;
-        uint8_t offset = blockOffset.second;
+        auto addr = _GetPunchAddr(index);
+        uint8_t block = addr.block;
+        uint8_t offset = addr.offset;
         if (block != prevBlock)
         {
             prevBlock = block;
@@ -112,6 +120,8 @@ int PunchCard::ReadOut(std::vector<AOP::Punch> &punches, void (*progress)(int, i
     return 0;
 }
 
+#endif //BUILD_TEST
+
 int PunchCard::_Authenticate(uint8_t sector)
 {
     if (sector != _auth_sector)
@@ -125,7 +135,7 @@ int PunchCard::_Authenticate(uint8_t sector)
     return 0;
 }
 
-std::pair<uint8_t, uint8_t> PunchCard::_GetPunchAddr(uint8_t index)
+PunchCard::_Address PunchCard::_GetPunchAddr(uint8_t index)
 {
     int byteAddr = static_cast<int>(index) * AOP::Punch::STORAGE_SIZE;
     uint8_t offset = byteAddr % 16;
