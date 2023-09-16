@@ -2,7 +2,12 @@
 #include <MFRC522DriverSPI.h>
 //#include <MFRC522DriverI2C.h>
 #include <MFRC522DriverPinSimple.h>
+
+#define ENABLE_SERIAL 1
+
+#if ENABLE_SERIAL
 #include <MFRC522Debug.h>
+#endif
 
 MFRC522DriverPinSimple ss_pin(10); // Configurable, see typical pin layout above.
 
@@ -11,11 +16,17 @@ MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
 MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
 void setup() {
+
+#if ENABLE_SERIAL
     Serial.begin(115200);  // Initialize serial communications with the PC for debugging.
     while (!Serial);     // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4).
+#endif //ENABLE_SERIAL
+
     mfrc522.PCD_Init();  // Init MFRC522 board.
+
+#if ENABLE_SERIAL
     MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);  // Show details of PCD - MFRC522 Card Reader details.
-    //Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
+#endif //ENABLE_SERIAL
 }
 
 #include "src/IMifare.h"
@@ -39,8 +50,10 @@ struct MifareClassic : AOP::IMifare
                 );
         if (status)
         {
+#if ENABLE_SERIAL
             Serial.print(F("Auth failed: "));
             Serial.println(static_cast<int>(status));
+#endif //ENABLE_SERIAL
         }
         return status;
     }
@@ -50,8 +63,10 @@ struct MifareClassic : AOP::IMifare
         auto status = mfrc522.MIFARE_Read(block, data, &dataSize);
         if (status)
         {
+#if ENABLE_SERIAL
             Serial.print(F("Read failed: "));
             Serial.println(static_cast<int>(status));
+#endif //ENABLE_SERIAL
         }
         return status;
     }
@@ -61,8 +76,10 @@ struct MifareClassic : AOP::IMifare
         auto status = mfrc522.MIFARE_Write(block, const_cast<uint8_t *>(data), IMifare::BLOCK_SIZE);
         if (status)
         {
+#if ENABLE_SERIAL
             Serial.print(F("Write failed: "));
             Serial.println(static_cast<int>(status));
+#endif //ENABLE_SERIAL
         }
         return status;
     }
@@ -91,8 +108,10 @@ void loop() {
     uint32_t timestamp = millis() / 1000;
     AOP::Punch punch{13, timestamp};
     auto res = punchCard.Punch(punch);
+#if ENABLE_SERIAL
     Serial.print(F("Punch result: "));
     Serial.println(static_cast<int>(res));
+#endif //ENABLE_SERIAL
 
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
