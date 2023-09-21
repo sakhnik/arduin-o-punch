@@ -1,3 +1,4 @@
+#include <arduino-timer.h>
 #include <MFRC522v2.h>
 #include <MFRC522DriverSPI.h>
 //#include <MFRC522DriverI2C.h>
@@ -9,16 +10,16 @@
 #include <MFRC522Debug.h>
 #endif
 
-MFRC522DriverPinSimple ss_pin(10); // Configurable, see typical pin layout above.
+auto timer = timer_create_default();
 
+MFRC522DriverPinSimple ss_pin(10); // Configurable, see typical pin layout above.
 MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
-//MFRC522DriverI2C driver{}; // Create I2C driver.
 MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
 void setup() {
 
 #if ENABLE_SERIAL
-    Serial.begin(115200);  // Initialize serial communications with the PC for debugging.
+    Serial.begin(115200);
     while (!Serial);     // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4).
 #endif //ENABLE_SERIAL
 
@@ -86,6 +87,9 @@ struct MifareClassic : AOP::IMifare
 };
 
 void loop() {
+    // TODO: better to call from a hardware timer ISR
+    timer.tick();
+
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if ( !mfrc522.PICC_IsNewCardPresent()) {
         return;
@@ -115,4 +119,11 @@ void loop() {
 
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
+
+    //if (!res)
+    //{
+    //    // Confirm with the led (the builtin isn't available together with SPI).
+    //    digitalWrite(LED_BUILTIN, 1);
+    //    timer.in(400, [](void*) { digitalWrite(LED_BUILTIN, 0); return false; });
+    //}
 }
