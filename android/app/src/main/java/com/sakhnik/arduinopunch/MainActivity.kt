@@ -2,6 +2,7 @@ package com.sakhnik.arduinopunch
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.media.MediaPlayer
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.MifareClassic
@@ -28,10 +29,15 @@ class MainActivity : AppCompatActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
     private var pendingIntent: PendingIntent? = null
+    private var okEffectPlayer: MediaPlayer? = null
+    private var failEffectPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
+        failEffectPlayer = MediaPlayer.create(this, R.raw.fail)
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         if (nfcAdapter == null) {
@@ -45,6 +51,12 @@ class MainActivity : AppCompatActivity() {
             this, 0,
             Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), flags
         )
+    }
+
+    override fun onDestroy() {
+        okEffectPlayer?.release()
+        failEffectPlayer?.release()
+        super.onDestroy()
     }
 
     override fun onResume() {
@@ -82,6 +94,7 @@ class MainActivity : AppCompatActivity() {
             mifareClassic.connect()
             if (mifareClassic.type != MifareClassic.TYPE_CLASSIC || mifareClassic.size != MifareClassic.SIZE_1K) {
                 runOnUiThread {
+                    failEffectPlayer?.start()
                     Toast.makeText(this, "Only 1k MIFARE Classic cards are expected", Toast.LENGTH_LONG).show()
                 }
                 return
@@ -129,14 +142,19 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                runOnUiThread {
+                    okEffectPlayer?.start()
+                }
             } catch (ex: IOException) {
                 Log.e(null, "IO exception $ex")
                 runOnUiThread {
+                    failEffectPlayer?.start()
                     Toast.makeText(this, "IOException $ex", Toast.LENGTH_LONG).show()
                 }
             } catch (ex: RuntimeException) {
                 Log.e(null, "Runtime exception $ex")
                 runOnUiThread {
+                    failEffectPlayer?.start()
                     Toast.makeText(this, "RuntimeException $ex", Toast.LENGTH_LONG).show()
                 }
             } finally {
