@@ -111,5 +111,5 @@ uint8_t Puncher::Punch()
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
 
-    return E_OK;
+    return res;
 }
