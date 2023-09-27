@@ -9,6 +9,7 @@ Puncher puncher;
 
 void setup() {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
+    pinMode(BUZZER_PIN, OUTPUT);
 
 #if ENABLE_SERIAL
     Serial.begin(115200);
@@ -28,7 +29,14 @@ void loop() {
         // Confirm with the led (the builtin isn't available together with SPI).
         if (confirmation)
             timer.cancel(confirmation);
-        digitalWrite(LED_CONFIRM_PIN, 1);
-        confirmation = timer.in(400, [](void*) { digitalWrite(LED_CONFIRM_PIN, 0); return false; });
+        digitalWrite(LED_CONFIRM_PIN, HIGH);
+        digitalWrite(BUZZER_PIN, HIGH);
+        confirmation = timer.in(400,
+            [](void*) {
+                digitalWrite(LED_CONFIRM_PIN, LOW);
+                digitalWrite(BUZZER_PIN, LOW);
+                return false;
+            }
+        );
     }
 }
