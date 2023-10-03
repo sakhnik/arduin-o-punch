@@ -1,6 +1,7 @@
 package com.sakhnik.arduinopunch
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.nfc.NfcAdapter
@@ -10,14 +11,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ProgressBar
-import android.widget.RadioButton
-import android.widget.SeekBar
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -27,23 +28,38 @@ import java.time.LocalTime
 
 class MainActivity : AppCompatActivity() {
 
-    private var nfcAdapter: NfcAdapter? = null
-    private var pendingIntent: PendingIntent? = null
-    private var okEffectPlayer: MediaPlayer? = null
-    private var failEffectPlayer: MediaPlayer? = null
+    private lateinit var nfcAdapter: NfcAdapter
+    private lateinit var pendingIntent: PendingIntent
+    private lateinit var okEffectPlayer: MediaPlayer
+    private lateinit var failEffectPlayer: MediaPlayer
+    private var currentView: Int = R.layout.format_view
+    private var key: ByteArray? = null
+
+    private val menuToLayout = mapOf(
+        R.id.menu_item_format to R.layout.format_view,
+        R.id.menu_item_clear to R.layout.clear_view,
+        R.id.menu_item_punch to R.layout.punch_view,
+        R.id.menu_item_read to R.layout.read_view,
+        R.id.menu_item_reset to R.layout.reset_view,
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val navigationView = findViewById<NavigationView>(R.id.navigationView)
+
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            val viewId = menuToLayout.getOrDefault(menuItem.itemId, currentView)
+            currentView = viewId
+            setActiveView(viewId)
+            true
+        }
+
         okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
         failEffectPlayer = MediaPlayer.create(this, R.raw.fail)
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-        if (nfcAdapter == null) {
-            finish()
-            return
-        }
 
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
         // Create a PendingIntent that will be used to read NFC tags
@@ -53,20 +69,30 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun setActiveView(viewId: Int) {
+        val container = findViewById<FrameLayout>(R.id.container)
+        container.removeAllViews()
+        val view = layoutInflater.inflate(viewId, container, false)
+        container.addView(view)
+        if (viewId == R.layout.format_view) {
+            findViewById<EditText>(R.id.editTextKey).setText(getKeyHex())
+        }
+    }
+
     override fun onDestroy() {
-        okEffectPlayer?.release()
-        failEffectPlayer?.release()
+        okEffectPlayer.release()
+        failEffectPlayer.release()
         super.onDestroy()
     }
 
     override fun onResume() {
         super.onResume()
-        nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
+        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null)
     }
 
     override fun onPause() {
         super.onPause()
-        nfcAdapter?.disableForegroundDispatch(this)
+        nfcAdapter.disableForegroundDispatch(this)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -94,16 +120,13 @@ class MainActivity : AppCompatActivity() {
             mifareClassic.connect()
             if (mifareClassic.type != MifareClassic.TYPE_CLASSIC || mifareClassic.size != MifareClassic.SIZE_1K) {
                 runOnUiThread {
-                    failEffectPlayer?.start()
+                    failEffectPlayer.start()
                     Toast.makeText(this, "Only 1k MIFARE Classic cards are expected", Toast.LENGTH_LONG).show()
                 }
                 return
             }
-            val editKey = findViewById<EditText>(R.id.editTextKey)
-            val keyHex: String =
-                editKey.text.append("0".repeat(12 - editKey.text.length)).toString()
-            val key =
-                keyHex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
+
+            val key = getKey()
             assert(key.size == 6)
             val punchCard = PunchCard(MifareImpl(mifareClassic), key)
             Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
@@ -114,47 +137,51 @@ class MainActivity : AppCompatActivity() {
                 progress.progress = n
             }
             try {
-                if (findViewById<RadioButton>(R.id.radioButtonPrepare).isChecked) {
-                    punchCard.prepare(getTimestamp(), progressCb)
-                } else if (findViewById<RadioButton>(R.id.radioButtonReset).isChecked) {
-                    punchCard.reset(progressCb)
-                } else if (findViewById<RadioButton>(R.id.radioButtonPunch).isChecked) {
-                    val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
-                    punchCard.punch(Punch(station, getTimestamp()), progressCb)
-                } else if (findViewById<RadioButton>(R.id.radioButtonReadOut).isChecked) {
-                    val readOut = punchCard.readOut(progressCb)
-                    runOnUiThread {
-                        val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
-                        for (i in tableLayout.childCount - 1 downTo 1) {
-                            tableLayout.removeViewAt(i)
+                when (currentView) {
+                    R.layout.format_view -> punchCard.prepare(getTimestamp(), progressCb)
+                    R.layout.punch_view -> {
+                        val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
+                        punchCard.punch(Punch(station, getTimestamp()), progressCb)
+                    }
+                    R.layout.read_view -> {
+                        val readOut = punchCard.readOut(progressCb)
+                        runOnUiThread {
+                            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+                            for (i in tableLayout.childCount - 1 downTo 1) {
+                                tableLayout.removeViewAt(i)
+                            }
+
+                            for (punch in readOut) {
+                                val tableRow = TableRow(this)
+                                val cell1 = TextView(this)
+                                cell1.text = punch.station.toString()
+                                tableRow.addView(cell1)
+                                val cell2 = TextView(this)
+                                cell2.text = punch.timestamp.toString()
+                                tableRow.addView(cell2)
+                                tableLayout.addView(tableRow)
+                            }
                         }
 
-                        for (punch in readOut) {
-                            val tableRow = TableRow(this)
-                            val cell1 = TextView(this)
-                            cell1.text = punch.station.toString()
-                            tableRow.addView(cell1)
-                            val cell2 = TextView(this)
-                            cell2.text = punch.timestamp.toString()
-                            tableRow.addView(cell2)
-                            tableLayout.addView(tableRow)
-                        }
+                    }
+                    R.layout.reset_view -> {
+                        punchCard.reset(progressCb)
                     }
                 }
 
                 runOnUiThread {
-                    okEffectPlayer?.start()
+                    okEffectPlayer.start()
                 }
             } catch (ex: IOException) {
                 Log.e(null, "IO exception $ex")
                 runOnUiThread {
-                    failEffectPlayer?.start()
+                    failEffectPlayer.start()
                     Toast.makeText(this, "IOException $ex", Toast.LENGTH_LONG).show()
                 }
             } catch (ex: RuntimeException) {
                 Log.e(null, "Runtime exception $ex")
                 runOnUiThread {
-                    failEffectPlayer?.start()
+                    failEffectPlayer.start()
                     Toast.makeText(this, "RuntimeException $ex", Toast.LENGTH_LONG).show()
                 }
             } finally {
@@ -162,5 +189,27 @@ class MainActivity : AppCompatActivity() {
             }
             mifareClassic.close()
         }
+    }
+
+    private fun getKey(): ByteArray {
+        if (key != null) {
+            return key as ByteArray
+        }
+        key = getKeyHex().chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
+        return key as ByteArray
+    }
+    private fun getKeyHex(): String {
+        val filename = "key.txt"
+
+        val editKey = findViewById<EditText>(R.id.editTextKey)
+        if (editKey != null) {
+            val keyHex: String =
+                editKey.text.append("0".repeat(12 - editKey.text.length)).toString()
+            applicationContext.openFileOutput(filename, Context.MODE_PRIVATE).use {
+                it.write(keyHex.toByteArray())
+            }
+            return keyHex
+        }
+        return applicationContext.openFileInput(filename).bufferedReader().readLine()
     }
 }

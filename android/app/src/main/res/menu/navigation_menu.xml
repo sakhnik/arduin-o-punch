@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_item_format"
+        android:title="Format" />
+
+    <item
+        android:id="@+id/menu_item_clear"
+        android:title="Clear" />
+
+    <item
+        android:id="@+id/menu_item_punch"
+        android:title="Punch" />
+
+    <item
+        android:id="@+id/menu_item_read"
+        android:title="Read" />
+
+    <item
+        android:id="@+id/menu_item_reset"
+        android:title="Reset" />
+</menu>
