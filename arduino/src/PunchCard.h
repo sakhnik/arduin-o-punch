@@ -27,6 +27,9 @@ public:
     uint8_t ReadOut(std::vector<AOP::Punch> &punches, ProgressT progress = &DummyProgress);
 #endif
 
+    // Keep in sync with Android's Puncher
+    static constexpr const auto INDEX_OFFSET = 7;
+
 private:
     uint8_t _Authenticate(uint8_t sector);
 

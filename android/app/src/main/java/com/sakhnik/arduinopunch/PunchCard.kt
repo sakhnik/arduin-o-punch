@@ -7,6 +7,13 @@ const val HEADER_BLOCK = 1
 class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
     private var authSector = -1
 
+    companion object {
+        val MAGIC_OFFSET: Int = 0
+        val ID_OFFSET: Int = 1
+        val TIMESTAMP_OFFSET: Int = 3
+        val INDEX_OFFSET = 7
+    }
+
     init {
         assert(key.size == mifare.keyDefault.size)
     }
@@ -20,7 +27,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         }
     }
 
-    fun prepare(timestamp: Long, progress: (Int, Int) -> Unit = {_, _ -> }) {
+    fun prepare(id: Int, timestamp: Long, progress: (Int, Int) -> Unit = {_, _ -> }) {
         val sectorCount = mifare.sectorCount
         val stages = 2 * sectorCount + 2
 
@@ -57,9 +64,11 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         authenticate(mifare.blockToSector(HEADER_BLOCK))
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         // Format the index
-        header[0] = 1  // magic
-        for (i in 0..3) header[1 + i] = (timestamp shr (i*8)).toByte()
-        header[5] = 1
+        header[MAGIC_OFFSET] = 1  // magic
+        header[ID_OFFSET] = id.toByte()
+        header[ID_OFFSET+1] = (id shr 8).toByte()
+        for (i in 0..3) header[TIMESTAMP_OFFSET + i] = (timestamp shr (i*8)).toByte()
+        header[INDEX_OFFSET] = 1
         mifare.writeBlock(HEADER_BLOCK, header)
         progress(stages, stages)
     }
@@ -106,7 +115,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         progress(1, stages)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         progress(2, stages)
-        val index = header[5].toInt() and 0xff
+        val index = header[INDEX_OFFSET].toInt() and 0xff
         val (block, offset) = getPunchAddr(index - 1)
         authenticate(mifare.blockToSector(block))
         progress(3, stages)
@@ -141,7 +150,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         progress(7, stages)
 
         // 4. update the index
-        header[5] = (index + 1).toByte()
+        header[INDEX_OFFSET] = (index + 1).toByte()
         authenticate(headerSector)
         mifare.writeBlock(HEADER_BLOCK, header)
         progress(stages, stages)
@@ -155,7 +164,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         val headerSector = mifare.blockToSector(HEADER_BLOCK)
         authenticate(headerSector)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
-        val count = header[5].toInt() and 0xff
+        val count = header[INDEX_OFFSET].toInt() and 0xff
 
         var punchBlock: ByteArray? = null
         var prevBlock = -1

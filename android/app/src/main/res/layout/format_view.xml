@@ -18,7 +18,7 @@
 
     <EditText
         android:id="@+id/editTextKey"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:digits="0123456789ABCDEF"
         android:hint="Key (12 hex digits)"
@@ -28,5 +28,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"
         tools:ignore="VisualLintTextFieldSize" />
+
+    <EditText
+        android:id="@+id/editTextId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="ID"
+        android:ems="10"
+        android:inputType="number"
+        android:max="65535"
+        android:maxLength="5"
+        android:min="0"
+        android:padding="16dp"
+        android:text="1"
+        app:layout_constraintTop_toBottomOf="@+id/editTextKey"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

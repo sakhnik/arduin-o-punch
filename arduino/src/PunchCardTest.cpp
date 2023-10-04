@@ -22,8 +22,8 @@ struct TestMifare : AOP::IMifare
             block.fill(0);
         for (int sector = 0; sector < 16; ++sector)
             memcpy(blocks[sector * 4 + 3].data(), DEF_KEY, sizeof(DEF_KEY));
-        blocks[1][5] = 1;
-        blocks[2][0] = 0;
+        blocks[1][PunchCard::INDEX_OFFSET] = 1;
+        blocks[2][0] = 0;  // start punch
     }
 
     uint8_t BlockToSector(uint8_t block) const override

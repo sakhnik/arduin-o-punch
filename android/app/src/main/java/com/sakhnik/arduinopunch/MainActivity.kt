@@ -138,7 +138,11 @@ class MainActivity : AppCompatActivity() {
             }
             try {
                 when (currentView) {
-                    R.layout.format_view -> punchCard.prepare(getTimestamp(), progressCb)
+                    R.layout.format_view -> {
+                        val etId = findViewById<EditText>(R.id.editTextId)
+                        val id = etId.text.toString().toInt()
+                        punchCard.prepare(id, getTimestamp(), progressCb)
+                    }
                     R.layout.punch_view -> {
                         val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
                         punchCard.punch(Punch(station, getTimestamp()), progressCb)

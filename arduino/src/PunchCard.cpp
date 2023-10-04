@@ -27,7 +27,7 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (auto res = _mifare->ReadBlock(HEADER_BLOCK, header, headerSize))
         return res;
     progress(2, stages);
-    uint8_t index = header[5];
+    uint8_t index = header[INDEX_OFFSET];
     auto addr = _GetPunchAddr(index - 1);
     if (auto res = _Authenticate(_mifare->BlockToSector(addr.block)))
         return res;
@@ -76,7 +76,7 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     progress(7, stages);
 
     // 4. update the index
-    header[5] = index + 1;
+    header[INDEX_OFFSET] = index + 1;
     if (auto res = _Authenticate(headerSector))
         return res;
     if (auto res = _mifare->WriteBlock(HEADER_BLOCK, header, IMifare::BLOCK_SIZE))
@@ -99,7 +99,7 @@ uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches, ProgressT progress)
     uint8_t dataSize = sizeof(data);
     if (uint8_t res = _mifare->ReadBlock(HEADER_BLOCK, data, dataSize))
         return res;
-    uint8_t count = data[5];
+    uint8_t count = data[INDEX_OFFSET];
 
     uint8_t prevBlock = -1;
 
