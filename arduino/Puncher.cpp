@@ -8,6 +8,11 @@
 #endif
 
 
+Puncher::Puncher(uint8_t *key_receiver)
+    : _key_receiver{key_receiver}
+{
+}
+
 void Puncher::Setup()
 {
     mfrc522.PCD_Init();  // Init MFRC522 board.
@@ -77,7 +82,7 @@ struct MifareClassic : AOP::IMifare
     }
 };
 
-uint8_t Puncher::Punch()
+uint8_t Puncher::Punch(const uint8_t *key)
 {
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if (!mfrc522.PICC_IsNewCardPresent())
@@ -98,8 +103,7 @@ uint8_t Puncher::Punch()
     }
 
     MifareClassic mifareClassic{mfrc522};
-    static const uint8_t key[6] = {0};
-    AOP::PunchCard punchCard{&mifareClassic, key};
+    AOP::PunchCard punchCard{&mifareClassic, key, _key_receiver};
     uint32_t timestamp = millis() / 1000;
     AOP::Punch punch{13, timestamp};
     auto res = punchCard.Punch(punch);

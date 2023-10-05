@@ -7,8 +7,9 @@
 class Puncher
 {
 public:
+    Puncher(uint8_t *key_receiver = nullptr);
     void Setup();
-    uint8_t Punch();
+    uint8_t Punch(const uint8_t *key);
 
     enum ErrorCodes : uint8_t
     {
@@ -20,6 +21,8 @@ public:
     };
 
 private:
+    uint8_t *_key_receiver;
+
     MFRC522DriverPinSimple ss_pin = 10; // Configurable, see typical pin layout above.
     MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
     MFRC522 mfrc522{driver};  // Create MFRC522 instance.

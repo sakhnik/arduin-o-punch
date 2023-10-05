@@ -1,9 +1,7 @@
 package com.sakhnik.arduinopunch
 
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import org.junit.Assert
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -59,7 +57,7 @@ class PunchCardTest {
     fun prepareReset() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x90.toByte(), 0xab.toByte()))
-        punchCard.prepare(42, 0.toLong())
+        punchCard.prepareRunner(42, 0.toLong())
         punchCard.reset()
     }
 
@@ -67,7 +65,7 @@ class PunchCardTest {
     fun punch() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x90.toByte(), 0xab.toByte()))
-        punchCard.prepare(42, 0.toLong())
+        punchCard.prepareRunner(42, 0.toLong())
         assertEquals(0, punchCard.readOut().size)
         val punches = listOf(Punch(31, 100), Punch(32, 130), Punch(33, 221))
         for (i in 0 until punches.size) {
@@ -88,7 +86,7 @@ class PunchCardTest {
     fun maxPunches() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x90.toByte(), 0xab.toByte()))
-        punchCard.prepare(42, 0.toLong())
+        punchCard.prepareRunner(42, 0.toLong())
 
         val testPunch = {i: Int -> Punch(i + 1, 100.toLong() * (i + 1))}
 

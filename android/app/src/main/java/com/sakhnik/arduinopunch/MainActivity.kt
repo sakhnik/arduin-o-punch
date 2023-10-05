@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
 
             val key = getKey()
             assert(key.size == 6)
-            val punchCard = PunchCard(MifareImpl(mifareClassic), key)
+            val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
             Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
 
             val progress = findViewById<ProgressBar>(R.id.progressBar)
@@ -141,14 +141,24 @@ class MainActivity : AppCompatActivity() {
                     R.layout.format_view -> {
                         val etId = findViewById<EditText>(R.id.editTextId)
                         val id = etId.text.toString().toInt()
-                        punchCard.prepare(id, getTimestamp(), progressCb)
+                        if (id != 0) {
+                            runnerCard.prepareRunner(id, getTimestamp(), progressCb)
+                        } else {
+                            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+                            serviceCard.prepareService(key, getTimestamp(), progressCb)
+                        }
                     }
                     R.layout.punch_view -> {
                         val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
-                        punchCard.punch(Punch(station, getTimestamp()), progressCb)
+                        if (station == 0) {
+                            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+                            serviceCard.punch(Punch(station, getTimestamp()), progressCb)
+                        } else {
+                            runnerCard.punch(Punch(station, getTimestamp()), progressCb)
+                        }
                     }
                     R.layout.read_view -> {
-                        val readOut = punchCard.readOut(progressCb)
+                        val readOut = runnerCard.readOut(progressCb)
                         runOnUiThread {
                             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
                             for (i in tableLayout.childCount - 1 downTo 1) {
@@ -169,7 +179,7 @@ class MainActivity : AppCompatActivity() {
 
                     }
                     R.layout.reset_view -> {
-                        punchCard.reset(progressCb)
+                        runnerCard.reset(progressCb)
                     }
                 }
 

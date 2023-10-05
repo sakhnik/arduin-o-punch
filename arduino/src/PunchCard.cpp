@@ -2,13 +2,17 @@
 
 #ifdef BUILD_TEST
 # include <cassert>
+# include <cstring>
+#else
+# include <Arduino.h>
 #endif
 
 namespace AOP {
 
-PunchCard::PunchCard(IMifare *mifare, const uint8_t *key)
+PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, uint8_t *key_receiver)
     : _mifare{mifare}
     , _key{key}
+    , _key_receiver{key_receiver}
 {
 }
 
@@ -27,6 +31,15 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (auto res = _mifare->ReadBlock(HEADER_BLOCK, header, headerSize))
         return res;
     progress(2, stages);
+    if (header[DESC_OFFSET] == DESC_SERVICE)
+    {
+        int id = static_cast<int>(header[ID_OFFSET]) | (static_cast<int>(header[ID_OFFSET + 1]) << 8);
+        // Service card found, remember the key
+        if (!id && _key_receiver)
+        {
+            memcpy(_key_receiver, header + KEY_OFFSET, 6);
+        }
+    }
     uint8_t index = header[INDEX_OFFSET];
     auto addr = _GetPunchAddr(index - 1);
     if (auto res = _Authenticate(_mifare->BlockToSector(addr.block)))
