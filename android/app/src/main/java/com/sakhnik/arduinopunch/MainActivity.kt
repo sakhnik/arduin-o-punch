@@ -1,7 +1,6 @@
 package com.sakhnik.arduinopunch
 
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.nfc.NfcAdapter
@@ -33,14 +32,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var okEffectPlayer: MediaPlayer
     private lateinit var failEffectPlayer: MediaPlayer
     private var currentView: Int = R.layout.format_view
-    private var key: ByteArray? = null
+    private val storage = Storage(this)
 
     private val menuToLayout = mapOf(
         R.id.menu_item_format to R.layout.format_view,
         R.id.menu_item_clear to R.layout.clear_view,
         R.id.menu_item_punch to R.layout.punch_view,
-        R.id.menu_item_read to R.layout.read_view,
+        R.id.menu_item_read_runner to R.layout.read_runner_view,
         R.id.menu_item_reset to R.layout.reset_view,
+        R.id.menu_item_read_service to R.layout.read_service_view,
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(viewId, container, false)
         container.addView(view)
         if (viewId == R.layout.format_view) {
-            findViewById<EditText>(R.id.editTextKey).setText(getKeyHex())
+            findViewById<EditText>(R.id.editTextKey).setText(storage.getKeyHex())
         }
     }
 
@@ -126,61 +126,13 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            val key = getKey()
-            assert(key.size == 6)
-            val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
-            Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
-
-            val progress = findViewById<ProgressBar>(R.id.progressBar)
-            val progressCb = { n: Int, d: Int ->
-                progress.max = d
-                progress.progress = n
-            }
             try {
                 when (currentView) {
-                    R.layout.format_view -> {
-                        val etId = findViewById<EditText>(R.id.editTextId)
-                        val id = etId.text.toString().toInt()
-                        if (id != 0) {
-                            runnerCard.prepareRunner(id, getTimestamp(), progressCb)
-                        } else {
-                            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
-                            serviceCard.prepareService(key, getTimestamp(), progressCb)
-                        }
-                    }
-                    R.layout.punch_view -> {
-                        val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
-                        if (station == 0) {
-                            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
-                            serviceCard.punch(Punch(station, getTimestamp()), progressCb)
-                        } else {
-                            runnerCard.punch(Punch(station, getTimestamp()), progressCb)
-                        }
-                    }
-                    R.layout.read_view -> {
-                        val readOut = runnerCard.readOut(progressCb)
-                        runOnUiThread {
-                            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
-                            for (i in tableLayout.childCount - 1 downTo 1) {
-                                tableLayout.removeViewAt(i)
-                            }
-
-                            for (punch in readOut) {
-                                val tableRow = TableRow(this)
-                                val cell1 = TextView(this)
-                                cell1.text = punch.station.toString()
-                                tableRow.addView(cell1)
-                                val cell2 = TextView(this)
-                                cell2.text = punch.timestamp.toString()
-                                tableRow.addView(cell2)
-                                tableLayout.addView(tableRow)
-                            }
-                        }
-
-                    }
-                    R.layout.reset_view -> {
-                        runnerCard.reset(progressCb)
-                    }
+                    R.layout.format_view -> formatCard(mifareClassic)
+                    R.layout.punch_view -> punchCard(mifareClassic)
+                    R.layout.read_runner_view -> readRunner(mifareClassic)
+                    R.layout.reset_view -> resetRunner(mifareClassic)
+                    R.layout.read_service_view -> readService(mifareClassic)
                 }
 
                 runOnUiThread {
@@ -190,40 +142,106 @@ class MainActivity : AppCompatActivity() {
                 Log.e(null, "IO exception $ex")
                 runOnUiThread {
                     failEffectPlayer.start()
-                    Toast.makeText(this, "IOException $ex", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "IOException ${ex.message}", Toast.LENGTH_LONG).show()
                 }
             } catch (ex: RuntimeException) {
                 Log.e(null, "Runtime exception $ex")
                 runOnUiThread {
                     failEffectPlayer.start()
-                    Toast.makeText(this, "RuntimeException $ex", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "RuntimeException ${ex.message}", Toast.LENGTH_LONG).show()
                 }
             } finally {
-                progressCb(0, 1)
+                findViewById<ProgressBar>(R.id.progressBar).progress = 0
             }
             mifareClassic.close()
         }
     }
 
-    private fun getKey(): ByteArray {
-        if (key != null) {
-            return key as ByteArray
-        }
-        key = getKeyHex().chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
-        return key as ByteArray
+    private fun setProgress(n: Int, d: Int) {
+        val progress = findViewById<ProgressBar>(R.id.progressBar)
+        progress.max = d
+        progress.progress = n
     }
-    private fun getKeyHex(): String {
-        val filename = "key.txt"
 
-        val editKey = findViewById<EditText>(R.id.editTextKey)
-        if (editKey != null) {
-            val keyHex: String =
-                editKey.text.append("0".repeat(12 - editKey.text.length)).toString()
-            applicationContext.openFileOutput(filename, Context.MODE_PRIVATE).use {
-                it.write(keyHex.toByteArray())
-            }
-            return keyHex
-        }
-        return applicationContext.openFileInput(filename).bufferedReader().readLine()
+    private fun resetRunner(mifareClassic: MifareClassic) {
+        val key = storage.getKey()
+        val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
+        runnerCard.reset(this::setProgress)
     }
+
+    private fun readRunner(mifareClassic: MifareClassic) {
+        val key = storage.getKey()
+        val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
+        
+        val readOut = runnerCard.readOut(this::setProgress)
+        runOnUiThread {
+            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+            for (i in tableLayout.childCount - 1 downTo 1) {
+                tableLayout.removeViewAt(i)
+            }
+
+            for (punch in readOut) {
+                val tableRow = TableRow(this)
+                val cell1 = TextView(this)
+                cell1.text = punch.station.toString()
+                tableRow.addView(cell1)
+                val cell2 = TextView(this)
+                cell2.text = punch.timestamp.toString()
+                tableRow.addView(cell2)
+                tableLayout.addView(tableRow)
+            }
+        }
+    }
+
+    private fun readService(mifareClassic: MifareClassic) {
+        val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+
+        val readOut = serviceCard.readOut(this::setProgress)
+        runOnUiThread {
+            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+            for (i in tableLayout.childCount - 1 downTo 1) {
+                tableLayout.removeViewAt(i)
+            }
+
+            for (punch in readOut) {
+                val tableRow = TableRow(this)
+                val cell1 = TextView(this)
+                cell1.text = punch.station.toString()
+                tableRow.addView(cell1)
+                val cell2 = TextView(this)
+                cell2.text = punch.timestamp.toString()
+                tableRow.addView(cell2)
+                tableLayout.addView(tableRow)
+            }
+        }
+    }
+
+    private fun punchCard(mifareClassic: MifareClassic) {
+        val key = storage.getKey()
+        
+        val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
+        if (station == 0) {
+            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+            serviceCard.punch(Punch(station, getTimestamp()), this::setProgress)
+        } else {
+            val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
+            runnerCard.punch(Punch(station, getTimestamp()), this::setProgress)
+        }
+    }
+
+    private fun formatCard(mifareClassic: MifareClassic) {
+        val key = storage.getKey()
+        Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
+
+        val etId = findViewById<EditText>(R.id.editTextId)
+        val id = etId.text.toString().toInt()
+        if (id != 0) {
+            val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
+            runnerCard.prepareRunner(id, getTimestamp(), this::setProgress)
+        } else {
+            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+            serviceCard.prepareService(key, getTimestamp(), this::setProgress)
+        }
+    }
+
 }

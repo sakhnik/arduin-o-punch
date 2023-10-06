@@ -13,10 +13,14 @@
         android:title="Punch" />
 
     <item
-        android:id="@+id/menu_item_read"
-        android:title="Read" />
+        android:id="@+id/menu_item_read_runner"
+        android:title="Read Runner" />
 
     <item
         android:id="@+id/menu_item_reset"
         android:title="Reset" />
+
+    <item
+        android:id="@+id/menu_item_read_service"
+        android:title="Read Service" />
 </menu>
