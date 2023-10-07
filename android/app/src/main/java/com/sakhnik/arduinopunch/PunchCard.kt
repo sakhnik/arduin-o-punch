@@ -181,6 +181,10 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         return Pair(block, offset)
     }
 
+    private fun getId(header: ByteArray): Int {
+        return header[ID_OFFSET].toInt() or (header[ID_OFFSET + 1].toInt() shl 8)
+    }
+
     fun punch(newPunch: Punch, progress: Progress = noProgress): Boolean {
         val stages = 8
         progress(0, stages)
@@ -192,7 +196,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         progress(2, stages)
         val desc = header[DESC_OFFSET]
-        val id = header[ID_OFFSET].toInt() or (header[ID_OFFSET + 1].toInt() shl 8)
+        val id = getId(header)
         val index = header[INDEX_OFFSET].toInt() and 0xff
         val (block, offset) = getPunchAddr(index - 1)
         authenticate(mifare.blockToSector(block))
@@ -236,13 +240,16 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         return true
     }
 
-    fun readOut(progress: Progress = noProgress): List<Punch> {
+    data class Info(val station: Int, val punches: List<Punch>)
+
+    fun readOut(progress: Progress = noProgress): Info {
         progress(0, 1)
         // Read everything
         // Reconstruct timestamps
         val headerSector = mifare.blockToSector(HEADER_BLOCK)
         authenticate(headerSector)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
+        val id = getId(header)
         val count = header[INDEX_OFFSET].toInt() and 0xff
 
         var punchBlock: ByteArray? = null
@@ -260,6 +267,6 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
             punches.add(Punch(punchBlock as ByteArray, offset))
         }
         progress(count, count)
-        return punches
+        return Info(id, punches)
     }
 }

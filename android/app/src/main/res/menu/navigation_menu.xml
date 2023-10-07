@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/menu_item_format"
-        android:title="Format" />
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item
-        android:id="@+id/menu_item_clear"
-        android:title="Clear" />
+    <group android:id="@+id/menu_group_runner" >
+        <item
+            android:id="@+id/menu_item_format"
+            android:title="Format Runner" />
 
-    <item
-        android:id="@+id/menu_item_punch"
-        android:title="Punch" />
+        <item
+            android:id="@+id/menu_item_clear"
+            android:title="Clear" />
 
-    <item
-        android:id="@+id/menu_item_read_runner"
-        android:title="Read Runner" />
+        <item
+            android:id="@+id/menu_item_punch"
+            android:title="Punch" />
 
-    <item
-        android:id="@+id/menu_item_reset"
-        android:title="Reset" />
+        <item
+            android:id="@+id/menu_item_read_runner"
+            android:title="Read Runner" />
 
-    <item
-        android:id="@+id/menu_item_read_service"
-        android:title="Read Service" />
+        <item
+            android:id="@+id/menu_item_reset"
+            android:title="Reset" />
+    </group>
+
+    <group android:id="@+id/menu_group_service" >
+        <item
+            android:id="@+id/menu_item_format_service"
+            android:title="Format Service" />
+
+        <item
+            android:id="@+id/menu_item_punch_service"
+            android:title="Punch Service" />
+
+        <item
+            android:id="@+id/menu_item_read_service"
+            android:title="Read Service" />
+    </group>
 </menu>

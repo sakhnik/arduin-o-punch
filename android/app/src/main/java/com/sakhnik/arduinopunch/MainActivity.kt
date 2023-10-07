@@ -9,6 +9,7 @@ import android.nfc.tech.MifareClassic
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ProgressBar
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var failEffectPlayer: MediaPlayer
     private var currentView: Int = R.layout.format_view
     private val storage = Storage(this)
+    private val clockOffsets = ClockOffsets()
 
     private val menuToLayout = mapOf(
         R.id.menu_item_format to R.layout.format_view,
@@ -40,6 +42,8 @@ class MainActivity : AppCompatActivity() {
         R.id.menu_item_punch to R.layout.punch_view,
         R.id.menu_item_read_runner to R.layout.read_runner_view,
         R.id.menu_item_reset to R.layout.reset_view,
+        R.id.menu_item_format_service to R.layout.format_service_view,
+        R.id.menu_item_punch_service to R.layout.punch_service_view,
         R.id.menu_item_read_service to R.layout.read_service_view,
     )
 
@@ -74,8 +78,14 @@ class MainActivity : AppCompatActivity() {
         container.removeAllViews()
         val view = layoutInflater.inflate(viewId, container, false)
         container.addView(view)
-        if (viewId == R.layout.format_view) {
+        if (viewId == R.layout.format_view || viewId == R.layout.format_service_view) {
             findViewById<EditText>(R.id.editTextKey).setText(storage.getKeyHex())
+        } else if (viewId == R.layout.read_service_view) {
+            showClockOffsets()
+            findViewById<Button>(R.id.button_clear_clocks).setOnClickListener {
+                clockOffsets.offsets.clear()
+                showClockOffsets()
+            }
         }
     }
 
@@ -128,10 +138,12 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 when (currentView) {
-                    R.layout.format_view -> formatCard(mifareClassic)
-                    R.layout.punch_view -> punchCard(mifareClassic)
+                    R.layout.format_view -> formatRunner(mifareClassic)
+                    R.layout.punch_view -> punchRunner(mifareClassic)
                     R.layout.read_runner_view -> readRunner(mifareClassic)
                     R.layout.reset_view -> resetRunner(mifareClassic)
+                    R.layout.format_service_view -> formatService(mifareClassic)
+                    R.layout.punch_service_view -> punchService(mifareClassic)
                     R.layout.read_service_view -> readService(mifareClassic)
                 }
 
@@ -172,21 +184,24 @@ class MainActivity : AppCompatActivity() {
     private fun readRunner(mifareClassic: MifareClassic) {
         val key = storage.getKey()
         val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
-        
         val readOut = runnerCard.readOut(this::setProgress)
         runOnUiThread {
+            findViewById<TextView>(R.id.textViewStation).text = readOut.station.toString()
+
             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
             for (i in tableLayout.childCount - 1 downTo 1) {
                 tableLayout.removeViewAt(i)
             }
 
-            for (punch in readOut) {
+            for (punch in readOut.punches) {
+                val offset = clockOffsets.offsets.getOrDefault(punch.station, 0)
+                val timestamp = punch.timestamp + offset
                 val tableRow = TableRow(this)
                 val cell1 = TextView(this)
                 cell1.text = punch.station.toString()
                 tableRow.addView(cell1)
                 val cell2 = TextView(this)
-                cell2.text = punch.timestamp.toString()
+                cell2.text = timestamp.toString()
                 tableRow.addView(cell2)
                 tableLayout.addView(tableRow)
             }
@@ -197,39 +212,45 @@ class MainActivity : AppCompatActivity() {
         val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
 
         val readOut = serviceCard.readOut(this::setProgress)
+        clockOffsets.process(readOut.punches)
         runOnUiThread {
-            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
-            for (i in tableLayout.childCount - 1 downTo 1) {
-                tableLayout.removeViewAt(i)
-            }
-
-            for (punch in readOut) {
-                val tableRow = TableRow(this)
-                val cell1 = TextView(this)
-                cell1.text = punch.station.toString()
-                tableRow.addView(cell1)
-                val cell2 = TextView(this)
-                cell2.text = punch.timestamp.toString()
-                tableRow.addView(cell2)
-                tableLayout.addView(tableRow)
-            }
+            showClockOffsets()
         }
     }
 
-    private fun punchCard(mifareClassic: MifareClassic) {
+    private fun showClockOffsets() {
+        val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+        for (i in tableLayout.childCount - 1 downTo 1) {
+            tableLayout.removeViewAt(i)
+        }
+
+        for ((station, offset) in clockOffsets.offsets) {
+            val tableRow = TableRow(this)
+            val cell1 = TextView(this)
+            cell1.text = station.toString()
+            tableRow.addView(cell1)
+            val cell2 = TextView(this)
+            cell2.text = offset.toString()
+            tableRow.addView(cell2)
+            tableLayout.addView(tableRow)
+        }
+    }
+
+    private fun punchRunner(mifareClassic: MifareClassic) {
         val key = storage.getKey()
-        
         val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
-        if (station == 0) {
-            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
-            serviceCard.punch(Punch(station, getTimestamp()), this::setProgress)
-        } else {
+        if (station != 0) {
             val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
             runnerCard.punch(Punch(station, getTimestamp()), this::setProgress)
         }
     }
 
-    private fun formatCard(mifareClassic: MifareClassic) {
+    private fun punchService(mifareClassic: MifareClassic) {
+        val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+        serviceCard.punch(Punch(0, getTimestamp()), this::setProgress)
+    }
+
+    private fun formatRunner(mifareClassic: MifareClassic) {
         val key = storage.getKey()
         Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
 
@@ -238,10 +259,14 @@ class MainActivity : AppCompatActivity() {
         if (id != 0) {
             val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
             runnerCard.prepareRunner(id, getTimestamp(), this::setProgress)
-        } else {
-            val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
-            serviceCard.prepareService(key, getTimestamp(), this::setProgress)
         }
     }
 
+    private fun formatService(mifareClassic: MifareClassic) {
+        val key = storage.getKey()
+        Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
+
+        val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+        serviceCard.prepareService(key, getTimestamp(), this::setProgress)
+    }
 }

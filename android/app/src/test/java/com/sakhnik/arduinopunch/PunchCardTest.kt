@@ -66,18 +66,18 @@ class PunchCardTest {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x90.toByte(), 0xab.toByte()))
         punchCard.prepareRunner(42, 0.toLong())
-        assertEquals(0, punchCard.readOut().size)
+        assertEquals(0, punchCard.readOut().punches.size)
         val punches = listOf(Punch(31, 100), Punch(32, 130), Punch(33, 221))
-        for (i in 0 until punches.size) {
+        for (i in punches.indices) {
             assertTrue(punchCard.punch(punches[i]))
-            val readOut = punchCard.readOut()
+            val readOut = punchCard.readOut().punches
             assertEquals(i + 1, readOut.size)
             assertEquals(punches[i], readOut[i])
         }
 
         val readOut = punchCard.readOut()
-        assertEquals(punches.size, readOut.size)
-        assertEquals(punches, readOut)
+        assertEquals(punches.size, readOut.punches.size)
+        assertEquals(punches, readOut.punches)
 
         punchCard.reset()
     }
@@ -101,7 +101,7 @@ class PunchCardTest {
 
         val readOut = punchCard.readOut()
         for (i in 0 until maxPunches) {
-            assertEquals(testPunch(i), readOut[i])
+            assertEquals(testPunch(i), readOut.punches[i])
         }
 
         punchCard.reset()
