@@ -23,4 +23,10 @@ class ClockOffsets {
             }
         }
     }
+
+    fun applyTo(punches: List<Punch>): List<Punch> {
+        return punches.map {
+            Punch(it.station, it.timestamp + offsets.getOrDefault(it.station, 0))
+        }
+    }
 }

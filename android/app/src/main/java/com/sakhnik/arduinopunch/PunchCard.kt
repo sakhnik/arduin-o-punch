@@ -240,7 +240,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         return true
     }
 
-    data class Info(val station: Int, val punches: List<Punch>)
+    data class Info(val cardNumber: Int, val punches: List<Punch>)
 
     fun readOut(progress: Progress = noProgress): Info {
         progress(0, 1)

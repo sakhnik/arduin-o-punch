@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ProgressBar
@@ -122,7 +123,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getTimestamp(): Long {
-        return Duration.between(LocalTime.of(8, 0), LocalTime.now()).seconds
+        return Duration.between(LocalTime.of(Uploader.START_HOUR, 0), LocalTime.now()).seconds
     }
 
     private fun handleMifare(mifare: MifareClassic?) {
@@ -184,9 +185,17 @@ class MainActivity : AppCompatActivity() {
     private fun readRunner(mifareClassic: MifareClassic) {
         val key = storage.getKey()
         val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
-        val readOut = runnerCard.readOut(this::setProgress)
+        var readOut = runnerCard.readOut(this::setProgress)
+        // Adjust timestamps from the arduino stations
+        readOut = PunchCard.Info(readOut.cardNumber, clockOffsets.applyTo(readOut.punches))
+
+        if (findViewById<CheckBox>(R.id.checkBoxUpload).isChecked) {
+            val url = findViewById<EditText>(R.id.editTextUploadUrl).text.toString()
+            Uploader(this).upload(readOut, url)
+        }
+
         runOnUiThread {
-            findViewById<TextView>(R.id.textViewStation).text = readOut.station.toString()
+            findViewById<TextView>(R.id.textViewCardNumber).text = readOut.cardNumber.toString()
 
             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
             for (i in tableLayout.childCount - 1 downTo 1) {
@@ -194,14 +203,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             for (punch in readOut.punches) {
-                val offset = clockOffsets.offsets.getOrDefault(punch.station, 0)
-                val timestamp = punch.timestamp + offset
                 val tableRow = TableRow(this)
                 val cell1 = TextView(this)
                 cell1.text = punch.station.toString()
                 tableRow.addView(cell1)
                 val cell2 = TextView(this)
-                cell2.text = timestamp.toString()
+                cell2.text = punch.timestamp.toString()
                 tableRow.addView(cell2)
                 tableLayout.addView(tableRow)
             }
@@ -251,7 +258,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun formatRunner(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = storage.checkKeyUpdate()
         Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
 
         val etId = findViewById<EditText>(R.id.editTextId)
@@ -263,9 +270,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun formatService(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = storage.checkKeyUpdate()
         Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
-
         val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
         serviceCard.prepareService(key, getTimestamp(), this::setProgress)
     }

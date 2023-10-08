@@ -105,7 +105,7 @@ uint8_t Puncher::Punch(const uint8_t *key)
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, key, _key_receiver};
     uint32_t timestamp = millis() / 1000;
-    AOP::Punch punch{13, timestamp};
+    AOP::Punch punch{55, timestamp};
     auto res = punchCard.Punch(punch);
 #if ENABLE_SERIAL
     Serial.print(F("Punch result: "));

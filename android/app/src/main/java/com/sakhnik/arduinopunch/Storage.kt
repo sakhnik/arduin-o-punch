@@ -3,10 +3,15 @@ package com.sakhnik.arduinopunch
 import android.content.Context
 import android.widget.EditText
 import androidx.activity.ComponentActivity
+import java.io.FileNotFoundException
 
 class Storage(private val activity: ComponentActivity) {
 
     private var key: ByteArray? = null
+
+    companion object {
+        private val FILENAME = "key.txt"
+    }
 
     fun getKey(): ByteArray {
         if (key != null) {
@@ -17,17 +22,22 @@ class Storage(private val activity: ComponentActivity) {
     }
 
     fun getKeyHex(): String {
-        val filename = "key.txt"
-
-        val editKey = activity.findViewById<EditText>(R.id.editTextKey)
-        if (editKey != null) {
-            val keyHex: String =
-                editKey.text.append("0".repeat(12 - editKey.text.length)).toString()
-            activity.applicationContext.openFileOutput(filename, Context.MODE_PRIVATE).use {
-                it.write(keyHex.toByteArray())
-            }
-            return keyHex
+        try {
+            return activity.applicationContext.openFileInput(FILENAME).bufferedReader().readLine()
+        } catch (ex: FileNotFoundException) {
+            return "0".repeat(12)
         }
-        return activity.applicationContext.openFileInput(filename).bufferedReader().readLine()
+    }
+
+    fun checkKeyUpdate(): ByteArray {
+        val editKey = activity.findViewById<EditText>(R.id.editTextKey)
+        val keyFromInput = editKey.text.append("0".repeat(12 - editKey.text.length)).toString()
+        if (keyFromInput != getKeyHex()) {
+            key = null
+            activity.applicationContext.openFileOutput(FILENAME, Context.MODE_PRIVATE).use {
+                it.write(keyFromInput.toByteArray())
+            }
+        }
+        return getKey()
     }
 }
