@@ -1,6 +1,7 @@
 package com.sakhnik.arduinopunch
 
 import android.nfc.tech.MifareClassic
+import kotlin.experimental.xor
 
 const val HEADER_BLOCK = 1
 
@@ -8,16 +9,17 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
     private var authSector = -1
 
     companion object {
-        val DESC_OFFSET: Int = 0
-        val DESC_RUNNER: Byte = 1
-        val DESC_SERVICE: Byte = 2
+        const val DESC_OFFSET: Int = 0
+        const val DESC_RUNNER: Byte = 1
+        const val DESC_SERVICE: Byte = 2
 
-        val ID_OFFSET: Int = 1
-        val SERVICE_ID: Int = 0
+        const val ID_OFFSET: Int = 1
+        const val SERVICE_ID: Int = 0
 
-        val TIMESTAMP_OFFSET: Int = 3
-        val INDEX_OFFSET = 7
-        val KEY_OFFSET = 8
+        const val TIMESTAMP_OFFSET: Int = 3
+        const val XOR_OFFSET: Int = 7   // Xor sum of the previous header bytes to make the service card more distinctive
+        const val INDEX_OFFSET = 8
+        const val KEY_OFFSET = 9
     }
 
     init {
@@ -37,23 +39,23 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         val procedure = Procedure()
 
         // Check and configure the card setting KeyA into all sectors
-        procedure.add(mifare.sectorCount) { prog ->
-            checkDefaultKeyUsable(prog)
+        procedure.add(mifare.sectorCount) { p ->
+            checkDefaultKeyUsable(p)
         }
 
         // If the desired key is different from the default, update the key
         if (!key.contentEquals(mifare.keyDefault)) {
-            procedure.add(mifare.sectorCount) { prog ->
-                writeNewKey(prog)
+            procedure.add(mifare.sectorCount) { p ->
+                writeNewKey(p)
             }
         }
 
-        procedure.add(1) { prog ->
-            writeInitialPunch(timestamp, prog)
+        procedure.add(1) { p ->
+            writeInitialPunch(timestamp, p)
         }
 
-        procedure.add(1) { prog ->
-            writeRunnerHeader(prog, id, timestamp)
+        procedure.add(1) { p ->
+            writeRunnerHeader(p, id, timestamp)
         }
 
         procedure.run(progress)
@@ -70,23 +72,23 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         val procedure = Procedure()
 
         // Check and configure the card setting KeyA into all sectors
-        procedure.add(mifare.sectorCount) { prog ->
-            checkDefaultKeyUsable(prog)
+        procedure.add(mifare.sectorCount) { p ->
+            checkDefaultKeyUsable(p)
         }
 
-        procedure.add(1) { prog ->
-            writeInitialPunch(timestamp, prog)
+        procedure.add(1) { p ->
+            writeInitialPunch(timestamp, p)
         }
 
-        procedure.add(1) { prog ->
-            writeServiceHeader(newKey, timestamp, prog)
+        procedure.add(1) { p ->
+            writeServiceHeader(newKey, timestamp, p)
         }
 
         procedure.run(progress)
     }
 
-    private fun writeRunnerHeader(prog: Progress, id: Int, timestamp: Long) {
-        prog(0, 1)
+    private fun writeRunnerHeader(progress: Progress, id: Int, timestamp: Long) {
+        progress(0, 1)
         authenticate(mifare.blockToSector(HEADER_BLOCK))
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         // Format the index
@@ -94,13 +96,14 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         header[ID_OFFSET] = id.toByte()
         header[ID_OFFSET + 1] = (id shr 8).toByte()
         for (i in 0..3) header[TIMESTAMP_OFFSET + i] = (timestamp shr (i * 8)).toByte()
+        header[XOR_OFFSET] = calculateXorSum(header, XOR_OFFSET)
         header[INDEX_OFFSET] = 1
         mifare.keyDefault.copyInto(header, KEY_OFFSET)
         mifare.writeBlock(HEADER_BLOCK, header)
     }
 
-    private fun writeServiceHeader(newKey: ByteArray, timestamp: Long, prog: Progress) {
-        prog(0, 1)
+    private fun writeServiceHeader(newKey: ByteArray, timestamp: Long, progress: Progress) {
+        progress(0, 1)
         authenticate(mifare.blockToSector(HEADER_BLOCK))
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         // Format the index
@@ -108,13 +111,22 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         header[ID_OFFSET] = SERVICE_ID.toByte()
         header[ID_OFFSET + 1] = (SERVICE_ID shr 8).toByte()
         for (i in 0..3) header[TIMESTAMP_OFFSET + i] = (timestamp shr (i * 8)).toByte()
+        header[XOR_OFFSET] = calculateXorSum(header, XOR_OFFSET)
         header[INDEX_OFFSET] = 1
         newKey.copyInto(header, KEY_OFFSET)
         mifare.writeBlock(HEADER_BLOCK, header)
     }
 
-    private fun writeInitialPunch(timestamp: Long, prog: Progress) {
-        prog(0, 1)
+    private fun calculateXorSum(header: ByteArray, count: Int): Byte {
+        var res: Byte = 0
+        for (i in 0 until count) {
+            res = res xor header[i]
+        }
+        return res
+    }
+
+    private fun writeInitialPunch(timestamp: Long, progress: Progress) {
+        progress(0, 1)
         val (block, offset) = getPunchAddr(0)
         authenticate(mifare.blockToSector(block))
         val punchBlock = mifare.readBlock(block)
@@ -123,9 +135,9 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         mifare.writeBlock(block, punchBlock)
     }
 
-    private fun writeNewKey(prog: Progress) {
+    private fun writeNewKey(progress: Progress) {
         for (sector in 0 until mifare.sectorCount) {
-            prog(sector, mifare.sectorCount)
+            progress(sector, mifare.sectorCount)
             if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
                 if (!mifare.authenticateSectorWithKeyA(sector, key)) {
                     throw RuntimeException("Failed to authenticate to sector $sector with either default or our key")
@@ -138,9 +150,9 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         }
     }
 
-    private fun checkDefaultKeyUsable(prog: Progress) {
+    private fun checkDefaultKeyUsable(progress: Progress) {
         for (sector in 0 until mifare.sectorCount) {
-            prog(sector, mifare.sectorCount)
+            progress(sector, mifare.sectorCount)
             if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)
                 && !mifare.authenticateSectorWithKeyA(sector, key)
             ) {
@@ -194,6 +206,9 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         authenticate(headerSector)
         progress(1, stages)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
+        if (calculateXorSum(header, XOR_OFFSET + 1) != 0.toByte()) {
+            throw RuntimeException("Bad checksum")
+        }
         progress(2, stages)
         val desc = header[DESC_OFFSET]
         val id = getId(header)
@@ -249,6 +264,9 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         val headerSector = mifare.blockToSector(HEADER_BLOCK)
         authenticate(headerSector)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
+        if (calculateXorSum(header, XOR_OFFSET + 1) != 0.toByte()) {
+            throw RuntimeException("Bad checksum")
+        }
         val id = getId(header)
         val count = header[INDEX_OFFSET].toInt() and 0xff
 

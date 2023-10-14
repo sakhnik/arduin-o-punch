@@ -1,4 +1,5 @@
 #include "PunchCard.h"
+#include "ErrorCode.h"
 
 #ifdef BUILD_TEST
 # include <cassert>
@@ -16,7 +17,7 @@ PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, uint8_t *key_receiver)
 {
 }
 
-uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
+ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
 {
     uint8_t stages = 8;
     progress(0, stages);
@@ -29,6 +30,8 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
     uint8_t headerSize = sizeof(header);
     if (auto res = _mifare->ReadBlock(HEADER_BLOCK, header, headerSize))
+        return res;
+    if (auto res = _CheckIntegrity(header))
         return res;
     progress(2, stages);
     if (header[DESC_OFFSET] == DESC_SERVICE)
@@ -57,7 +60,7 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (prevPunch.GetStation() == punch.GetStation())
     {
         progress(stages, stages);
-        return 0;
+        return ErrorCode::OK;
     }
 
     // 3. write the next record
@@ -71,7 +74,7 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     else
     {
         if (newAddr.block >= IMifare::BLOCK_COUNT)
-            return 1;  // The card is full
+            return ErrorCode::CARD_IS_FULL;
 #ifdef BUILD_TEST
         assert(newAddr.offset == 0);
 #endif // BUILD_TEST
@@ -95,7 +98,15 @@ uint8_t PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (auto res = _mifare->WriteBlock(HEADER_BLOCK, header, IMifare::BLOCK_SIZE))
         return res;
     progress(stages, stages);
-    return 0;
+    return ErrorCode::OK;
+}
+
+uint8_t PunchCard::_CheckIntegrity(const uint8_t *header)
+{
+    uint8_t res{0};
+    for (auto end = header + XOR_OFFSET + 1; header != end; ++header)
+        res ^= *header;
+    return res ? ErrorCode::BAD_CHECKSUM : ErrorCode::OK;
 }
 
 #ifdef BUILD_TEST

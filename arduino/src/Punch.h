@@ -9,6 +9,12 @@ class Punch
 public:
     static const int STORAGE_SIZE = 4;
 
+    // Keep in sync with Android's Puncher
+    //
+    // Punch format:
+    // 0     | 1     | 2     | 3     |
+    // STA-N | TIMEL | TIMEH | ......|
+
     Punch(int station, uint32_t timestamp)
         : _station{station}
         , _timestamp{timestamp}

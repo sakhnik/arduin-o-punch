@@ -82,24 +82,24 @@ struct MifareClassic : AOP::IMifare
     }
 };
 
-uint8_t Puncher::Punch(const uint8_t *key)
+ErrorCode Puncher::Punch(const uint8_t *key)
 {
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if (!mfrc522.PICC_IsNewCardPresent())
     {
-        return E_NO_CARD;
+        return ErrorCode::NO_CARD;
     }
 
     // Select one of the cards.
     if (!mfrc522.PICC_ReadCardSerial())
     {
-        return E_NO_SERIAL;
+        return ErrorCode::NO_SERIAL;
     }
 
     if (MFRC522Constants::PICC_TYPE_MIFARE_1K != mfrc522.PICC_GetType(mfrc522.uid.sak))
     {
         mfrc522.PICC_HaltA();
-        return E_WRONG_CARD;
+        return ErrorCode::WRONG_CARD;
     }
 
     MifareClassic mifareClassic{mfrc522};

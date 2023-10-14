@@ -89,7 +89,7 @@ TEST_CASE("PunchCard max punches")
         CHECK(0 == punchCard.Punch(testPunch(i)));
     }
     // No more space
-    REQUIRE(1 == punchCard.Punch(Punch(1, 65000)));
+    REQUIRE(ErrorCode::CARD_IS_FULL == punchCard.Punch(Punch(1, 65000)));
 
     std::vector<Punch> readOut;
     REQUIRE(0 == punchCard.ReadOut(readOut));

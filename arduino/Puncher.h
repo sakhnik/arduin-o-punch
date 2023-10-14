@@ -3,22 +3,14 @@
 #include <MFRC522v2.h>
 #include <MFRC522DriverSPI.h>
 #include <MFRC522DriverPinSimple.h>
+#include "src/ErrorCode.h"
 
 class Puncher
 {
 public:
     Puncher(uint8_t *key_receiver = nullptr);
     void Setup();
-    uint8_t Punch(const uint8_t *key);
-
-    enum ErrorCodes : uint8_t
-    {
-        E_OK = 0,
-
-        E_NO_CARD = 0x80,
-        E_NO_SERIAL,
-        E_WRONG_CARD,
-    };
+    ErrorCode Punch(const uint8_t *key);
 
 private:
     uint8_t *_key_receiver;
