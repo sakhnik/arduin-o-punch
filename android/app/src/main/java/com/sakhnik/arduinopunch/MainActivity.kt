@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var failEffectPlayer: MediaPlayer
     private var currentView: Int = R.layout.format_view
     private val storage = Storage(this)
-    private val clockOffsets = ClockOffsets()
+    private val clockOffsets = ClockOffsets(storage)
 
     private val menuToLayout = mapOf(
         R.id.menu_item_format to R.layout.format_view,
@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        clockOffsets.init()
 
         val navigationView = findViewById<NavigationView>(R.id.navigationView)
 
@@ -84,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         } else if (viewId == R.layout.read_service_view) {
             showClockOffsets()
             findViewById<Button>(R.id.button_clear_clocks).setOnClickListener {
-                clockOffsets.offsets.clear()
+                clockOffsets.clear()
                 showClockOffsets()
             }
         }
@@ -231,7 +233,7 @@ class MainActivity : AppCompatActivity() {
             tableLayout.removeViewAt(i)
         }
 
-        for ((station, offset) in clockOffsets.offsets) {
+        clockOffsets.forEach { station, offset ->
             val tableRow = TableRow(this)
             val cell1 = TextView(this)
             cell1.text = station.toString()

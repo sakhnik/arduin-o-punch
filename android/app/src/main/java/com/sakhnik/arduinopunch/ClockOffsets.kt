@@ -3,8 +3,23 @@ package com.sakhnik.arduinopunch
 import java.util.TreeMap
 import kotlin.math.roundToInt
 
-class ClockOffsets {
-    val offsets: MutableMap<Int, Long> = TreeMap()
+typealias OffsetsT = MutableMap<Int, Long>
+
+class ClockOffsets(private val storage: Storage) {
+    private val offsets: OffsetsT = TreeMap()
+
+    fun init() {
+        storage.restoreClockOffsets(offsets)
+    }
+
+    fun forEach(action: (Int, Long) -> Unit): Unit {
+        offsets.forEach(action)
+    }
+
+    fun clear() {
+        offsets.clear()
+        storage.storeClockOffsets(offsets)
+    }
 
     fun process(punches: List<Punch>) {
         var start = 0
@@ -22,6 +37,7 @@ class ClockOffsets {
                 start = i
             }
         }
+        storage.storeClockOffsets(offsets)
     }
 
     fun applyTo(punches: List<Punch>): List<Punch> {
