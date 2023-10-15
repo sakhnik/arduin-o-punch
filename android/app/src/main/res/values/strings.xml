@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Arduin-o-punch</string>
+    <string name="navigation_drawer_open">Navigation drawer open</string>
+    <string name="navigation_drawer_close">Navigation drawer close</string>
 </resources>

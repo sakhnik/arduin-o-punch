@@ -9,6 +9,7 @@ import android.nfc.tech.MifareClassic
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -18,7 +19,11 @@ import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -52,9 +57,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.ic_menu)
+        }
+        val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
+        val toggle = ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
         clockOffsets.init()
 
-        val navigationView = findViewById<NavigationView>(R.id.navigationView)
+        val navigationView = findViewById<NavigationView>(R.id.navigation_view)
 
         navigationView.setNavigationItemSelectedListener { menuItem ->
             val viewId = menuToLayout.getOrDefault(menuItem.itemId, currentView)
@@ -76,8 +90,22 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        if (id == android.R.id.home) {
+            val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun setActiveView(viewId: Int) {
-        val container = findViewById<FrameLayout>(R.id.container)
+        val container = findViewById<FrameLayout>(R.id.main_content)
         container.removeAllViews()
         val view = layoutInflater.inflate(viewId, container, false)
         container.addView(view)
