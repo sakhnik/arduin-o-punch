@@ -71,6 +71,9 @@ class MainActivity : AppCompatActivity() {
         val navigationView = findViewById<NavigationView>(R.id.navigation_view)
 
         navigationView.setNavigationItemSelectedListener { menuItem ->
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            }
             val viewId = menuToLayout.getOrDefault(menuItem.itemId, currentView)
             currentView = viewId
             setActiveView(viewId)
