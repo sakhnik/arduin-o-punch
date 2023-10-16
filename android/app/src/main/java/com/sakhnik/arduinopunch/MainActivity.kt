@@ -21,7 +21,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
@@ -173,6 +172,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 when (currentView) {
                     R.layout.format_view -> formatRunner(mifareClassic)
+                    R.layout.clear_view -> clearRunner(mifareClassic)
                     R.layout.punch_view -> punchRunner(mifareClassic)
                     R.layout.read_runner_view -> readRunner(mifareClassic)
                     R.layout.reset_view -> resetRunner(mifareClassic)
@@ -188,13 +188,13 @@ class MainActivity : AppCompatActivity() {
                 Log.e(null, "IO exception $ex")
                 runOnUiThread {
                     failEffectPlayer.start()
-                    Toast.makeText(this, "IOException ${ex.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "${ex.message}", Toast.LENGTH_LONG).show()
                 }
             } catch (ex: RuntimeException) {
                 Log.e(null, "Runtime exception $ex")
                 runOnUiThread {
                     failEffectPlayer.start()
-                    Toast.makeText(this, "RuntimeException ${ex.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "${ex.message}", Toast.LENGTH_LONG).show()
                 }
             } finally {
                 findViewById<ProgressBar>(R.id.progressBar).progress = 0
@@ -288,6 +288,12 @@ class MainActivity : AppCompatActivity() {
     private fun punchService(mifareClassic: MifareClassic) {
         val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
         serviceCard.punch(Punch(0, getTimestamp()), this::setProgress)
+    }
+
+    private fun clearRunner(mifareClassic: MifareClassic) {
+        val key = storage.getKey()
+        val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
+        runnerCard.clear(this::setProgress)
     }
 
     private fun formatRunner(mifareClassic: MifareClassic) {

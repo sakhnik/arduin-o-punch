@@ -35,6 +35,29 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         }
     }
 
+    // Clear the card before the start without changing the format information
+    fun clear(progress: Progress = noProgress) {
+        val stages = 3
+        progress(0, stages)
+
+        // 1. read the header
+        val headerSector = mifare.blockToSector(HEADER_BLOCK)
+        authenticate(headerSector)
+        progress(1, stages)
+        val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
+        if (calculateXorSum(header, XOR_OFFSET + 1) != 0.toByte()) {
+            throw RuntimeException("Bad checksum")
+        }
+        progress(2, stages)
+
+        // Reset the index
+        header[INDEX_OFFSET] = 1
+
+        // Write the header back
+        mifare.writeBlock(HEADER_BLOCK, header)
+        progress(3, stages)
+    }
+
     fun prepareRunner(id: Int, timestamp: Long, progress: Progress = noProgress) {
         val procedure = Procedure()
 
