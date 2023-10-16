@@ -100,4 +100,24 @@ TEST_CASE("PunchCard max punches")
     }
 }
 
+TEST_CASE("PunchCard Clear")
+{
+    TestMifare mifare;
+    PunchCard punchCard(&mifare, DEF_KEY);
+
+    std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130)};
+    for (int i = 0; i != punches.size(); ++i)
+    {
+        CHECK(0 == punchCard.Punch(punches[i]));
+    }
+
+    std::vector<Punch> readOut;
+    CHECK(0 == punchCard.ReadOut(readOut));
+    CHECK(punches == readOut);
+
+    punchCard.Clear();
+    CHECK(0 == punchCard.ReadOut(readOut));
+    CHECK(0 == readOut.size());
+}
+
 #endif //BUILD_TEST

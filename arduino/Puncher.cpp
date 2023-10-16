@@ -107,6 +107,8 @@ ErrorCode Puncher::Punch(const uint8_t *key)
     uint32_t timestamp = millis() / 1000;
     AOP::Punch punch{55, timestamp};
     auto res = punchCard.Punch(punch);
+    // The station could be configured to clear a card
+    //auto res = punchCard.Clear();
 #if ENABLE_SERIAL
     Serial.print(F("Punch result: "));
     Serial.println(static_cast<int>(res));

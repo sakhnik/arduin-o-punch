@@ -101,6 +101,35 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     return ErrorCode::OK;
 }
 
+ErrorCode PunchCard::Clear(ProgressT progress)
+{
+    uint8_t stages = 3;
+    progress(0, stages);
+
+    // 1. read the header
+    auto headerSector = _mifare->BlockToSector(HEADER_BLOCK);
+    if (auto res = _Authenticate(headerSector))
+        return res;
+    progress(1, stages);
+    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
+    uint8_t headerSize = sizeof(header);
+    if (auto res = _mifare->ReadBlock(HEADER_BLOCK, header, headerSize))
+        return res;
+    if (auto res = _CheckIntegrity(header))
+        return res;
+    progress(2, stages);
+
+    // Reset the index
+    header[INDEX_OFFSET] = 1;
+
+    // Write the header back
+    if (auto res = _mifare->WriteBlock(HEADER_BLOCK, header, IMifare::BLOCK_SIZE))
+        return res;
+
+    progress(stages, stages);
+    return ErrorCode::OK;
+}
+
 uint8_t PunchCard::_CheckIntegrity(const uint8_t *header)
 {
     uint8_t res{0};

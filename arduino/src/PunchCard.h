@@ -38,7 +38,11 @@ public:
     static void DummyProgress(uint8_t, uint8_t) { }
     using ProgressT = decltype(&DummyProgress);
 
+    // Punch a card with the given information about station and timestamp 
     ErrorCode Punch(Punch punch, ProgressT progress = &DummyProgress);
+
+    // Clear previous punches from a card
+    ErrorCode Clear(ProgressT progress = &DummyProgress);
 
 #ifdef BUILD_TEST
     uint8_t ReadOut(std::vector<AOP::Punch> &punches, ProgressT progress = &DummyProgress);
