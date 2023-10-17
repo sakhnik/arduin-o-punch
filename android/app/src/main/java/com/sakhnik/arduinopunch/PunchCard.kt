@@ -4,12 +4,12 @@ import android.content.Context
 import android.nfc.tech.MifareClassic
 import kotlin.experimental.xor
 
-const val HEADER_BLOCK = 1
-
 class PunchCard(private val mifare: IMifare, private val key: ByteArray, private val context: Context) {
     private var authSector = -1
 
     companion object {
+        const val HEADER_BLOCK = 1
+
         const val DESC_OFFSET: Int = 0
         const val DESC_RUNNER: Byte = 1
         const val DESC_SERVICE: Byte = 2
@@ -37,7 +37,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     }
 
     // Clear the card before the start without changing the format information
-    fun clear(progress: Progress = noProgress) {
+    fun clear(progress: Progress = Procedure.NO_PROGRESS) {
         val stages = 3
         progress(0, stages)
 
@@ -59,7 +59,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         progress(3, stages)
     }
 
-    fun prepareRunner(id: Int, timestamp: Long, progress: Progress = noProgress) {
+    fun prepareRunner(id: Int, timestamp: Long, progress: Progress = Procedure.NO_PROGRESS) {
         val procedure = Procedure()
 
         // Check and configure the card setting KeyA into all sectors
@@ -85,7 +85,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         procedure.run(progress)
     }
 
-    fun prepareService(newKey: ByteArray, timestamp: Long, progress: Progress = noProgress) {
+    fun prepareService(newKey: ByteArray, timestamp: Long, progress: Progress = Procedure.NO_PROGRESS) {
         assert(newKey.size == mifare.keyDefault.size)
 
         // If the desired key is different from the default, error out
@@ -185,7 +185,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
     }
 
-    fun reset(progress: Progress = noProgress) {
+    fun reset(progress: Progress = Procedure.NO_PROGRESS) {
         val sectorCount = mifare.sectorCount
         // Restore the card to its pristine state
         for (sector in 0 until mifare.sectorCount) {
@@ -221,7 +221,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         return header[ID_OFFSET].toInt() or (header[ID_OFFSET + 1].toInt() shl 8)
     }
 
-    fun punch(newPunch: Punch, progress: Progress = noProgress): Boolean {
+    fun punch(newPunch: Punch, progress: Progress = Procedure.NO_PROGRESS): Boolean {
         val stages = 8
         progress(0, stages)
 
@@ -281,7 +281,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
     data class Info(val cardNumber: Int, val punches: List<Punch>)
 
-    fun readOut(progress: Progress = noProgress): Info {
+    fun readOut(progress: Progress = Procedure.NO_PROGRESS): Info {
         progress(0, 1)
         // Read everything
         // Reconstruct timestamps

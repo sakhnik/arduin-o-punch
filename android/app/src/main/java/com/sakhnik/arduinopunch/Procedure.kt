@@ -3,13 +3,15 @@ package com.sakhnik.arduinopunch
 typealias Progress = (Int, Int) -> Unit
 typealias Step = (Progress) -> Unit
 
-val noProgress: Progress = {_, _ -> }
-
 // Complex procedure consisting of smaller steps to simplify progress tracking
 class Procedure {
     private var totalProgress: Int = 0
     private var progressIncrements: List<Int> = ArrayList()
     private var steps: List<Step> = ArrayList()
+
+    companion object {
+        val NO_PROGRESS: Progress = {_, _ -> }
+    }
 
     // Add another step with expected progress increment
     fun add(progress: Int, step: Step) {
