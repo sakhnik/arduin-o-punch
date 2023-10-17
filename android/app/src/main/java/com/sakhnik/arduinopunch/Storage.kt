@@ -6,7 +6,7 @@ import androidx.activity.ComponentActivity
 import java.io.FileNotFoundException
 import java.io.OutputStreamWriter
 
-class Storage(private val activity: ComponentActivity) {
+open class Storage(private val activity: ComponentActivity) {
 
     private var key: ByteArray? = null
 
@@ -45,7 +45,7 @@ class Storage(private val activity: ComponentActivity) {
         return getKey()
     }
 
-    fun restoreClockOffsets(offsets: OffsetsT) {
+    open fun restoreClockOffsets(offsets: OffsetsT) {
         offsets.clear()
         try {
             activity.applicationContext.openFileInput(OFFSETS_FILENAME).bufferedReader().use {
@@ -62,7 +62,7 @@ class Storage(private val activity: ComponentActivity) {
         }
     }
 
-    fun storeClockOffsets(offsets: OffsetsT) {
+    open fun storeClockOffsets(offsets: OffsetsT) {
         activity.applicationContext.openFileOutput(OFFSETS_FILENAME, Context.MODE_PRIVATE).use {
             OutputStreamWriter(it).use { osw ->
                 offsets.forEach { (station, offset) ->

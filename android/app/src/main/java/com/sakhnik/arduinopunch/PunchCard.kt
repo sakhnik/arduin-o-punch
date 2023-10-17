@@ -1,11 +1,12 @@
 package com.sakhnik.arduinopunch
 
+import android.content.Context
 import android.nfc.tech.MifareClassic
 import kotlin.experimental.xor
 
 const val HEADER_BLOCK = 1
 
-class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
+class PunchCard(private val mifare: IMifare, private val key: ByteArray, private val context: Context) {
     private var authSector = -1
 
     companion object {
@@ -29,7 +30,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
     private fun authenticate(sector: Int) {
         if (sector != authSector) {
             if (!mifare.authenticateSectorWithKeyA(sector, key)) {
-                throw RuntimeException("Failed to authenticate to sector $sector with the key")
+                throw RuntimeException(context.getString(R.string.key_authentication_failure_to_sector, sector))
             }
             authSector = sector
         }
@@ -46,7 +47,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         progress(1, stages)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         if (calculateXorSum(header, XOR_OFFSET + 1) != 0.toByte()) {
-            throw RuntimeException("Bad checksum")
+            throw RuntimeException(context.getString(R.string.bad_checksum))
         }
         progress(2, stages)
 
@@ -89,7 +90,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
 
         // If the desired key is different from the default, error out
         if (!key.contentEquals(mifare.keyDefault)) {
-            throw RuntimeException("Service card should use the default key")
+            throw RuntimeException(context.getString(R.string.service_card_should_use_the_default_key))
         }
 
         val procedure = Procedure()
@@ -150,7 +151,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
 
     private fun writeInitialPunch(timestamp: Long, progress: Progress) {
         progress(0, 1)
-        val (block, offset) = getPunchAddr(0)
+        val (block, offset) = getPunchAddress(0)
         authenticate(mifare.blockToSector(block))
         val punchBlock = mifare.readBlock(block)
         // Current real time
@@ -163,7 +164,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
             progress(sector, mifare.sectorCount)
             if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
                 if (!mifare.authenticateSectorWithKeyA(sector, key)) {
-                    throw RuntimeException("Failed to authenticate to sector $sector with either default or our key")
+                    throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
                 }
             }
             val blockIndex = 3 + 4 * sector
@@ -179,7 +180,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
             if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)
                 && !mifare.authenticateSectorWithKeyA(sector, key)
             ) {
-                throw RuntimeException("Can't authenticate to sector $sector with either default or our key")
+                throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
             }
         }
     }
@@ -192,7 +193,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
             if (!mifare.authenticateSectorWithKeyA(sector, key)) {
                 // Try with the default key too
                 if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
-                    throw RuntimeException("Can't authenticate to sector $sector with our key")
+                    throw RuntimeException(context.getString(R.string.our_key_authentication_failure_to_sector, sector))
                 } else {
                     continue
                 }
@@ -205,10 +206,10 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         progress(sectorCount, sectorCount)
     }
 
-    private fun getPunchAddr(index: Int): Pair<Int, Int> {
-        val byteAddr = index * Punch.STORAGE_SIZE
-        val offset = byteAddr % MifareClassic.BLOCK_SIZE
-        val blockNumber = byteAddr / MifareClassic.BLOCK_SIZE
+    private fun getPunchAddress(index: Int): Pair<Int, Int> {
+        val byteAddress = index * Punch.STORAGE_SIZE
+        val offset = byteAddress % MifareClassic.BLOCK_SIZE
+        val blockNumber = byteAddress / MifareClassic.BLOCK_SIZE
 
         // Map onto free blocks skipping through the trailer blocks
         // 0 -> 2    1 -> 4, 2 -> 5, 3 -> 6   4 -> 8 ...
@@ -230,13 +231,13 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         progress(1, stages)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         if (calculateXorSum(header, XOR_OFFSET + 1) != 0.toByte()) {
-            throw RuntimeException("Bad checksum")
+            throw RuntimeException(context.getString(R.string.bad_checksum))
         }
         progress(2, stages)
         val desc = header[DESC_OFFSET]
         val id = getId(header)
         val index = header[INDEX_OFFSET].toInt() and 0xff
-        val (block, offset) = getPunchAddr(index - 1)
+        val (block, offset) = getPunchAddress(index - 1)
         authenticate(mifare.blockToSector(block))
         progress(3, stages)
         val punchBlock = mifare.readBlock(block) as ByteArray
@@ -252,13 +253,13 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         }
 
         // 3. write the next record
-        val (newBlock, newOffset) = getPunchAddr(index)
+        val (newBlock, newOffset) = getPunchAddress(index)
         if (newBlock == block) {
             newPunch.serialize(punchBlock, newOffset)
             mifare.writeBlock(newBlock, punchBlock)
         } else {
             if (newBlock >= mifare.blockCount) {
-                throw RuntimeException("The card is full")
+                throw RuntimeException(context.getString(R.string.the_card_is_full))
             }
             assert(newOffset == 0)
             authenticate(mifare.blockToSector(newBlock))
@@ -288,7 +289,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         authenticate(headerSector)
         val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
         if (calculateXorSum(header, XOR_OFFSET + 1) != 0.toByte()) {
-            throw RuntimeException("Bad checksum")
+            throw RuntimeException(context.getString(R.string.bad_checksum))
         }
         val id = getId(header)
         val count = header[INDEX_OFFSET].toInt() and 0xff
@@ -299,7 +300,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray) {
         val punches = ArrayList<Punch>()
         for (index in 1 until count) {
             progress(index, count)
-            val (block, offset) = getPunchAddr(index)
+            val (block, offset) = getPunchAddress(index)
             if (block != prevBlock) {
                 prevBlock = block
                 authenticate(mifare.blockToSector(block))

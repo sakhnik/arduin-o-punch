@@ -12,6 +12,10 @@ class ClockOffsets(private val storage: Storage) {
         storage.restoreClockOffsets(offsets)
     }
 
+    fun getOffsets(): OffsetsT {
+        return offsets
+    }
+
     fun forEach(action: (Int, Long) -> Unit): Unit {
         offsets.forEach(action)
     }

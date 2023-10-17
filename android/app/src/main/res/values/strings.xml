@@ -22,4 +22,10 @@
     <string name="format_service">Format Service</string>
     <string name="punch_service">Punch Service</string>
     <string name="read_service">Read Service</string>
+    <string name="key_authentication_failure_to_sector">Key authentication failure to sector %d</string>
+    <string name="bad_checksum">Bad checksum</string>
+    <string name="service_card_should_use_the_default_key">Service card should use the default key</string>
+    <string name="our_key_or_default_authentication_failure_to_sector">Our key or default authentication failure to sector %d</string>
+    <string name="our_key_authentication_failure_to_sector">Our key authentication failure to sector %d</string>
+    <string name="the_card_is_full">The card is full</string>
 </resources>
