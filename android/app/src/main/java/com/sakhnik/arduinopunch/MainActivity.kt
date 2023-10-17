@@ -249,9 +249,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun readService(mifareClassic: MifareClassic) {
-        val serviceCard = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
-
-        val readOut = serviceCard.readOut(this::setProgress)
+        var card: PunchCard
+        if (findViewById<CheckBox>(R.id.checkBoxServiceFromRunner).isChecked) {
+            val key = storage.getKey()
+            card = PunchCard(MifareImpl(mifareClassic), key)
+        } else {
+            card = PunchCard(MifareImpl(mifareClassic), MifareClassic.KEY_DEFAULT)
+        }
+        val readOut = card.readOut(this::setProgress)
         clockOffsets.process(readOut.punches)
         runOnUiThread {
             showClockOffsets()
@@ -279,10 +284,8 @@ class MainActivity : AppCompatActivity() {
     private fun punchRunner(mifareClassic: MifareClassic) {
         val key = storage.getKey()
         val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
-        if (station != 0) {
-            val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
-            runnerCard.punch(Punch(station, getTimestamp()), this::setProgress)
-        }
+        val runnerCard = PunchCard(MifareImpl(mifareClassic), key)
+        runnerCard.punch(Punch(station, getTimestamp()), this::setProgress)
     }
 
     private fun punchService(mifareClassic: MifareClassic) {

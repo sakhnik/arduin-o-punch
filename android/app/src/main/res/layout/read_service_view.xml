@@ -6,13 +6,21 @@
 
     <include layout="@layout/common" />
 
+    <CheckBox
+        android:id="@+id/checkBoxServiceFromRunner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="From runner card"
+        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <Button
         android:id="@+id/button_clear_clocks"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Clear"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar" />
+        app:layout_constraintTop_toBottomOf="@+id/checkBoxServiceFromRunner" />
 
     <ScrollView
         android:layout_width="match_parent"
