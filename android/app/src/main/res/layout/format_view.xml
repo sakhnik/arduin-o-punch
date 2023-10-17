@@ -13,27 +13,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:digits="0123456789ABCDEF"
-        android:hint="Key (12 hex digits)"
+        android:hint="@string/key_12_hex_digits"
         android:inputType="text"
         android:maxLength="12"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"
-        tools:ignore="VisualLintTextFieldSize" />
+        tools:ignore="VisualLintTextFieldSize"
+        android:importantForAutofill="no" />
 
     <EditText
         android:id="@+id/editTextId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="ID"
+        android:hint="@string/card_id"
         android:ems="10"
         android:inputType="number"
         android:max="65535"
         android:maxLength="5"
         android:min="1"
         android:padding="16dp"
-        android:text="1"
+        android:text="@string/_1"
         app:layout_constraintTop_toBottomOf="@+id/editTextKey"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        android:importantForAutofill="no" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

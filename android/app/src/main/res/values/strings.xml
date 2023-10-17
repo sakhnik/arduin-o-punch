@@ -2,4 +2,24 @@
     <string name="app_name">Arduin-o-punch</string>
     <string name="navigation_drawer_open">Navigation drawer open</string>
     <string name="navigation_drawer_close">Navigation drawer close</string>
+    <string name="_31">31</string>
+    <string name="station_id">Station ID</string>
+    <string name="from_runner_card">From runner card</string>
+    <string name="clear">Clear</string>
+    <string name="clock_offset">Clock offset</string>
+    <string name="upload">Upload</string>
+    <string name="url_for_qr_o_punch_upload">URL for qr-o-punch upload</string>
+    <string name="https_sakhnik_com_qr_o_punch_card">https://sakhnik.com/qr-o-punch/card</string>
+    <string name="card_id">Card ID</string>
+    <string name="timestamp">Timestamp</string>
+    <string name="key_12_hex_digits">Key (12 hex digits)</string>
+    <string name="_1">1</string>
+    <string name="format_runner">Format Runner</string>
+    <string name="clear_punches">Clear Punches</string>
+    <string name="punch">Punch</string>
+    <string name="read_runner">Read Runner</string>
+    <string name="reset_card">Reset Card</string>
+    <string name="format_service">Format Service</string>
+    <string name="punch_service">Punch Service</string>
+    <string name="read_service">Read Service</string>
 </resources>
