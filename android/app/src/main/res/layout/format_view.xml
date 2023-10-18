@@ -5,37 +5,74 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
     <include layout="@layout/common"/>
 
-    <EditText
-        android:id="@+id/editTextKey"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:digits="0123456789ABCDEF"
-        android:hint="@string/key_12_hex_digits"
-        android:inputType="text"
-        android:maxLength="12"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"
-        tools:ignore="VisualLintTextFieldSize"
-        android:importantForAutofill="no" />
-
-    <EditText
-        android:id="@+id/editTextId"
+    <TextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/card_id"
-        android:ems="10"
-        android:inputType="number"
-        android:max="65535"
-        android:maxLength="5"
-        android:min="1"
-        android:padding="16dp"
-        android:text="@string/_1"
-        app:layout_constraintTop_toBottomOf="@+id/editTextKey"
+        android:text="@string/format_runner_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:importantForAutofill="no" />
+        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"/>
+
+    <TextView
+        android:id="@+id/instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/format_runner_instruction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"/>
+
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/instruction">
+
+        <TextView
+            android:text="@string/key_12_digits"
+            android:layout_row="0"
+            android:layout_column="0" />
+
+        <EditText
+            android:id="@+id/editTextKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:digits="0123456789ABCDEF"
+            android:hint="@string/key_12_hex_digits"
+            android:inputType="text"
+            android:maxLength="12"
+            android:layout_row="0"
+            android:layout_column="1"
+            tools:ignore="VisualLintTextFieldSize"
+            android:importantForAutofill="no" />
+
+        <TextView
+            android:text="@string/card_id"
+            android:layout_row="1"
+            android:layout_column="0" />
+
+        <EditText
+            android:id="@+id/editTextId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/card_id"
+            android:inputType="number"
+            android:max="65535"
+            android:maxLength="5"
+            android:min="0"
+            android:padding="16dp"
+            android:text="@string/_1"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:importantForAutofill="no" />
+    </GridLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,18 +7,51 @@
 
     <include layout="@layout/common"/>
 
-    <EditText
-        android:id="@+id/editTextKey"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:digits="0123456789ABCDEF"
-        android:hint="@string/key_12_hex_digits"
-        android:inputType="text"
-        android:maxLength="12"
+        android:text="@string/format_service_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"
-        tools:ignore="VisualLintTextFieldSize"
-        android:importantForAutofill="no" />
+        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"/>
+
+    <TextView
+        android:id="@+id/instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/format_service_instruction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"/>
+
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/instruction">
+
+        <TextView
+            android:text="@string/key_12_digits"
+            android:layout_row="0"
+            android:layout_column="0" />
+
+        <EditText
+            android:id="@+id/editTextKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:digits="0123456789ABCDEF"
+            android:hint="@string/key_12_hex_digits"
+            android:inputType="text"
+            android:maxLength="12"
+            android:layout_row="0"
+            android:layout_column="1"
+            tools:ignore="VisualLintTextFieldSize"
+            android:importantForAutofill="no" />
+    </GridLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

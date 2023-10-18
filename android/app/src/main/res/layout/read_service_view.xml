@@ -6,12 +6,31 @@
 
     <include layout="@layout/common" />
 
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/read_service_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"/>
+
+    <TextView
+        android:id="@+id/instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/read_service_instruction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"/>
+
     <CheckBox
         android:id="@+id/checkBoxServiceFromRunner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/from_runner_card"
-        app:layout_constraintTop_toBottomOf="@+id/frameProgressBar"
+        app:layout_constraintTop_toBottomOf="@+id/instruction"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
