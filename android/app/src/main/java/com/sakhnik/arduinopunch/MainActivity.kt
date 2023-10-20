@@ -24,12 +24,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalTime
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
@@ -147,7 +145,7 @@ class MainActivity : AppCompatActivity() {
             // Handle MIFARE Classic 1K cards
             if (tag != null) {
                 val mifare = MifareClassic.get(tag)
-                GlobalScope.launch(Dispatchers.IO) {
+                thread {
                     handleMifare(mifare)
                 }
             }
@@ -204,9 +202,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setProgress(n: Int, d: Int) {
-        val progress = findViewById<ProgressBar>(R.id.progressBar)
-        progress.max = d
-        progress.progress = n
+        runOnUiThread {
+            val progress = findViewById<ProgressBar>(R.id.progressBar)
+            progress.max = d
+            progress.progress = n
+        }
     }
 
     private fun resetRunner(mifareClassic: MifareClassic) {
