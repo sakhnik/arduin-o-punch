@@ -2,18 +2,18 @@
     <string name="app_name">Arduin-o-punch</string>
     <string name="navigation_drawer_open">Navigation drawer open</string>
     <string name="navigation_drawer_close">Navigation drawer close</string>
-    <string name="_31">31</string>
+    <string name="_31" translatable="false">31</string>
     <string name="station_id">Station ID</string>
     <string name="from_runner_card">From runner card</string>
     <string name="clear">Clear</string>
     <string name="clock_offset">Clock offset</string>
     <string name="upload">Upload</string>
     <string name="url_for_qr_o_punch_upload">URL for qr-o-punch upload</string>
-    <string name="https_sakhnik_com_qr_o_punch_card">https://sakhnik.com/qr-o-punch/card</string>
+    <string name="https_sakhnik_com_qr_o_punch_card" translatable="false">https://sakhnik.com/qr-o-punch/card</string>
     <string name="card_id">Card ID</string>
     <string name="timestamp">Timestamp</string>
     <string name="key_12_hex_digits">Key (12 hex digits)</string>
-    <string name="_1">1</string>
+    <string name="_1" translatable="false">1</string>
     <string name="format_runner">Format Runner</string>
     <string name="clear_punches">Clear Punches</string>
     <string name="punch">Punch</string>
@@ -34,15 +34,15 @@
     <string name="clear_runner_title">Clear runner card</string>
     <string name="clear_runner_instruction">Clear previous punches from a card without changing card information (like ID).</string>
     <string name="punch_runner_title">Punch runner card</string>
-    <string name="punch_runner_instruction">Punch runner card with the given station ID (0..255).\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
+    <string name="punch_runner_instruction">Punch runner card with the given station ID (0..255) and current time.\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
     <string name="read_runner_title">Read runner card</string>
     <string name="read_runner_instruction">Read out a runner card, display the punches and optionally upload to QuickEvent using qr-o-punch protocol.\nClock offsets from "Read service card" will be applied to adjust station clock readings.</string>
     <string name="reset_runner_title">Reset runner card</string>
-    <string name="reset_runner_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting the card for another competition.</string>
+    <string name="reset_runner_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
     <string name="format_service_title">Format service card</string>
     <string name="format_service_instruction">Create a service card for station configuration.\nA service card will allow writing an encryption key to the Arduino station.\nAs well as synchronizing Arduino clock.</string>
     <string name="punch_service_title">Punch service card</string>
-    <string name="punch_service_instruction">To initialize a couple of Arduino stations, perform rhythmic punching:\n- Here in the app\n- Station 1\n- Station 2\n- Here in the app\nThis will allow calculating clock offsets in the used stations.</string>
+    <string name="punch_service_instruction">To initialize a couple of Arduino stations, perform rhythmic punching:\n- Here in the app\n- Station 1\n- Station 2\n- Here in the app\nThis will allow calculating clock offsets in the selected stations.</string>
     <string name="read_service_title">Read service card</string>
     <string name="read_service_instruction">Read clock offsets from a service or a runner card.\nWhen punched properly (see Punch service card), clock offsets will be calculated, remembered.\nThey will later be used to adjust clock readings when reading the runner cards.</string>
 </resources>

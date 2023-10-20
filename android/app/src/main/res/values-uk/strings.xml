@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Arduin-o-punch</string>
+    <string name="navigation_drawer_open">Відкрити навігацію</string>
+    <string name="navigation_drawer_close">Закрити навігацію</string>
+    <string name="station_id">ID Станції</string>
+    <string name="from_runner_card">З картки бігуна</string>
+    <string name="clear">Очистити</string>
+    <string name="clock_offset">Різниця годинника</string>
+    <string name="upload">Вивантажити</string>
+    <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
+    <string name="card_id">ID Картки</string>
+    <string name="timestamp">Час</string>
+    <string name="key_12_hex_digits">Ключ (12 шітсн. цифр)</string>
+    <string name="format_runner">Підготовка Бігової</string>
+    <string name="clear_punches">Очистити Відмітки</string>
+    <string name="punch">Відмітка</string>
+    <string name="read_runner">Зчитати Бігову</string>
+    <string name="reset_card">Скинути Картку</string>
+    <string name="format_service">Підготовка Службової</string>
+    <string name="punch_service">Відмітка в Службовій</string>
+    <string name="read_service">Прочитати Службову</string>
+    <string name="key_authentication_failure_to_sector">Невдача автентифікації ключем у секторі %d</string>
+    <string name="bad_checksum">Помилка контрольної суми</string>
+    <string name="service_card_should_use_the_default_key">Службова картка має використовувати початковий ключ</string>
+    <string name="our_key_or_default_authentication_failure_to_sector">Невдача автентифікацї нашим або початковим ключем у секторі %d</string>
+    <string name="our_key_authentication_failure_to_sector">Невдача автентифікації нашим ключем у секторі %d</string>
+    <string name="the_card_is_full">Картка переповнена</string>
+    <string name="format_runner_title">Підготувати картку бігуна</string>
+    <string name="format_runner_instruction">Підготувати картку бігуна: відформатувати заданим ключем шифрування 12-шістн. цифр, призначити ID (0..65535).</string>
+    <string name="key_12_digits">Ключ (12 цифр)</string>
+    <string name="clear_runner_title">Очистити картку бігуна</string>
+    <string name="clear_runner_instruction">Очистити попередні відмітки у картці без зміни інформації (наприклад, ID).</string>
+    <string name="punch_runner_title">Відмітка в картці бігуна</string>
+    <string name="punch_runner_instruction">Поставити відмітку в картці бігуна заданим ID станції (0..255) і теперішнім часом.\nID 0 використовується для звіряння годинників, 10 для старту, 255 для фінішу.</string>
+    <string name="read_runner_title">Прочитати картку бігуна</string>
+    <string name="read_runner_instruction">Прочитати картку бігуна, відобразити відмітки і за вибором вивантажити у QuickEvent, використовуючи протокол qr-o-punch.\nРізниці годинників з розділу Прочитати службову картку будуть застосовані для поправки часових відміток.</string>
+    <string name="reset_runner_title">Скинути картку бігуна</string>
+    <string name="reset_runner_instruction">Скинути картку, відновивши початкові ключі шифрування.\nЦе дозволить потім підготувати її до наступних змагань.</string>
+    <string name="format_service_title">Підготувати службову картку</string>
+    <string name="format_service_instruction">Створити службову картку для конфігурування станцій.\nСлужбовою карткою можна встановити ключ шифрування у стації Arduino.\nТакож синхронізувати годинник Arduino.</string>
+    <string name="punch_service_title">Відмітка службової картки</string>
+    <string name="punch_service_instruction">Для ініціалізації станцій Arduino, виконайте ритмічну відмітку:\n- Тут на цій сторінці\n- На станції 1\n- На станції 2\n- Тут на цій сторінці\nЦе дозволить обчислити різницю годинників у обраних стаціях.</string>
+    <string name="read_service_title">Прочитати службову картку</string>
+    <string name="read_service_instruction">Прочитати різниці годинників із службової або бігової картки.\nКоли правильно застосовано (див. Відмітка службової картки), різниці годинників буде обчислено і збережено.\nЇх потім буде використано для поправки часових відміток при зчитуванні бігових карток.</string>
+</resources>
