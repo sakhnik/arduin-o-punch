@@ -2,6 +2,7 @@
 
 #include "defs.h"
 #include "Puncher.h"
+#include "Shell.h"
 
 auto timer = timer_create_default();
 Timer<>::Task confirmation = {};
@@ -17,11 +18,16 @@ void setup() {
     pinMode(BUZZER_PIN, OUTPUT);
 
 #if ENABLE_SERIAL
-    Serial.begin(115200);
-    while (!Serial);     // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4).
+    static Shell shell(115200);
 #endif //ENABLE_SERIAL
 
     puncher.Setup();
+
+    // Blink continuously to indicate initialization prompt
+    confirmation = timer.every(250, [](void*) {
+        digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
+        return true;
+    });
 }
 
 void ConfirmPunch()
@@ -40,36 +46,17 @@ void ConfirmPunch()
     );
 }
 
-void loop() {
-    // Blink continuously to indicate initialization prompt
-    confirmation = timer.every(250, [](void*) {
-        digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
-        return true;
-    });
+void loop()
+{
+    // Don't loop here to make sure serialEvent() is processed.
 
-    // Wait for a service card to initialize the key
-    while (true)
+    // TODO: better to call from a hardware timer ISR
+    timer.tick();
+
+    auto res = puncher.Punch(key_initialized ? key : DEFAULT_KEY);
+    if (!res)
     {
-        // TODO: better to call from a hardware timer ISR
-        timer.tick();
-
-        auto res = puncher.Punch(DEFAULT_KEY);
-        if (!res)
-        {
-            ConfirmPunch();
-            key_initialized = true;
-            break;
-        }
-    }
-
-    while (true)
-    {
-        timer.tick();
-
-        auto res = puncher.Punch(key);
-        if (!res)
-        {
-            ConfirmPunch();
-        }
+        ConfirmPunch();
+        key_initialized = true;
     }
 }
