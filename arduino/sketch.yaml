@@ -6,7 +6,6 @@ profiles:
     libraries:
       - RFID_MFRC522v2 (2.0.4)
       - arduino-timer (3.0.1)
-      - SerialTerminal (1.2.0)
 
 default_fqbn: arduino:avr:pro:cpu=8MHzatmega328
 default_port: /dev/ttyUSB0

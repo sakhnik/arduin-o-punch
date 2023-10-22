@@ -1,5 +1,6 @@
 #include "PunchCard.h"
 #include "ErrorCode.h"
+#include "IKeyReceiver.h"
 
 #ifdef BUILD_TEST
 # include <cassert>
@@ -10,7 +11,7 @@
 
 namespace AOP {
 
-PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, uint8_t *key_receiver)
+PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, IKeyReceiver *key_receiver)
     : _mifare{mifare}
     , _key{key}
     , _key_receiver{key_receiver}
@@ -40,7 +41,7 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
         // Service card found, remember the key
         if (!id && _key_receiver)
         {
-            memcpy(_key_receiver, header + KEY_OFFSET, 6);
+            _key_receiver->OnNewKey(header + KEY_OFFSET);
         }
     }
     uint8_t index = header[INDEX_OFFSET];

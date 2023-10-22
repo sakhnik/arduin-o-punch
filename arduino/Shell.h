@@ -1,7 +1,15 @@
 #pragma once
 
+#include <Arduino.h>
+
 class Shell
 {
 public:
-    Shell(int baud);
+    void Setup();
+    void OnSerial();
+
+private:
+    String _buffer;
+
+    void _Process();
 };

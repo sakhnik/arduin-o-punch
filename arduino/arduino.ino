@@ -1,27 +1,32 @@
 #include <arduino-timer.h>
 
 #include "defs.h"
+#include "Context.h"
 #include "Puncher.h"
 #include "Shell.h"
 
 auto timer = timer_create_default();
 Timer<>::Task confirmation = {};
 
-const uint8_t DEFAULT_KEY[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-uint8_t key[6] = {};
-bool key_initialized = false;
-
-Puncher puncher{key};
+Context context;
+Puncher puncher{context};
+#if ENABLE_SERIAL
+Shell shell;
+#endif //ENABLE_SERIAL
 
 void setup() {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
 
 #if ENABLE_SERIAL
-    static Shell shell(115200);
+    Serial.begin(115200);
 #endif //ENABLE_SERIAL
 
     puncher.Setup();
+
+#if ENABLE_SERIAL
+    shell.Setup();
+#endif //ENABLE_SERIAL
 
     // Blink continuously to indicate initialization prompt
     confirmation = timer.every(250, [](void*) {
@@ -53,10 +58,16 @@ void loop()
     // TODO: better to call from a hardware timer ISR
     timer.tick();
 
-    auto res = puncher.Punch(key_initialized ? key : DEFAULT_KEY);
+    auto res = puncher.Punch();
     if (!res)
     {
         ConfirmPunch();
-        key_initialized = true;
     }
 }
+
+#if ENABLE_SERIAL
+void serialEvent()
+{
+    shell.OnSerial();
+}
+#endif //ENABLE_SERIAL

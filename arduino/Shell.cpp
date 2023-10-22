@@ -1,26 +1,47 @@
 #include "Shell.h"
-#include <Arduino.h>
-#include <SerialTerminal.h>
 
-String project = "Arduin-o-punch";
-String vers = "v1.0";
+namespace {
+const int MAX_SIZE = 64;
 
-void HandleCmd(String msg)
+void Prompt()
 {
-	int NbChar = msg.length() - 1;
-	msg.remove(NbChar);	// Remove last char (breakout char)
+    Serial.print(F("Arduin-o-punch> "));
+}
 
-	if (msg.compareTo("help") == 0)
+} // namespace;
+
+void Shell::Setup()
+{
+    Serial.println();
+    Prompt();
+}
+
+void Shell::OnSerial()
+{
+	if (Serial.available())
 	{
-		Serial.print("help msg");
-	}
-	else
-	{
-	    Serial.print("unknown command");
+	    char ch = Serial.read();
+	    Serial.print(ch);
+		_buffer += ch;
+        if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r"))
+        {
+            Serial.println();
+            int rem = _buffer.length();
+            _Process();
+            _buffer.remove(0, _buffer.length());
+            Prompt();
+        }
 	}
 }
 
-Shell::Shell(int baud)
+void Shell::_Process()
 {
-    term.init(115200, &HandleCmd, &project, &vers);
+    if (_buffer.startsWith(F("help")))
+    {
+        Serial.println(F("Help message"));
+    }
+    else
+    {
+        Serial.println("Unknown command");
+    }
 }

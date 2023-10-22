@@ -9,6 +9,8 @@
 
 namespace AOP {
 
+struct IKeyReceiver;
+
 class PunchCard
 {
 public:
@@ -33,12 +35,12 @@ public:
     static constexpr const auto KEY_OFFSET = 9;
 
 public:
-    PunchCard(IMifare *, const uint8_t *key, uint8_t *key_receiver = nullptr);
+    PunchCard(IMifare *, const uint8_t *key, IKeyReceiver *key_receiver = nullptr);
 
     static void DummyProgress(uint8_t, uint8_t) { }
     using ProgressT = decltype(&DummyProgress);
 
-    // Punch a card with the given information about station and timestamp 
+    // Punch a card with the given information about station and timestamp
     ErrorCode Punch(Punch punch, ProgressT progress = &DummyProgress);
 
     // Clear previous punches from a card
@@ -51,7 +53,7 @@ public:
 private:
     IMifare *_mifare;
     const uint8_t *_key;
-    uint8_t *_key_receiver;
+    IKeyReceiver *_key_receiver;
     uint8_t _auth_sector = 0xff;
 
     uint8_t _Authenticate(uint8_t sector);

@@ -1,5 +1,6 @@
 #include "Puncher.h"
 #include "defs.h"
+#include "Context.h"
 #include "src/IMifare.h"
 #include "src/PunchCard.h"
 
@@ -8,8 +9,8 @@
 #endif
 
 
-Puncher::Puncher(uint8_t *key_receiver)
-    : _key_receiver{key_receiver}
+Puncher::Puncher(Context &context)
+    : _context{context}
 {
 }
 
@@ -82,7 +83,7 @@ struct MifareClassic : AOP::IMifare
     }
 };
 
-ErrorCode Puncher::Punch(const uint8_t *key)
+ErrorCode Puncher::Punch()
 {
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if (!mfrc522.PICC_IsNewCardPresent())
@@ -103,7 +104,7 @@ ErrorCode Puncher::Punch(const uint8_t *key)
     }
 
     MifareClassic mifareClassic{mfrc522};
-    AOP::PunchCard punchCard{&mifareClassic, key, _key_receiver};
+    AOP::PunchCard punchCard{&mifareClassic, _context.GetKey(), &_context};
     uint32_t timestamp = millis() / 1000;
     AOP::Punch punch{55, timestamp};
     auto res = punchCard.Punch(punch);

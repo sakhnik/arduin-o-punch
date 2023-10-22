@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 add_definitions(-DBUILD_TEST)
 
 add_executable(test-aop
+    IKeyReceiver.h
     IMifare.h
     PunchCard.cpp
     PunchCard.h

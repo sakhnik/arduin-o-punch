@@ -5,15 +5,17 @@
 #include <MFRC522DriverPinSimple.h>
 #include "src/ErrorCode.h"
 
+class Context;
+
 class Puncher
 {
 public:
-    Puncher(uint8_t *key_receiver = nullptr);
+    Puncher(Context &context);
     void Setup();
-    ErrorCode Punch(const uint8_t *key);
+    ErrorCode Punch();
 
 private:
-    uint8_t *_key_receiver;
+    Context &_context;
 
     MFRC522DriverPinSimple ss_pin = 10; // Configurable, see typical pin layout above.
     MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
