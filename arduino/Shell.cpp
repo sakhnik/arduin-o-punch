@@ -43,7 +43,9 @@ void Shell::_Process()
 {
     if (_buffer.startsWith(F("help")))
     {
-        Serial.println(F("Help message"));
+        Serial.println(F("Commands:"));
+        Serial.println(F("key               Print key"));
+        Serial.println(F("key 112233445566  Set key"));
     }
     else if (_buffer.startsWith(F("key ")))
     {
@@ -95,7 +97,7 @@ void Shell::_SetKey(const char *hex)
 void Shell::_PrintKey()
 {
     const uint8_t *key = _context.GetKey();
-    Serial.print(F("Key="));
+    Serial.print(F("key="));
     for (uint8_t i = 0; i < Context::KEY_SIZE; ++i)
     {
         char buf[3];
