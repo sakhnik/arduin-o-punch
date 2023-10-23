@@ -7,16 +7,13 @@ class Context
     : public AOP::IKeyReceiver
 {
 public:
-    const uint8_t* GetDefaultKey() const { return reinterpret_cast<const uint8_t *>(F("\xff\xff\xff\xff\xff\xff")); }
-    bool IsKeyInitialized() const { return _key_initialized; }
-    const uint8_t* GetKey() const { return _key_initialized ? _key : GetDefaultKey(); }
+    static const uint8_t KEY_SIZE = 6;
 
-    void SetKeyHex(const char *key);
+    const uint8_t* GetKey() const { return _key; }
 
     // IKeyReceiver
     void OnNewKey(const uint8_t *key) override;
 
 private:
-    uint8_t _key[6] = {};
-    bool _key_initialized = false;
+    uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 };

@@ -11,7 +11,7 @@ Timer<>::Task confirmation = {};
 Context context;
 Puncher puncher{context};
 #if ENABLE_SERIAL
-Shell shell;
+Shell shell{context};
 #endif //ENABLE_SERIAL
 
 void setup() {
