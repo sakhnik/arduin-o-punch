@@ -1,7 +1,9 @@
 #include "Shell.h"
 #include "Context.h"
+#include "Buzzer.h"
 
 namespace {
+
 const uint8_t MAX_SIZE = 64;
 
 void Prompt()
@@ -10,11 +12,6 @@ void Prompt()
 }
 
 } // namespace;
-
-Shell::Shell(Context &context)
-    : _context{context}
-{
-}
 
 void Shell::Setup()
 {
@@ -51,6 +48,7 @@ void Shell::_Process()
     {
         _SetKey(_buffer.c_str() + 4);
         _PrintKey();
+        _buzzer.ConfirmPunch();
     }
     else if (_buffer.startsWith(F("key")))
     {

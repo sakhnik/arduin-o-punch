@@ -3,16 +3,23 @@
 #include <Arduino.h>
 
 class Context;
+class Buzzer;
 
 class Shell
 {
 public:
-    Shell(Context &);
+    Shell(Context &context, Buzzer &buzzer)
+        : _context{context}
+        , _buzzer{buzzer}
+    {
+    }
+
     void Setup();
     void OnSerial();
 
 private:
     Context &_context;
+    Buzzer &_buzzer;
     String _buffer;
 
     void _Process();
