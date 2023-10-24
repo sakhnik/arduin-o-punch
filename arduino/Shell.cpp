@@ -43,6 +43,8 @@ void Shell::_Process()
         Serial.println(F("Commands:"));
         Serial.println(F("key               Print key"));
         Serial.println(F("key 112233445566  Set key"));
+        Serial.println(F("clock             Print clock reading (ms)"));
+        Serial.println(F("clock 12345000    Set clock (ms)"));
     }
     else if (_buffer.startsWith(F("key ")))
     {
@@ -54,9 +56,19 @@ void Shell::_Process()
     {
         _PrintKey();
     }
+    else if (_buffer.startsWith(F("clock ")))
+    {
+        _SetClock(_buffer.c_str() + 6);
+        _PrintClock();
+    }
+    else if (_buffer.startsWith(F("clock")))
+    {
+        _PrintClock();
+    }
     else
     {
-        Serial.println("Unknown command");
+        Serial.print(F("Unknown command: "));
+        Serial.println(_buffer);
     }
 }
 
@@ -103,4 +115,22 @@ void Shell::_PrintKey()
         Serial.print(buf);
     }
     Serial.println();
+}
+
+void Shell::_SetClock(const char *str)
+{
+    int clock{};
+    if (1 == sscanf(str, "%d", &clock))
+    {
+        _context.SetClock(clock);
+        Serial.println(F("OK"));
+    }
+    else
+        Serial.println(F("FAIL"));
+}
+
+void Shell::_PrintClock()
+{
+    Serial.print("clock=");
+    Serial.println(_context.GetClock());
 }

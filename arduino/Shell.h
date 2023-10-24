@@ -25,4 +25,6 @@ private:
     void _Process();
     void _SetKey(const char *key);
     void _PrintKey();
+    void _SetClock(const char *clock);
+    void _PrintClock();
 };
