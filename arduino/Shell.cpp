@@ -24,16 +24,35 @@ void Shell::OnSerial()
     while (Serial.available())
     {
         char ch = Serial.read();
-        Serial.print(ch);
+        if (!_buffer.length())
+        {
+            // In the automated communication we don't need the echo, neither the prompt.
+            // If timeout elapses since the first character, revert to interactive move.
+            _echo_timeout = millis() + 100;
+            _echo_idx = 0;
+        }
         _buffer += ch;
         if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r"))
         {
-            Serial.println();
+            // Echo the rest of the command if necessary
+            if (Tick())
+                Serial.println();
             _Process();
             _buffer.remove(0, _buffer.length());
-            Prompt();
+            if (Tick())
+                Prompt();
         }
 	}
+}
+
+// Return true if started echoing (interactive mode)
+boolean Shell::Tick()
+{
+    if (_echo_timeout > millis())
+        return false;
+    while (_echo_idx < _buffer.length())
+        Serial.print(_buffer[_echo_idx++]);
+    return true;
 }
 
 void Shell::_Process()
@@ -107,7 +126,6 @@ void Shell::_SetKey(const char *hex)
 void Shell::_PrintKey()
 {
     const uint8_t *key = _context.GetKey();
-    Serial.print(F("key="));
     for (uint8_t i = 0; i < Context::KEY_SIZE; ++i)
     {
         char buf[3];
@@ -119,18 +137,17 @@ void Shell::_PrintKey()
 
 void Shell::_SetClock(const char *str)
 {
-    int clock{};
-    if (1 == sscanf(str, "%d", &clock))
+    uint32_t clock = 0;
+    while (char ch = *str++)
     {
-        _context.SetClock(clock);
-        Serial.println(F("OK"));
+        if (ch < '0' || ch > '9')
+            break;
+        clock = clock * 10 + (ch - '0');
     }
-    else
-        Serial.println(F("FAIL"));
+    _context.SetClock(clock);
 }
 
 void Shell::_PrintClock()
 {
-    Serial.print("clock=");
     Serial.println(_context.GetClock());
 }

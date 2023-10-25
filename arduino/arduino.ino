@@ -20,7 +20,8 @@ void setup() {
     buzzer.Setup();
 
 #if ENABLE_SERIAL
-    Serial.begin(115200);
+    // 9600 allows for reliable communication with automated scripts like sync-clock.py
+    Serial.begin(9600);
 #endif //ENABLE_SERIAL
 
     puncher.Setup();
@@ -32,16 +33,17 @@ void setup() {
 }
 
 
+// Don't loop here to make sure serialEvent() is processed.
 void loop()
 {
-    // Don't loop here to make sure serialEvent() is processed.
-    buzzer.Tick();
-
     auto res = puncher.Punch();
     if (!res)
     {
         buzzer.ConfirmPunch();
     }
+
+    buzzer.Tick();
+    shell.Tick();
 }
 
 #if ENABLE_SERIAL

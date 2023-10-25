@@ -16,11 +16,14 @@ public:
 
     void Setup();
     void OnSerial();
+    boolean Tick();
 
 private:
     Context &_context;
     Buzzer &_buzzer;
     String _buffer;
+    uint8_t _echo_idx = 0;
+    uint32_t _echo_timeout = 0;
 
     void _Process();
     void _SetKey(const char *key);

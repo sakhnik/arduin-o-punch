@@ -19,5 +19,5 @@ public:
 
 private:
     uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-    int _clock_offset = 0;
+    long _clock_offset = 0;
 };
