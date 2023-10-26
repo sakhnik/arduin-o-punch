@@ -26,6 +26,8 @@ private:
     uint32_t _echo_timeout = 0;
 
     void _Process();
+    void _PrintId();
+    void _SetId(const char *id);
     void _SetKey(const char *key);
     void _PrintKey();
     void _SetClock(const char *clock);

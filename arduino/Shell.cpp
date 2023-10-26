@@ -60,10 +60,21 @@ void Shell::_Process()
     if (_buffer.startsWith(F("help")))
     {
         Serial.println(F("Commands:"));
+        Serial.println(F("id                Print ID"));
+        Serial.println(F("id 33             Set ID"));
         Serial.println(F("key               Print key"));
         Serial.println(F("key 112233445566  Set key"));
         Serial.println(F("clock             Print clock reading (ms)"));
         Serial.println(F("clock 12345000    Set clock (ms)"));
+    }
+    else if (_buffer.startsWith(F("id ")))
+    {
+        _SetId(_buffer.c_str() + 3);
+        _PrintId();
+    }
+    else if (_buffer.startsWith(F("id")))
+    {
+        _PrintId();
     }
     else if (_buffer.startsWith(F("key ")))
     {
@@ -150,4 +161,21 @@ void Shell::_SetClock(const char *str)
 void Shell::_PrintClock()
 {
     Serial.println(_context.GetClock());
+}
+
+void Shell::_PrintId()
+{
+    Serial.println(_context.GetId());
+}
+
+void Shell::_SetId(const char *str)
+{
+    uint8_t id = 0;
+    while (char ch = *str++)
+    {
+        if (ch < '0' || ch > '9')
+            break;
+        id = id * 10 + (ch - '0');
+    }
+    _context.SetId(id);
 }

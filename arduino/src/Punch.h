@@ -15,14 +15,14 @@ public:
     // 0     | 1     | 2     | 3     |
     // STA-N | TIMEL | TIMEH | ......|
 
-    Punch(int station, uint32_t timestamp)
+    Punch(uint8_t station, uint32_t timestamp)
         : _station{station}
         , _timestamp{timestamp}
     {
     }
 
     Punch(const uint8_t *data, int offset)
-        : _station{data[offset] & 0xff}
+        : _station{data[offset]}
         , _timestamp{GetTimestamp(data, offset)}
     {
     }
@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    int _station;
+    uint8_t _station;
     uint32_t _timestamp;
 
     static uint32_t GetTimestamp(const uint8_t *data, int offset)
