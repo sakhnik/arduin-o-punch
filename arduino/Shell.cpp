@@ -60,12 +60,22 @@ void Shell::_Process()
     if (_buffer.startsWith(F("help")))
     {
         Serial.println(F("Commands:"));
+        Serial.println(F("info              Print all info"));
         Serial.println(F("id                Print ID"));
         Serial.println(F("id 33             Set ID"));
         Serial.println(F("key               Print key"));
         Serial.println(F("key 112233445566  Set key"));
         Serial.println(F("clock             Print clock reading (ms)"));
         Serial.println(F("clock 12345000    Set clock (ms)"));
+    }
+    else if (_buffer.startsWith(F("info")))
+    {
+        Serial.print(F("id="));
+        _PrintId();
+        Serial.print(F("key="));
+        _PrintKey();
+        Serial.print(F("clock="));
+        _PrintClock();
     }
     else if (_buffer.startsWith(F("id ")))
     {
