@@ -14,6 +14,10 @@ struct IKeyReceiver;
 class PunchCard
 {
 public:
+    static constexpr const uint8_t CHECK_STATION = 1;
+    static constexpr const uint8_t START_STATION = 10;
+    static constexpr const uint8_t FINISH_STATION = 255;
+
     // Keep in sync with Android's Puncher
     //
     // Header format (sector 0, block 1):

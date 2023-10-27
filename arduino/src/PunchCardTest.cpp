@@ -80,7 +80,7 @@ TEST_CASE("PunchCard max punches")
     PunchCard punchCard(&mifare, DEF_KEY);
 
     auto testPunch = [](int i) {
-        return Punch(i + 1, 100 * (i + 1));
+        return Punch(PunchCard::START_STATION + i + 1, 100 * (i + 1));
     };
 
     auto maxPunches = 16 * (16 * 3 - 2) / Punch::STORAGE_SIZE - 1;
@@ -89,7 +89,7 @@ TEST_CASE("PunchCard max punches")
         CHECK(0 == punchCard.Punch(testPunch(i)));
     }
     // No more space
-    REQUIRE(ErrorCode::CARD_IS_FULL == punchCard.Punch(Punch(1, 65000)));
+    REQUIRE(ErrorCode::CARD_IS_FULL == punchCard.Punch(Punch(51, 65000)));
 
     std::vector<Punch> readOut;
     REQUIRE(0 == punchCard.ReadOut(readOut));
@@ -118,6 +118,24 @@ TEST_CASE("PunchCard Clear")
     punchCard.Clear();
     CHECK(0 == punchCard.ReadOut(readOut));
     CHECK(0 == readOut.size());
+}
+
+TEST_CASE("PunchCard Clear at Start")
+{
+    TestMifare mifare;
+    PunchCard punchCard(&mifare, DEF_KEY);
+
+    std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::CHECK_STATION, 150), Punch(PunchCard::START_STATION, 150)};
+    for (int i = 0; i != punches.size(); ++i)
+    {
+        CHECK(0 == punchCard.Punch(punches[i]));
+    }
+
+    std::vector<Punch> readOut;
+    CHECK(0 == punchCard.ReadOut(readOut));
+    CHECK(2 == readOut.size());
+    CHECK(punches[2] == readOut[0]);
+    CHECK(punches[3] == readOut[1]);
 }
 
 #endif //BUILD_TEST
