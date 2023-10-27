@@ -1,6 +1,7 @@
 #include "Shell.h"
 #include "Context.h"
 #include "Buzzer.h"
+#include "src/PunchCard.h"
 
 namespace {
 
@@ -62,7 +63,12 @@ void Shell::_Process()
         Serial.println(F("Commands:"));
         Serial.println(F("info              Print all info"));
         Serial.println(F("id                Print ID"));
-        Serial.println(F("id 33             Set ID"));
+        Serial.print  (F("id 33             Set ID: check="));
+        Serial.print(AOP::PunchCard::CHECK_STATION);
+        Serial.print(F(" start="));
+        Serial.print(AOP::PunchCard::START_STATION);
+        Serial.print(F(" finish="));
+        Serial.println(AOP::PunchCard::FINISH_STATION);
         Serial.println(F("key               Print key"));
         Serial.println(F("key 112233445566  Set key"));
         Serial.println(F("clock             Print clock reading (ms)"));
