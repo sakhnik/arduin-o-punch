@@ -17,6 +17,7 @@ void setup() {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
 
+    context.Setup();
     buzzer.Setup();
 
 #if ENABLE_SERIAL
