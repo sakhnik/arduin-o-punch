@@ -13,6 +13,7 @@ public:
 
     static const uint8_t KEY_SIZE = 6;
     const uint8_t* GetKey() const { return _key; }
+    bool IsKeyDefault() const;
 
     // IKeyReceiver
     void OnNewKey(const uint8_t *key) override;

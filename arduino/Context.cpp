@@ -13,6 +13,16 @@ void Context::Setup()
     EEPROM.get(ADDROF(_key), _key);
 }
 
+bool Context::IsKeyDefault() const
+{
+    for (int i = 0; i < KEY_SIZE; ++i)
+    {
+        if (_key[i] != 0xff)
+            return false;
+    }
+    return true;
+}
+
 void Context::OnNewKey(const uint8_t *key)
 {
     memcpy(_key, key, sizeof(_key));

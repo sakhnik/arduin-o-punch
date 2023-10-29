@@ -6,8 +6,8 @@
 #include "Shell.h"
 
 
-Buzzer buzzer;
 Context context;
+Buzzer buzzer{context};
 Puncher puncher{context};
 #if ENABLE_SERIAL
 Shell shell{context, buzzer};
@@ -44,7 +44,9 @@ void loop()
     }
 
     buzzer.Tick();
+#if ENABLE_SERIAL
     shell.Tick();
+#endif // ENABLE_SERIAL
 }
 
 #if ENABLE_SERIAL

@@ -1,13 +1,22 @@
 #include "Buzzer.h"
 #include "defs.h"
+#include "Context.h"
+
+Buzzer::Buzzer(Context &context)
+    : _context{context}
+{
+}
 
 void Buzzer::Setup()
 {
-    // Blink continuously to indicate initialization prompt
-    _confirmation = _timer.every(250, [](void*) {
-        digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
-        return true;
-    });
+    if (_context.IsKeyDefault())
+    {
+        // Blink continuously to indicate initialization prompt
+        _confirmation = _timer.every(250, [](void*) {
+            digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
+            return true;
+        });
+    }
 }
 
 void Buzzer::Tick()
