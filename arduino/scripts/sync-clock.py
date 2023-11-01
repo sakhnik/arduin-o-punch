@@ -12,8 +12,8 @@ baud_rate = 9600
 def get_current_time():
     """Get the current time in milliseconds since 8:00."""
     now = datetime.now()
-    eight_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
-    elapsed_ms = int((now - eight_am).total_seconds() * 1000)
+    time_origin = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elapsed_ms = int((now - time_origin).total_seconds() * 1000)
     return elapsed_ms
 
 

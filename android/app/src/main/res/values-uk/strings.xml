@@ -10,7 +10,7 @@
     <string name="upload">Вивантажити</string>
     <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
     <string name="card_id">ID Картки</string>
-    <string name="timestamp">Час</string>
+    <string name="timestamp">Таймштамп</string>
     <string name="key_12_hex_digits">Ключ (12 шітсн. цифр)</string>
     <string name="format_runner">Підготовка Бігової</string>
     <string name="clear_punches">Очистити Відмітки</string>
@@ -43,4 +43,5 @@
     <string name="punch_service_instruction">Для ініціалізації станцій Arduino, виконайте ритмічну відмітку:\n- Тут на цій сторінці\n- На станції 1\n- На станції 2\n- Тут на цій сторінці\nЦе дозволить обчислити різницю годинників у обраних стаціях.</string>
     <string name="read_service_title">Прочитати службову картку</string>
     <string name="read_service_instruction">Прочитати різниці годинників із службової або бігової картки.\nКоли правильно застосовано (див. Відмітка службової картки), різниці годинників буде обчислено і збережено.\nЇх потім буде використано для поправки часових відміток при зчитуванні бігових карток.</string>
+    <string name="time">Час</string>
 </resources>

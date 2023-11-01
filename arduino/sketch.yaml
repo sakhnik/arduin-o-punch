@@ -6,6 +6,8 @@ profiles:
     libraries:
       - RFID_MFRC522v2 (2.0.4)
       - arduino-timer (3.0.1)
+      - Adafruit BusIO (1.14.4)
+      - RTClib (2.1.1)
 
 default_fqbn: arduino:avr:pro:cpu=8MHzatmega328
 default_port: /dev/ttyUSB0

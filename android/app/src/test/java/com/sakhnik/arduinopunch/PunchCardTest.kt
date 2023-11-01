@@ -9,7 +9,7 @@ import org.mockito.Mockito
 
 class PunchCardTest {
 
-    val context = Mockito.mock(Context::class.java)
+    private val context: Context = Mockito.mock(Context::class.java)
 
     class TestMifare : IMifare {
         private val blocks: ArrayList<ByteArray> = ArrayList()
@@ -93,14 +93,14 @@ class PunchCardTest {
         val punchCard = PunchCard(mifare, byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x90.toByte(), 0xab.toByte()), context)
         punchCard.prepareRunner(42, 0.toLong())
 
-        val testPunch = {i: Int -> Punch(i + 1, 100.toLong() * (i + 1))}
+        val testPunch = {i: Int -> Punch(i + 1, 12345.toLong() * (i + 1))}
 
         val maxPunches: Int = 16 * (16 * 3 - 2) / Punch.STORAGE_SIZE - 1
         for (i in 0 until maxPunches) {
             assertTrue(punchCard.punch(testPunch(i)))
         }
         // No more space
-        assertThrows(RuntimeException::class.java) { ->
+        assertThrows(RuntimeException::class.java) {
             punchCard.punch(Punch(1, 65000))
         }
 

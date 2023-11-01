@@ -25,8 +25,12 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import java.io.IOException
+import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.LocalTime
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
@@ -235,6 +239,8 @@ class MainActivity : AppCompatActivity() {
                 tableLayout.removeViewAt(i)
             }
 
+            val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            sdf.timeZone = TimeZone.getTimeZone("UTC")
             for (punch in readOut.punches) {
                 val tableRow = TableRow(this)
                 val cell1 = TextView(this)
@@ -243,6 +249,9 @@ class MainActivity : AppCompatActivity() {
                 val cell2 = TextView(this)
                 cell2.text = punch.timestamp.toString()
                 tableRow.addView(cell2)
+                val cell3 = TextView(this)
+                cell3.text = sdf.format(Date(punch.timestamp * 1000))
+                tableRow.addView(cell3)
                 tableLayout.addView(tableRow)
             }
         }

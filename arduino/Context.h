@@ -3,13 +3,17 @@
 #include <Arduino.h>
 #include "src/IKeyReceiver.h"
 
+class Buzzer;
+
 class Context
     : public AOP::IKeyReceiver
 {
 public:
     static constexpr const int ADDRESS = 0;
 
-    void Setup();
+    Context(Buzzer &buzzer);
+
+    int8_t Setup();
 
     static const uint8_t KEY_SIZE = 6;
     const uint8_t* GetKey() const { return _key; }
@@ -25,7 +29,7 @@ public:
     void SetId(uint8_t id);
 
 private:
+    Buzzer &_buzzer;
     uint8_t _id = 1;
     uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-    long _clock_offset = 0;
 };

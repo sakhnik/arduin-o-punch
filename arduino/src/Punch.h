@@ -13,7 +13,7 @@ public:
     //
     // Punch format:
     // 0     | 1     | 2     | 3     |
-    // STA-N | TIMEL | TIMEH | ......|
+    // STA-N | TIMEL | TIMEM | TIMEH.|
 
     Punch(uint8_t station, uint32_t timestamp)
         : _station{station}
@@ -33,10 +33,10 @@ public:
     void Serialize(uint8_t *data, int offset)
     {
         data[offset] = _station & 0xff;
-        // Store timestamp & 0xffff. The recording is consecutive, and it's safe to assume
-        // that the overflow can only happen by incrementing the next digit by 1.
+        // Store timestamp & 0xffffff.
         data[offset + 1] = _timestamp & 0xff;
         data[offset + 2] = (_timestamp >> 8) & 0xff;
+        data[offset + 3] = (_timestamp >> 16) & 0xff;
     }
 
     bool operator==(const Punch &o) const
@@ -50,7 +50,7 @@ private:
 
     static uint32_t GetTimestamp(const uint8_t *data, int offset)
     {
-        return  (data[offset + 1] & 0xff) | ((data[offset + 2] & 0xff) << 8);
+        return  (data[offset + 1] & 0xff) | ((data[offset + 2] & 0xff) << 8) | ((data[offset + 3] & 0xff) << 16);
     }
 };
 

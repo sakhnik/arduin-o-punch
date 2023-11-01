@@ -45,4 +45,5 @@
     <string name="punch_service_instruction">To initialize a couple of Arduino stations, perform rhythmic punching:\n- Here in the app\n- Station 1\n- Station 2\n- Here in the app\nThis will allow calculating clock offsets in the selected stations.</string>
     <string name="read_service_title">Read service card</string>
     <string name="read_service_instruction">Read clock offsets from a service or a runner card.\nWhen punched properly (see Punch service card), clock offsets will be calculated, remembered.\nThey will later be used to adjust clock readings when reading the runner cards.</string>
+    <string name="time">Time</string>
 </resources>

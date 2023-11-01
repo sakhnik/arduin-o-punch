@@ -15,7 +15,7 @@ import java.io.IOException
 
 class Uploader(private val activity: ComponentActivity) : Callback {
     companion object {
-        const val START_HOUR: Int = 8
+        const val START_HOUR: Int = 0
 
         const val CHECK_STATION: Int = 1
         const val START_STATION: Int = 10

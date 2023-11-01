@@ -1,28 +1,34 @@
 #include "Buzzer.h"
 #include "defs.h"
-#include "Context.h"
 
-Buzzer::Buzzer(Context &context)
-    : _context{context}
+Buzzer::Buzzer()
 {
 }
 
 void Buzzer::Setup()
 {
-    if (_context.IsKeyDefault())
-    {
-        // Blink continuously to indicate initialization prompt
-        _confirmation = _timer.every(250, [](void*) {
-            digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
-            return true;
-        });
-    }
 }
 
 void Buzzer::Tick()
 {
     // TODO: maybe better to call from a hardware timer ISR
     _timer.tick();
+}
+
+void Buzzer::SignalRTCFail()
+{
+    _confirmation = _timer.every(100, [](void*) {
+        digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
+        return true;
+    });
+}
+
+void Buzzer::SignalDefaultKey()
+{
+    _confirmation = _timer.every(250, [](void*) {
+        digitalWrite(LED_CONFIRM_PIN, !digitalRead(LED_CONFIRM_PIN));
+        return true;
+    });
 }
 
 void Buzzer::ConfirmPunch()

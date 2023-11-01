@@ -12,23 +12,25 @@ TEST_CASE("Punch serialize")
     CHECK(1 == data[0]);
     CHECK(3 == data[1]);
     CHECK(0 == data[2]);
+    CHECK(0 == data[3]);
 
-    Punch(0xfe, 0xdead).Serialize(data, 1);
+    Punch(0xfe, 0xdeadbe).Serialize(data, 1);
     CHECK(0xfe == data[1]);
-    CHECK(0xad == data[2]);
-    CHECK(0xde == data[3]);
+    CHECK(0xbe == data[2]);
+    CHECK(0xad == data[3]);
+    CHECK(0xde == data[4]);
 }
 
 TEST_CASE("Punch deserialize")
 {
-    const uint8_t data[] = {0xde, 0xad, 0xbe, 0xef};
+    const uint8_t data[] = {0xde, 0xad, 0xbe, 0xef, 0x12};
     auto p1 = Punch(data, 0);
     CHECK(0xde == p1.GetStation());
-    CHECK(0xbead == p1.GetTimestamp());
+    CHECK(0xefbead == p1.GetTimestamp());
 
     auto p2 = Punch(data, 1);
     CHECK(0xad == p2.GetStation());
-    CHECK(0xefbe == p2.GetTimestamp());
+    CHECK(0x12efbe == p2.GetTimestamp());
 }
 
 #endif //BUILD_TEST

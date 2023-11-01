@@ -2,20 +2,19 @@
 
 #include <arduino-timer.h>
 
-class Context;
-
 class Buzzer
 {
 public:
-    Buzzer(Context &);
+    Buzzer();
 
     void Setup();
     void Tick();
 
     void ConfirmPunch();
+    void SignalDefaultKey();
+    void SignalRTCFail();
 
 private:
-    Context &_context;
     Timer<> _timer = timer_create_default();
     Timer<>::Task _confirmation = {};
 };

@@ -5,9 +5,8 @@
 #include "Puncher.h"
 #include "Shell.h"
 
-
-Context context;
-Buzzer buzzer{context};
+Buzzer buzzer;
+Context context{buzzer};
 Puncher puncher{context};
 #if ENABLE_SERIAL
 Shell shell{context, buzzer};
@@ -17,13 +16,18 @@ void setup() {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
 
-    context.Setup();
-    buzzer.Setup();
-
 #if ENABLE_SERIAL
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
 #endif //ENABLE_SERIAL
+
+    buzzer.Setup();
+
+    if (context.Setup())
+    {
+        while (true)
+            buzzer.Tick();
+    }
 
     puncher.Setup();
 

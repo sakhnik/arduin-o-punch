@@ -80,7 +80,7 @@ TEST_CASE("PunchCard max punches")
     PunchCard punchCard(&mifare, DEF_KEY);
 
     auto testPunch = [](int i) {
-        return Punch(PunchCard::START_STATION + i + 1, 100 * (i + 1));
+        return Punch(PunchCard::START_STATION + i + 1, 12345 * (i + 1));
     };
 
     auto maxPunches = 16 * (16 * 3 - 2) / Punch::STORAGE_SIZE - 1;
