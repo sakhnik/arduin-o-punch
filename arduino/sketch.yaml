@@ -18,5 +18,5 @@ profiles:
       - Adafruit BusIO (1.14.4)
       - RTClib (2.1.1)
 
-default_fqbn: arduino:avr:pro:cpu=8MHzatmega328
+default_fqbn: arduino:avr:nano:cpu=atmega328old
 default_port: /dev/ttyUSB0
