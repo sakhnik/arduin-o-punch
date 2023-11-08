@@ -2,10 +2,11 @@
 #include "Context.h"
 #include "Buzzer.h"
 #include "src/PunchCard.h"
+#include <RTClib.h>
 
 namespace {
 
-const uint8_t MAX_SIZE = 64;
+const uint8_t MAX_SIZE = 32;
 
 void Prompt()
 {
@@ -13,6 +14,13 @@ void Prompt()
 }
 
 } // namespace;
+
+Shell::Shell(Context &context, Buzzer &buzzer)
+    : _context{context}
+    , _buzzer{buzzer}
+{
+    _buffer.reserve(MAX_SIZE);
+}
 
 void Shell::Setup()
 {
@@ -73,6 +81,7 @@ void Shell::_Process()
         Serial.println(F("key 112233445566  Set key"));
         Serial.println(F("clock             Print clock reading (ms)"));
         Serial.println(F("clock 12345000    Set clock (ms)"));
+        Serial.println(F("time              Print current time"));
     }
     else if (_buffer.startsWith(F("info")))
     {
@@ -80,8 +89,11 @@ void Shell::_Process()
         _PrintId();
         Serial.print(F("key="));
         _PrintKey();
+        auto now = _context.GetDateTime();
         Serial.print(F("clock="));
-        _PrintClock();
+        _PrintClock(now);
+        Serial.print(F("time="));
+        _PrintTime(now);
     }
     else if (_buffer.startsWith(F("id ")))
     {
@@ -105,11 +117,15 @@ void Shell::_Process()
     else if (_buffer.startsWith(F("clock ")))
     {
         _SetClock(_buffer.c_str() + 6);
-        _PrintClock();
+        _PrintClock(_context.GetDateTime());
     }
     else if (_buffer.startsWith(F("clock")))
     {
-        _PrintClock();
+        _PrintClock(_context.GetDateTime());
+    }
+    else if (_buffer.startsWith(F("time")))
+    {
+        _PrintTime(_context.GetDateTime());
     }
     else
     {
@@ -174,9 +190,30 @@ void Shell::_SetClock(const char *str)
     _context.SetClock(clock);
 }
 
-void Shell::_PrintClock()
+void Shell::_PrintClock(const DateTime &time)
 {
-    Serial.println(_context.GetClock());
+    Serial.println(_context.GetClock(&time));
+}
+
+namespace {
+
+void PrintDD(uint8_t d)
+{
+    if (d <= 9)
+        Serial.print(F("0"));
+    Serial.print(d);
+}
+
+} //namespace;
+
+void Shell::_PrintTime(const DateTime &time)
+{
+    PrintDD(time.hour());
+    Serial.print(F(":"));
+    PrintDD(time.minute());
+    Serial.print(F(":"));
+    PrintDD(time.second());
+    Serial.println();
 }
 
 void Shell::_PrintId()

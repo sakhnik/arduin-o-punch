@@ -4,15 +4,12 @@
 
 class Context;
 class Buzzer;
+class DateTime;
 
 class Shell
 {
 public:
-    Shell(Context &context, Buzzer &buzzer)
-        : _context{context}
-        , _buzzer{buzzer}
-    {
-    }
+    Shell(Context &, Buzzer &);
 
     void Setup();
     void OnSerial();
@@ -31,5 +28,6 @@ private:
     void _SetKey(const char *key);
     void _PrintKey();
     void _SetClock(const char *clock);
-    void _PrintClock();
+    void _PrintClock(const DateTime &time);
+    void _PrintTime(const DateTime &time);
 };

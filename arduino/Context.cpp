@@ -53,13 +53,22 @@ void Context::OnNewKey(const uint8_t *key)
     EEPROM.put(ADDROF(_key), _key);
 }
 
-uint32_t Context::GetClock() const
+DateTime Context::GetDateTime() const
 {
+    return rtc.now();
+}
+
+uint32_t Context::GetClock(const DateTime *date_time) const
+{
+    if (!date_time)
+    {
+        auto now = rtc.now();
+        return GetClock(&now);
+    }
     // TODO: subsecond resolution
-    DateTime now = rtc.now();
-    uint32_t clock = now.hour();
-    clock = clock * 60 + now.minute();
-    clock = clock * 60 + now.second();
+    uint32_t clock = date_time->hour();
+    clock = clock * 60 + date_time->minute();
+    clock = clock * 60 + date_time->second();
     return clock * 1000;
 }
 

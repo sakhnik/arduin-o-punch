@@ -91,7 +91,7 @@ ErrorCode Puncher::Punch()
 
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _context.GetKey(), &_context};
-    uint32_t timestamp = _context.GetClock() / 1000;
+    uint32_t timestamp = _context.GetClock(nullptr) / 1000;
     AOP::Punch punch{_context.GetId(), timestamp};
     auto res = punchCard.Punch(punch);
     // The station could be configured to clear a card

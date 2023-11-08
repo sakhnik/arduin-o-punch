@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Arduino.h>
 #include "src/IKeyReceiver.h"
+#include <Arduino.h>
+#include <RTClib.h>
 
 class Buzzer;
 
@@ -22,7 +23,8 @@ public:
     // IKeyReceiver
     void OnNewKey(const uint8_t *key) override;
 
-    uint32_t GetClock() const;
+    DateTime GetDateTime() const;
+    uint32_t GetClock(const DateTime *date_time) const;
     void SetClock(uint32_t clock);
 
     uint8_t GetId() const;
