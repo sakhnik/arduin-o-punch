@@ -4,10 +4,6 @@
 #include "src/IMifare.h"
 #include "src/PunchCard.h"
 
-#if ENABLE_SERIAL
-#include <MFRC522Debug.h>
-#endif
-
 
 Puncher::Puncher(Context &context)
     : _context{context}
@@ -17,10 +13,6 @@ Puncher::Puncher(Context &context)
 void Puncher::Setup()
 {
     mfrc522.PCD_Init();  // Init MFRC522 board.
-
-#if ENABLE_SERIAL
-    MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);  // Show details of PCD - MFRC522 Card Reader details.
-#endif //ENABLE_SERIAL
 }
 
 struct MifareClassic : AOP::IMifare
@@ -48,10 +40,8 @@ struct MifareClassic : AOP::IMifare
                 );
         if (status)
         {
-#if ENABLE_SERIAL
             Serial.print(F("Auth failed: "));
             Serial.println(static_cast<int>(status));
-#endif //ENABLE_SERIAL
         }
         return status;
     }
@@ -61,10 +51,8 @@ struct MifareClassic : AOP::IMifare
         auto status = mfrc522.MIFARE_Read(block, data, &dataSize);
         if (status)
         {
-#if ENABLE_SERIAL
             Serial.print(F("Read failed: "));
             Serial.println(static_cast<int>(status));
-#endif //ENABLE_SERIAL
         }
         return status;
     }
@@ -74,10 +62,8 @@ struct MifareClassic : AOP::IMifare
         auto status = mfrc522.MIFARE_Write(block, const_cast<uint8_t *>(data), IMifare::BLOCK_SIZE);
         if (status)
         {
-#if ENABLE_SERIAL
             Serial.print(F("Write failed: "));
             Serial.println(static_cast<int>(status));
-#endif //ENABLE_SERIAL
         }
         return status;
     }
@@ -110,10 +96,8 @@ ErrorCode Puncher::Punch()
     auto res = punchCard.Punch(punch);
     // The station could be configured to clear a card
     //auto res = punchCard.Clear();
-#if ENABLE_SERIAL
     Serial.print(F("Punch result: "));
     Serial.println(static_cast<int>(res));
-#endif //ENABLE_SERIAL
 
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();

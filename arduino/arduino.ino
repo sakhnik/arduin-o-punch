@@ -8,18 +8,14 @@
 Buzzer buzzer;
 Context context{buzzer};
 Puncher puncher{context};
-#if ENABLE_SERIAL
 Shell shell{context, buzzer};
-#endif //ENABLE_SERIAL
 
 void setup() {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
 
-#if ENABLE_SERIAL
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
-#endif //ENABLE_SERIAL
 
     buzzer.Setup();
 
@@ -30,11 +26,7 @@ void setup() {
     }
 
     puncher.Setup();
-
-#if ENABLE_SERIAL
     shell.Setup();
-#endif //ENABLE_SERIAL
-
 }
 
 
@@ -48,14 +40,10 @@ void loop()
     }
 
     buzzer.Tick();
-#if ENABLE_SERIAL
     shell.Tick();
-#endif // ENABLE_SERIAL
 }
 
-#if ENABLE_SERIAL
 void serialEvent()
 {
     shell.OnSerial();
 }
-#endif //ENABLE_SERIAL
