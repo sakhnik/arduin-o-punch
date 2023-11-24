@@ -16,3 +16,4 @@ CompileFlags:
         - -I/home/sakhnik/Arduino/libraries/arduino-timer/src
         - -I/home/sakhnik/Arduino/libraries/Adafruit_BusIO/
         - -I/home/sakhnik/Arduino/libraries/RTClib/src
+        - -I/home/sakhnik/Arduino/libraries/Low-Power

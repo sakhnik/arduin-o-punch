@@ -113,3 +113,13 @@ ErrorCode Puncher::Punch()
 
     return res;
 }
+
+void Puncher::AntennaOn()
+{
+    mfrc522.PCD_AntennaOn();
+}
+
+void Puncher::AntennaOff()
+{
+    mfrc522.PCD_AntennaOff();
+}

@@ -15,6 +15,9 @@ public:
     void Setup();
     ErrorCode Punch();
 
+    void AntennaOff();
+    void AntennaOn();
+
 private:
     Context &_context;
 

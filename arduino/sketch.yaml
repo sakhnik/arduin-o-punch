@@ -8,6 +8,7 @@ profiles:
       - arduino-timer (3.0.1)
       - Adafruit BusIO (1.14.4)
       - RTClib (2.1.1)
+      - Low-Power (1.81)
   nano:
     fqbn: arduino:avr:nano:cpu=atmega328old
     platforms:
@@ -17,6 +18,7 @@ profiles:
       - arduino-timer (3.0.1)
       - Adafruit BusIO (1.14.4)
       - RTClib (2.1.1)
+      - Low-Power (1.81)
 
 default_fqbn: arduino:avr:nano:cpu=atmega328old
 default_port: /dev/ttyUSB0
