@@ -13,6 +13,7 @@ Puncher::Puncher(Context &context)
 void Puncher::Setup()
 {
     mfrc522.PCD_Init();  // Init MFRC522 board.
+    _last_init_time = millis();
 }
 
 struct MifareClassic : AOP::IMifare
@@ -71,6 +72,14 @@ struct MifareClassic : AOP::IMifare
 
 ErrorCode Puncher::Punch()
 {
+    // Reinit MFRC522 periodically
+    auto now = millis();
+    if (unsigned(now - _last_init_time) > 10000)
+    {
+        _last_init_time = now;
+        mfrc522.PCD_Init();
+    }
+
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if (!mfrc522.PICC_IsNewCardPresent())
     {
