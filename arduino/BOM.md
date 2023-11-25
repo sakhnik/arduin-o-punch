@@ -33,16 +33,16 @@ Higher precision (TCOX), higher cost.
 
 # Cost estimate
 
-Arduino   65.00     100.00
-RC522     35.00
-Buzzer     6.00
+Arduino   75.00
+RC522     50.00
+18650     75.00
+Power     60.00
+DS3231    48.00
+Wires      8.00
+Buzzer     4.00
 Led        1.00
-Power     55.00
-18650     75.00     100.00
-Wires     10.00
 R         10.00
-DS3231    40.00
-Box       50.00
 Board      5.00
+Box       50.00
 
-Total    352.00     412.00
+Total    386.00

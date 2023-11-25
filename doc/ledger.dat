@@ -1,11 +1,20 @@
 ; vim: set ft=ledger:
 
+commodity $
 commodity ₴
 
 account Assets:Privat
 account Expenses:Bank
 account Expenses:Bootstrap
 account Expenses:Post
+account Expenses:Prototype
+account Expenses:Prototype:Arduino
+account Expenses:Prototype:DS3231
+account Expenses:Prototype:Wires
+account Expenses:Prototype:Buzzer
+account Expenses:Prototype:Power
+account Expenses:Prototype:18650
+account Expenses:Prototype:RC522
 account Expenses:Tools
 
 
@@ -91,3 +100,38 @@ account Expenses:Tools
     ; Корпус пластиковий для електроніки N8A 28x70x134мм                    1x  29.00 ₴ ->  29.00 ₴
     ; Шлейф 10-жильний 28AWG різнокольоровий 50см (1.27мм)                  1x  18.00 ₴ ->  18.00 ₴
     ; Набір кольорових світлодіодів 3 і 5 мм (100шт)                        1x  75.00 ₴ ->  75.00 ₴
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:Arduino            19.85 $
+    Assets:Privat                       -744.20 ₴
+    ; 10x Arduino Nano v3 micro USB: https://www.aliexpress.com/item/1005002976480289.html
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:RC522              12.75 $
+    Assets:Privat                       -478.35 ₴
+    ; 10x MFRC 522: https://www.aliexpress.com/item/2026446641.html
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:18650              20.20 $
+    Assets:Privat                       -756.90 ₴
+    ; 10x 18650 battery: https://www.aliexpress.com/item/1005005922658060.html
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:Power              15.96 $
+    Assets:Privat                       -598.35 ₴
+    ; 10x 18650 adapter: https://www.aliexpress.com/item/1005006120745551.html
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:DS3231             12.80 $
+    Assets:Privat                       -480.60 ₴
+    ; 10x DS3231: https://www.aliexpress.com/item/1005005216959684.html
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:Wires               3.90 $
+    Assets:Privat                       -145.85 ₴
+    ; 5x Wires F-F: https://www.aliexpress.com/item/32825558073.html
+
+2023-11-25 * Buzzer
+    Expenses:Prototype:Buzzer              6.20 $
+    Assets:Privat                       -231.70 ₴
+    ; 6x 10-pack active buzzer: https://www.aliexpress.com/item/1005004005677478.html
