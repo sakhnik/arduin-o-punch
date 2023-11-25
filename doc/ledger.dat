@@ -1,0 +1,93 @@
+; vim: set ft=ledger:
+
+commodity ₴
+
+account Assets:Privat
+account Expenses:Bank
+account Expenses:Bootstrap
+account Expenses:Post
+account Expenses:Tools
+
+
+2023-09-04 * Arduino.ua
+    Assets:Privat
+    Expenses:Bootstrap                  1954.00 ₴
+    Expenses:Post                         60.00 ₴
+    ; Mifare-One RFID карта 1 kb 13.56МГц                                   3x  16.00 ₴ -> 48.00 ₴
+    ; Arduino Pro Mini 328 3.3В/8МГц від Sparkfun                           1x 487.00 ₴ -> 487.00 ₴
+    ; RFID модуль RC522 з карткою доступу для Arduino                       1x  76.00 ₴ ->  76.00 ₴
+    ; Перехідник USB - FTDI 5B від Sparkfun                                 1x 559.00 ₴ -> 559.00 ₴
+    ; Зарядний пристрій LiitoKala Lii-S2                                    1x 324.00 ₴ -> 324.00 ₴
+    ; BMS контролер 2S 4A плата заряду та захисту 2xLi-ion 18650 7.4В       1x  38.00 ₴ ->  38.00 ₴
+    ; Відсік елементів живлення 18650 для двох акумуляторів                 1x  27.00 ₴ ->  27.00 ₴
+    ; Акумулятор Liitokala 18650-HG2 3000мАч високострумовий без захисту    2x 196.00 ₴ -> 392.00 ₴
+
+
+2023-10-31 * Arduino.ua
+    Expenses:Bootstrap                   466.00 ₴
+    Expenses:Post                         50.00 ₴
+    Assets:Privat
+    ; Модуль автономного живлення 2А на 18650 з USB-виходом                 2x 143.00 ₴ -> 286.00 ₴
+    ; Real Time Clock Модуль на DS3231M                                     1x 117.00 ₴ -> 117.00 ₴
+    ; Real Time Clock Модуль (DS1307) без батарейки                         1x  34.00 ₴ ->  34.00 ₴
+
+2024-11-03 * Arduino.ua
+    Expenses:Bootstrap                  1021.00 ₴
+    Expenses:Post                         55.00 ₴
+    Expenses:Bank                         15.20 ₴
+    Assets:Privat
+    ; Акумулятор 3.7В LIR2032                                               2x  59.00 ₴ -> 118.00 ₴
+    ; Arduino Pro Mini 328 5В/16МГц                                         1x 245.00 ₴ -> 245.00 ₴
+    ; Arduino Pro Mini 328 3.3В/8МГц                                        1x 222.00 ₴ -> 222.00 ₴
+    ; Arduino Pro Mini ISP 168 5В/16MHz                                     1x 139.00 ₴ -> 139.00 ₴
+    ; Живлення для макетної плати 5В /3.3В                                  1x  39.00 ₴ ->  39.00 ₴
+    ; Arduino Nano V3.0 AVR ATmega328P з розпаяними роз'ємами               1x 218.00 ₴ -> 218.00 ₴
+
+2023-11-05 * Imrad
+    Expenses:Bootstrap                   282.80 ₴
+    Expenses:Post                         50.00 ₴
+    Assets:Privat
+    ; Arduino Nano V3.0 ATMEGA328P (CH340) Type-C                           1x 159.90 ₴ -> 159.90 ₴
+    ; RFID MFRC522                                                          1x  99.00 ₴ ->  99.00 ₴
+    ; AWG28-10                                                              1x  15.70 ₴ ->  15.70 ₴
+    ; AL-V5K3IR-850-002_269 /EXCEED/LED_4X5m(ЕЛІПС)_clear                   1x   8.20 ₴ ->   8.20 ₴
+
+2023-11-07 * OLX
+    Expenses:Tools                       404.00 ₴
+    Expenses:Bank                         14.00 ₴
+    Expenses:Post                         70.00 ₴
+    Assets:Privat
+    ; Crimper tool for Dupont connectors
+
+2023-11-08 * OLX
+    Expenses:Bootstrap                   574.90 ₴
+    Assets:Privat
+    ; Dupont connectors
+
+2023-11-09 * OLX
+    Expenses:Tools                       351.90 ₴
+    Assets:Privat
+    ; Board holder
+
+2023-11-10 * Imrad
+    Expenses:Bootstrap                   559.35 ₴
+    Assets:Privat
+    ; AL-V5K3IR-850-002_269 /EXCEED/LED_4X5m(ЕЛІПС)_clear                   3x   8.20 ₴ ->  24.60 ₴
+    ; Плата друкована макетна PCB-3x7                                       2x  10.50 ₴ ->  21.00 ₴
+    ; Плата друкована макетна PCB-5x7                                       2x  16.00 ₴ ->  32.00 ₴
+    ; PASTA-L-35 (паяльна паста:флюс каніфольний 40г) /AG CHEMIA            1x  69.27 ₴ ->  69.27 ₴
+    ; Флюс F1 ( 30 мл )                                                     1x  48.75 ₴ ->  48.75 ₴
+    ; RTC модуль DS3231 (AT24C32) для ARDUINO                               1x  95.00 ₴ ->  95.00 ₴
+    ; RFID MFRC522                                                          1x  99.00 ₴ ->  99.00 ₴
+    ; Arduino Nano V3.0 ATMEGA328P (CH340) MiniUSB                          1x 132.90 ₴ -> 132.90 ₴
+    ; Buzzer 1205G (5В, з генератором)                                      3x  12.28 ₴ ->  36.84 ₴
+
+2023-11-21 * Arduino.ua
+    Expenses:Bootstrap                   280.00 ₴
+    Expenses:Post                         50.00 ₴
+    Expenses:Bank                          7.80 ₴
+    Assets:Privat
+    ; Годинник реального часу на DS3231 для Raspberry Pi та Arduino         1x 133.00 ₴ -> 133.00 ₴
+    ; Корпус пластиковий для електроніки N8A 28x70x134мм                    1x  29.00 ₴ ->  29.00 ₴
+    ; Шлейф 10-жильний 28AWG різнокольоровий 50см (1.27мм)                  1x  18.00 ₴ ->  18.00 ₴
+    ; Набір кольорових світлодіодів 3 і 5 мм (100шт)                        1x  75.00 ₴ ->  75.00 ₴
