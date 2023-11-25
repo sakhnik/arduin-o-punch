@@ -8,13 +8,14 @@ account Expenses:Bank
 account Expenses:Bootstrap
 account Expenses:Post
 account Expenses:Prototype
-account Expenses:Prototype:Arduino
-account Expenses:Prototype:DS3231
-account Expenses:Prototype:Wires
-account Expenses:Prototype:Buzzer
-account Expenses:Prototype:Power
 account Expenses:Prototype:18650
+account Expenses:Prototype:Arduino
+account Expenses:Prototype:BatTester
+account Expenses:Prototype:Buzzer
+account Expenses:Prototype:DS3231
+account Expenses:Prototype:Power
 account Expenses:Prototype:RC522
+account Expenses:Prototype:Wires
 account Expenses:Tools
 
 
@@ -131,7 +132,12 @@ account Expenses:Tools
     Assets:Privat                       -145.85 ₴
     ; 5x Wires F-F: https://www.aliexpress.com/item/32825558073.html
 
-2023-11-25 * Buzzer
+2023-11-25 * AliExpress
     Expenses:Prototype:Buzzer              6.20 $
     Assets:Privat                       -231.70 ₴
     ; 6x 10-pack active buzzer: https://www.aliexpress.com/item/1005004005677478.html
+
+2023-11-25 * AliExpress
+    Expenses:Prototype:BatTester           7.55 $
+    Assets:Privat                       -283.05 ₴
+    ; 10x battery tester: https://www.aliexpress.com/item/1005006191335066.html
