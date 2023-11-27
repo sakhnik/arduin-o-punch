@@ -44,6 +44,6 @@ Buzzer         4.00 ₴
 Led            1.00 ₴
 R             10.00 ₴
 Board          5.00 ₴
-Box           50.00 ₴
+Box Z77       90.00 ₴
 
-Total        414.00 ₴
+Total        454.00 ₴
