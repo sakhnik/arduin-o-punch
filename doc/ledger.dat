@@ -152,3 +152,13 @@ account Expenses:Tools
     ; FIX-LEM-87                                                                                 10x   4.42 ₴ ->  44.20 ₴
     ; KLS5-1021-4000                                                                              2x   1.30 ₴ ->   2.60 ₴
     ; Упаковка                                                                                    1x   7.00 ₴ ->   7.00 ₴
+
+2023-11-28 * AliExpress
+    Expenses:Prototype:Arduino            17.75 $
+    Assets:Privat                       -665.45 ₴
+    ; 10x Arduino Pro Mini 3.3v 8MHz: https://www.aliexpress.com/item/32340811597.html
+
+2023-11-28 * AliExpress
+    Expenses:Prototype:Buzzer              6.00 $
+    Assets:Privat                       -225.70 ₴
+    ; 7x Active buzzer 3v3: https://www.aliexpress.com/item/1005004005677478.html
