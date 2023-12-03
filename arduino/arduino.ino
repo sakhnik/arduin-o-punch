@@ -29,6 +29,7 @@ void setup() {
 
     puncher.Setup();
     shell.Setup();
+    _last_punch_time = millis();
 }
 
 // Don't loop here to make sure serialEvent() is processed.
