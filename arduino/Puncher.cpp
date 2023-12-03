@@ -74,7 +74,7 @@ ErrorCode Puncher::Punch()
 {
     // Reinit MFRC522 periodically
     auto now = millis();
-    if (unsigned(now - _last_init_time) > 10000)
+    if (unsigned(now - _last_init_time) > 10000ul)
     {
         _last_init_time = now;
         mfrc522.PCD_Init();
