@@ -48,7 +48,7 @@ void loop()
     shell.Tick();
 
     // Sleep to economize power after 1 hour of no punches
-    if (unsigned(now - _last_punch_time) > 60ul * 60 * 1000)
+    if (now - _last_punch_time > 60ul * 60 * 1000)
     {
         puncher.AntennaOff();
         LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
