@@ -33,7 +33,7 @@ Higher precision (TCOX), higher cost.
 
 # Cost estimate
 
-Arduino       75.00 ₴
+Arduino       70.00 ₴
 RC522         50.00 ₴
 18650         75.00 ₴
 Power         60.00 ₴
@@ -42,8 +42,8 @@ Bat Tester    28.00 ₴
 Wires          8.00 ₴
 Buzzer         4.00 ₴
 Led            1.00 ₴
-R             10.00 ₴
+R              1.00 ₴
 Board          5.00 ₴
 Box Z77       90.00 ₴
 
-Total        454.00 ₴
+Total        440.00 ₴
