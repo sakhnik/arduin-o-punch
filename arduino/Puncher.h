@@ -21,8 +21,7 @@ public:
 private:
     Context &_context;
 
-    MFRC522DriverPinSimple ss_pin = RFID_SS_PIN; // Configurable, see typical pin layout above.
+    MFRC522DriverPinSimple ss_pin = RFID_SS_PIN;
     MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
     MFRC522 mfrc522{driver};  // Create MFRC522 instance.
-    unsigned long _last_init_time = 0;
 };
