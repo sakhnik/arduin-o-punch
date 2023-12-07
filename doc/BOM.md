@@ -29,7 +29,7 @@ Vulnerable to board reset.
 Higher precision (TCOX), higher cost.
 
 - RTC DS3132
-- Battery 3.7v LIR2032
+- Battery 3.7v CR2032 (interrupt the charging circuit)
 
 # Cost estimate
 
@@ -38,12 +38,13 @@ RC522         50.00 ₴
 18650         75.00 ₴
 Power         60.00 ₴
 DS3231        48.00 ₴
+CR2032        11.00 ₴
 Bat Tester    28.00 ₴
 Wires          8.00 ₴
 Buzzer         4.00 ₴
 Led            1.00 ₴
 R              1.00 ₴
 Board          5.00 ₴
-Box Z77       90.00 ₴
+Box Z-77      90.00 ₴
 
-Total        440.00 ₴
+Total        451.00 ₴
