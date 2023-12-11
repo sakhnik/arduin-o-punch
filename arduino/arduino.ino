@@ -44,6 +44,12 @@ void loop()
         buzzer.ConfirmPunch();
     }
 
+    if (res == ErrorCode::CARD_IS_FULL)
+    {
+        _last_punch_time = now;
+        buzzer.SignalCardFull();
+    }
+
     buzzer.Tick();
     shell.Tick();
 

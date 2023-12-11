@@ -63,6 +63,8 @@ const uint8_t RTC_FAIL[] = {START, DIT, P, DAH, P, DIT, P_L,    DAH, P_L,    DAH
 const uint8_t KEY_DEF[] = {START, DAH, P, DIT, P, DAH, P_L,    DIT, P_L,    DAH, P, DIT, P, DAH, P, DAH, P};
 // A = .-
 const uint8_t CONFIRM[] = {START, DIT, P, DAH, P};
+// F = ..-.
+const uint8_t CARD_FULL[] = {START, DIT, P, DIT, P, DAH, P, DIT, P};
 
 } //namespace;
 
@@ -79,4 +81,9 @@ void Buzzer::SignalDefaultKey()
 void Buzzer::ConfirmPunch()
 {
     _player.Play(CONFIRM, CONFIRM + sizeof(CONFIRM));
+}
+
+void Buzzer::SignalCardFull()
+{
+    _player.Play(CARD_FULL, CARD_FULL + sizeof(CARD_FULL));
 }

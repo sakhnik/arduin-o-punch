@@ -13,6 +13,7 @@ public:
     void ConfirmPunch();
     void SignalDefaultKey();
     void SignalRTCFail();
+    void SignalCardFull();
 
 private:
     Timer<> _timer = timer_create_default();
