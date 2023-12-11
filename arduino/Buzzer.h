@@ -16,5 +16,21 @@ public:
 
 private:
     Timer<> _timer = timer_create_default();
-    Timer<>::Task _confirmation = {};
+
+    struct Player
+    {
+        Timer<> &_timer;
+        Timer<>::Task _task = {};
+
+        const uint8_t *duration{};
+        const uint8_t *duration_end{};
+        uint8_t state{};
+
+        Player(Timer<> &timer) : _timer{timer} { }
+
+        void Play(const uint8_t *duration, const uint8_t *duration_end);
+        static bool OnTimeout(void *ctx);
+    };
+
+    Player _player;
 };
