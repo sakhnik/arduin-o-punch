@@ -17,6 +17,7 @@ public:
 private:
     Timer<> _timer = timer_create_default();
 
+    // Play pulse codes, like Morse
     struct Player
     {
         Timer<> &_timer;
@@ -28,7 +29,10 @@ private:
 
         Player(Timer<> &timer) : _timer{timer} { }
 
+        // Play given sequence of durations starting from low and toggling between high and low on every other duration
+        // Duration is measured in 8 ms quanta
         void Play(const uint8_t *duration, const uint8_t *duration_end);
+
         static bool OnTimeout(void *ctx);
     };
 
