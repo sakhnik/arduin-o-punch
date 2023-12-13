@@ -27,11 +27,15 @@ public:
     uint32_t GetClock(const DateTime *date_time) const;
     void SetClock(uint32_t clock);
 
-    uint8_t GetId() const;
+    uint8_t GetId() const { return _id; }
     void SetId(uint8_t id);
+
+    uint8_t GetTimeoutHours() const { return _timeout_hr; }
+    void SetTimeoutHours(uint8_t hours);
 
 private:
     Buzzer &_buzzer;
     uint8_t _id = 1;
     uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    uint8_t _timeout_hr = 3;
 };

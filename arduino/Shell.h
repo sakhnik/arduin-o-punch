@@ -24,10 +24,12 @@ private:
 
     void _Process();
     void _PrintId();
-    void _SetId(const char *id);
-    void _SetKey(const char *key);
+    void _SetId(const char *param);
+    void _SetKey(const char *hex);
     void _PrintKey();
-    void _SetClock(const char *clock);
+    void _SetClock(const char *str);
     void _PrintClock(const DateTime &time);
     void _PrintTime(const DateTime &time);
+    void _PrintTimeout();
+    void _SetTimeout(const char *str);
 };

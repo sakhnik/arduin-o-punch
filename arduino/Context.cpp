@@ -29,6 +29,7 @@ int8_t Context::Setup()
 
     EEPROM.get(ADDROF(_id), _id);
     EEPROM.get(ADDROF(_key), _key);
+    EEPROM.get(ADDROF(_timeout_hr), _timeout_hr);
 
     if (IsKeyDefault())
     {
@@ -84,13 +85,14 @@ void Context::SetClock(uint32_t clock)
     rtc.adjust(DateTime(2023, 10, 31, clock, min, sec));
 }
 
-uint8_t Context::GetId() const
-{
-    return _id;
-}
-
 void Context::SetId(uint8_t id)
 {
     _id = id;
     EEPROM.put(ADDROF(_id), _id);
+}
+
+void Context::SetTimeoutHours(uint8_t hours)
+{
+    _timeout_hr = hours;
+    EEPROM.put(ADDROF(_timeout_hr), _timeout_hr);
 }

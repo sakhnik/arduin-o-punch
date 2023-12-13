@@ -69,19 +69,21 @@ void Shell::_Process()
     if (_buffer.startsWith(F("help")))
     {
         Serial.println(F("Commands:"));
-        Serial.println(F("info              Print all info"));
-        Serial.println(F("id                Print ID"));
+        Serial.println(F("info              All info"));
+        Serial.println(F("id                ID"));
         Serial.print  (F("id 33             Set ID: check="));
         Serial.print(AOP::PunchCard::CHECK_STATION);
         Serial.print(F(" start="));
         Serial.print(AOP::PunchCard::START_STATION);
         Serial.print(F(" finish="));
         Serial.println(AOP::PunchCard::FINISH_STATION);
-        Serial.println(F("key               Print key"));
+        Serial.println(F("key               Key"));
         Serial.println(F("key 112233445566  Set key"));
-        Serial.println(F("clock             Print clock reading (ms)"));
+        Serial.println(F("clock             Clock reading (ms)"));
         Serial.println(F("clock 12345000    Set clock (ms)"));
-        Serial.println(F("time              Print current time"));
+        Serial.println(F("time              Current time"));
+        Serial.println(F("timeout           Timeout (hr)"));
+        Serial.println(F("timeout 3         Set timeout (hr)"));
     }
     else if (_buffer.startsWith(F("info")))
     {
@@ -94,6 +96,8 @@ void Shell::_Process()
         _PrintClock(now);
         Serial.print(F("time="));
         _PrintTime(now);
+        Serial.print(F("timeout="));
+        _PrintTimeout();
     }
     else if (_buffer.startsWith(F("id ")))
     {
@@ -123,6 +127,15 @@ void Shell::_Process()
     {
         _PrintClock(_context.GetDateTime());
     }
+    else if (_buffer.startsWith(F("timeout ")))
+    {
+        _SetTimeout(_buffer.c_str() + 8);
+        _PrintTimeout();
+    }
+    else if (_buffer.startsWith(F("timeout")))
+    {
+        _PrintTimeout();
+    }
     else if (_buffer.startsWith(F("time")))
     {
         _PrintTime(_context.GetDateTime());
@@ -146,6 +159,19 @@ int16_t FromHex(char digit)
     case 'a'...'f': return digit - 'a' + 10;
     default: return -1;
     }
+}
+
+template <typename T>
+T ParseNum(const char *str)
+{
+    T num = 0;
+    while (char ch = *str++)
+    {
+        if (ch < '0' || ch > '9')
+            break;
+        num = num * 10 + (ch - '0');
+    }
+    return num;
 }
 
 } //namespace;
@@ -180,14 +206,7 @@ void Shell::_PrintKey()
 
 void Shell::_SetClock(const char *str)
 {
-    uint32_t clock = 0;
-    while (char ch = *str++)
-    {
-        if (ch < '0' || ch > '9')
-            break;
-        clock = clock * 10 + (ch - '0');
-    }
-    _context.SetClock(clock);
+    _context.SetClock(ParseNum<uint32_t>(str));
 }
 
 void Shell::_PrintClock(const DateTime &time)
@@ -223,12 +242,15 @@ void Shell::_PrintId()
 
 void Shell::_SetId(const char *str)
 {
-    uint8_t id = 0;
-    while (char ch = *str++)
-    {
-        if (ch < '0' || ch > '9')
-            break;
-        id = id * 10 + (ch - '0');
-    }
-    _context.SetId(id);
+    _context.SetId(ParseNum<uint8_t>(str));
+}
+
+void Shell::_PrintTimeout()
+{
+    Serial.println(_context.GetTimeoutHours());
+}
+
+void Shell::_SetTimeout(const char *str)
+{
+    _context.SetTimeoutHours(ParseNum<uint8_t>(str));
 }

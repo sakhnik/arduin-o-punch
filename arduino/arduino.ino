@@ -10,7 +10,21 @@ Buzzer buzzer;
 Context context{buzzer};
 Puncher puncher{context};
 Shell shell{context, buzzer};
+uint8_t _timeout_hr = -1;
+unsigned long _timeout_ms = -1ul;
 unsigned long _last_punch_time = 0;
+
+namespace {
+    unsigned long GetTimeoutMs()
+    {
+        // Caching to avoid constant multiplication
+        auto timeout_hr = context.GetTimeoutHours();
+        if (timeout_hr == _timeout_hr)
+            return _timeout_ms;
+        _timeout_hr = timeout_hr;
+        return _timeout_ms = 60ul * 60ul * 1000ul * timeout_hr;
+    }
+} //namespace;
 
 void setup() {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
@@ -29,6 +43,7 @@ void setup() {
 
     puncher.Setup();
     shell.Setup();
+    _timeout_hr = context.GetTimeoutHours();
     _last_punch_time = millis();
 }
 
@@ -53,8 +68,8 @@ void loop()
     buzzer.Tick();
     shell.Tick();
 
-    // Sleep to economize power after 1 hour of no punches
-    if (now - _last_punch_time > 60ul * 60 * 1000)
+    // Sleep to economize power after configured hours of no punches
+    if (now - _last_punch_time > GetTimeoutMs())
     {
         puncher.AntennaOff();
         LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
