@@ -10,11 +10,15 @@ Buzzer buzzer;
 Context context{buzzer};
 Puncher puncher{context};
 Shell shell{context, buzzer};
+
+// Start assuming that no sleeping is required
 uint8_t _timeout_hr = -1;
 unsigned long _timeout_ms = -1ul;
 unsigned long _last_punch_time = 0;
 
 namespace {
+    // Check the actual timeout from the settings context. If a change is noticed,
+    // recalculate timeout_ms.
     unsigned long GetTimeoutMs()
     {
         // Caching to avoid constant multiplication
@@ -43,7 +47,6 @@ void setup() {
 
     puncher.Setup();
     shell.Setup();
-    _timeout_hr = context.GetTimeoutHours();
     _last_punch_time = millis();
 }
 
