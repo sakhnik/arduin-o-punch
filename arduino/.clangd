@@ -4,7 +4,11 @@ CompileFlags:
         - -std=c++11
         - -DBUILD_TEST
         - -DUBRRH
-        - -DARDUINO
+        - -DARDUINO=10607
+        - -DARDUINO_AVR_PRO
+        - -DARDUINO_ARCH_AVR
+        - -D__STDC_LIMIT_MACROS
+        - -DINT16_MAXU=65535
         - -Wno-unknown-attributes
         - -I/home/sakhnik/.arduino15/packages/arduino/hardware/avr/1.8.6/cores/arduino
         - -I/home/sakhnik/.arduino15/packages/arduino/hardware/avr/1.8.6/variants/micro
@@ -17,3 +21,4 @@ CompileFlags:
         - -I/home/sakhnik/Arduino/libraries/Adafruit_BusIO/
         - -I/home/sakhnik/Arduino/libraries/RTClib/src
         - -I/home/sakhnik/Arduino/libraries/Low-Power
+        - -I/home/sakhnik/Arduino/libraries/CircularBuffer

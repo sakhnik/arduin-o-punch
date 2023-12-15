@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arduino-timer.h>
+#include <CircularBuffer.h>
 
 class Buzzer
 {
@@ -39,8 +40,13 @@ private:
         Timer<> &_timer;
         Timer<>::Task _task = {};
 
+        // Pending melodies
+        CircularBuffer<Melody, 8> melodies;
+        // The melody being currently played
         Melody melody;
+        // Index into the melody sequence
         uint8_t idx{};
+        // Buzzer state (high=1, low=0)
         uint8_t state{};
 
         Player(Timer<> &timer) : _timer{timer} { }

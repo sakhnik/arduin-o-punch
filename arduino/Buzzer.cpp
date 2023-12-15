@@ -18,9 +18,12 @@ void Buzzer::Tick()
 
 void Buzzer::Player::Play(const Melody &melody)
 {
-    // If another signal is being played, stop it
+    // If another melody is being played, enqueue
     if (_task)
-        _timer.cancel(_task);
+    {
+        melodies.push(melody);
+        return;
+    }
     // Start executing the new melody from silence for distinction
     this->melody = melody;
     this->idx = 0;
@@ -31,9 +34,22 @@ void Buzzer::Player::Play(const Melody &melody)
 bool Buzzer::Player::OnTimeout(void *ctx)
 {
     Player *self = reinterpret_cast<Player *>(ctx);
+    // Is there another melody to play and we should go to it?
+    bool to_next_melody = self->idx >= self->melody.interrupt_idx && !self->melodies.isEmpty();
+    // If there's another melody to play, this one can be already interrupted.
+    if (to_next_melody)
+    {
+        self->melody = self->melodies.shift();
+        self->idx = 0;
+        self->state = LOW;
+    }
+    // If the melody has ended, remove the timer and relax.
     uint8_t cur_duration = self->melody.sequence[self->idx];
     if (!cur_duration)
+    {
+        self->_timer.cancel(self->_task);
         return true;
+    }
     uint8_t cur_state = self->state;
     // Confirm with the led (the builtin isn't available together with SPI).
     digitalWrite(LED_CONFIRM_PIN, cur_state);
