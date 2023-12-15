@@ -15,6 +15,21 @@ public:
     void SignalRTCFail();
     void SignalCardFull();
 
+    struct Melody
+    {
+        // Play given sequence of durations starting from low and toggling between high and low on every other duration
+        // Duration is measured in 8 ms quanta
+        const uint8_t *sequence = nullptr;
+        // After this number of durations, can interrupt the melody and play the next one.
+        uint8_t interrupt_idx = 0;
+
+        Melody(const uint8_t *sequence = nullptr, uint8_t interrupt_idx = 255)
+            : sequence{sequence}
+            , interrupt_idx{interrupt_idx}
+        {
+        }
+    };
+
 private:
     Timer<> _timer = timer_create_default();
 
@@ -24,15 +39,13 @@ private:
         Timer<> &_timer;
         Timer<>::Task _task = {};
 
-        const uint8_t *duration{};
-        const uint8_t *duration_end{};
+        Melody melody;
+        uint8_t idx{};
         uint8_t state{};
 
         Player(Timer<> &timer) : _timer{timer} { }
 
-        // Play given sequence of durations starting from low and toggling between high and low on every other duration
-        // Duration is measured in 8 ms quanta
-        void Play(const uint8_t *duration, const uint8_t *duration_end);
+        void Play(const Melody &);
 
         static bool OnTimeout(void *ctx);
     };
