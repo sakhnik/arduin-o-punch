@@ -7,13 +7,39 @@
 # include <cstddef>
 #endif
 
+namespace {
+
 RTC_DS3231 rtc;
 //RTC_Millis rtc;
 
-#define ADDROF(field) (ADDRESS + offsetof(Context, field))
+struct EepromImpl : AOP::Recorder::IEeprom
+{
+    uint8_t Read(int addr) override
+    {
+        return EEPROM.read(addr);
+    }
+
+    void Write(int addr, uint8_t val) override
+    {
+        EEPROM.write(addr, val);
+    }
+} eeprom_impl;
+
+} //namespace;
+
+#define ADDROF(field) (Context::ADDRESS + offsetof(Context, field))
+
+struct RecorderAccess
+{
+    // Choose a non-aligned region for the punch record. This will spread eeprom wear.
+    static constexpr int RECORD_START = ADDROF(_recorder);
+    // Just start with an odd address
+    static constexpr int RECORD_ADJUSTED_START = (RECORD_START & 1) == 1 ? RECORD_START : RECORD_START + 1;
+};
 
 Context::Context(Buzzer &buzzer)
     : _buzzer{buzzer}
+    , _recorder{RecorderAccess::RECORD_ADJUSTED_START, static_cast<int>(EEPROM.length()) - RecorderAccess::RECORD_ADJUSTED_START, eeprom_impl}
 {
 }
 
@@ -35,6 +61,10 @@ int8_t Context::Setup()
     {
         _buzzer.SignalDefaultKey();
     }
+
+    // Restore current record
+    _recorder.Setup();
+
     return 0;
 }
 
