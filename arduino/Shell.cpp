@@ -84,6 +84,9 @@ void Shell::_Process()
         Serial.println(F("time              Current time"));
         Serial.println(F("timeout           Timeout (hr)"));
         Serial.println(F("timeout 3         Set timeout (hr)"));
+        Serial.println(F("recfmt 256        Clear/prepare recorder (card count)"));
+        Serial.println(F("rec               List punched cards"));
+        Serial.println(F("rec 123           Check if the card was punched"));
     }
     else if (_buffer.startsWith(F("info")))
     {
@@ -139,6 +142,18 @@ void Shell::_Process()
     else if (_buffer.startsWith(F("time")))
     {
         _PrintTime(_context.GetDateTime());
+    }
+    else if (_buffer.startsWith(F("recfmt ")))
+    {
+        _RecorderFormat(_buffer.c_str() + 7);
+    }
+    else if (_buffer.startsWith(F("rec ")))
+    {
+        _RecorderCheck(_buffer.c_str() + 4);
+    }
+    else if (_buffer.startsWith(F("rec")))
+    {
+        _RecorderList();
     }
     else
     {
@@ -253,4 +268,41 @@ void Shell::_PrintTimeout()
 void Shell::_SetTimeout(const char *str)
 {
     _context.SetTimeoutHours(ParseNum<uint8_t>(str));
+}
+
+void Shell::_RecorderFormat(const char *str)
+{
+    auto res = _context.GetRecorder().Format(ParseNum<uint16_t>(str));
+    if (res < 0)
+    {
+        Serial.print(F("Error "));
+        Serial.println(-res);
+    }
+    else
+    {
+        Serial.println(F("OK"));
+    }
+}
+
+void Shell::_RecorderCheck(const char *str)
+{
+    uint16_t card_id = ParseNum<uint16_t>(str);
+    auto is_recorded = _context.GetRecorder().IsRecorded(card_id);
+    Serial.println(is_recorded ? F("YES") : F("NO"));
+}
+
+void Shell::_RecorderList()
+{
+    struct Printer : AOP::Recorder::IVisitor
+    {
+        const char *comma = "";
+        void OnCard(int card, void *ctx) override
+        {
+            Serial.print(comma);
+            comma = ", ";
+            Serial.print(card);
+        }
+    } printer;
+    _context.GetRecorder().List(printer, &printer);
+    Serial.println();
 }

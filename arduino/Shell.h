@@ -32,4 +32,7 @@ private:
     void _PrintTime(const DateTime &time);
     void _PrintTimeout();
     void _SetTimeout(const char *str);
+    void _RecorderFormat(const char *str);
+    void _RecorderCheck(const char *str);
+    void _RecorderList();
 };
