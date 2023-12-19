@@ -18,7 +18,8 @@ void Recorder::Restore()
 {
     uint8_t start_lo = _eeprom.Read(_begin - 4);
     uint8_t start_hi = _eeprom.Read(_begin - 3);
-    _offset = start_hi == 0xff ? _begin : static_cast<int>(start_hi) << 8 | start_lo;
+    _offset = start_hi == 0xff ? 0 : static_cast<int>(start_hi) << 8 | start_lo;
+    _offset += _begin;
 
     uint8_t length_val = _eeprom.Read(_begin - 2);
     if (length_val == 0xff)
