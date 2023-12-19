@@ -9,8 +9,6 @@
 
 namespace AOP {
 
-struct IKeyReceiver;
-
 class PunchCard
 {
 public:
@@ -39,7 +37,14 @@ public:
     static constexpr const auto KEY_OFFSET = 9;
 
 public:
-    PunchCard(IMifare *, const uint8_t *key, IKeyReceiver *key_receiver = nullptr);
+    struct ICallback
+    {
+        virtual void OnNewKey(const uint8_t *key) = 0;
+        // Notify about the card ID when punched successfully
+        virtual void OnCardId(uint16_t card) = 0;
+    };
+
+    PunchCard(IMifare *, const uint8_t *key, ICallback *callback = nullptr);
 
     static void DummyProgress(uint8_t, uint8_t) { }
     using ProgressT = decltype(&DummyProgress);
@@ -57,7 +62,7 @@ public:
 private:
     IMifare *_mifare;
     const uint8_t *_key;
-    IKeyReceiver *_key_receiver;
+    ICallback *_callback;
     uint8_t _auth_sector = 0xff;
 
     uint8_t _Authenticate(uint8_t sector);

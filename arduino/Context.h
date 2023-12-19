@@ -1,6 +1,5 @@
 #pragma once
 
-#include "src/IKeyReceiver.h"
 #include "src/Recorder.h"
 #include <Arduino.h>
 #include <RTClib.h>
@@ -8,7 +7,6 @@
 class Buzzer;
 
 class Context
-    : public AOP::IKeyReceiver
 {
 public:
     static constexpr const int ADDRESS = 0;
@@ -20,9 +18,7 @@ public:
     static const uint8_t KEY_SIZE = 6;
     const uint8_t* GetKey() const { return _key; }
     bool IsKeyDefault() const;
-
-    // IKeyReceiver
-    void OnNewKey(const uint8_t *key) override;
+    void OnNewKey(const uint8_t *key);
 
     DateTime GetDateTime() const;
     uint32_t GetClock(const DateTime *date_time) const;

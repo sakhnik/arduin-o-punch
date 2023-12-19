@@ -8,7 +8,6 @@ add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 
 add_executable(test-aop
-    IKeyReceiver.h
     IMifare.h
     Punch.h
     PunchCard.cpp

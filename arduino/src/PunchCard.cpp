@@ -1,6 +1,5 @@
 #include "PunchCard.h"
 #include "ErrorCode.h"
-#include "IKeyReceiver.h"
 
 #ifdef BUILD_TEST
 # include <cassert>
@@ -11,10 +10,10 @@
 
 namespace AOP {
 
-PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, IKeyReceiver *key_receiver)
+PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, ICallback *callback)
     : _mifare{mifare}
     , _key{key}
-    , _key_receiver{key_receiver}
+    , _callback{callback}
 {
 }
 
@@ -35,13 +34,13 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (auto res = _CheckIntegrity(header))
         return res;
     progress(2, stages);
+    uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     if (header[DESC_OFFSET] == DESC_SERVICE)
     {
-        int id = static_cast<int>(header[ID_OFFSET]) | (static_cast<int>(header[ID_OFFSET + 1]) << 8);
         // Service card found, remember the key
-        if (!id && _key_receiver)
+        if (!card_id && _callback)
         {
-            _key_receiver->OnNewKey(header + KEY_OFFSET);
+            _callback->OnNewKey(header + KEY_OFFSET);
         }
     }
     uint8_t index = header[INDEX_OFFSET];
@@ -108,6 +107,8 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (auto res = _mifare->WriteBlock(HEADER_BLOCK, header, IMifare::BLOCK_SIZE))
         return res;
     progress(stages, stages);
+    if (_callback)
+        _callback->OnCardId(card_id);
     return ErrorCode::OK;
 }
 
