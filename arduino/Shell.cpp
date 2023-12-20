@@ -309,11 +309,9 @@ void Shell::_RecorderList()
     Serial.println(_context.GetRecorder().GetSize());
     struct Printer : AOP::Recorder::IVisitor
     {
-        const char *comma = "";
         void OnCard(uint16_t card, void *ctx) override
         {
-            Serial.print(comma);
-            comma = ", ";
+            Serial.print(' ');
             Serial.print(card);
         }
     } printer;

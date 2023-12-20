@@ -31,13 +31,13 @@ struct TestEeprom : Recorder::IEeprom
 struct Collector : Recorder::IVisitor
 {
     std::string cards;
-    const char *comma = "";
+    const char *space = "";
 
     void OnCard(uint16_t card, void *ctx) override
     {
         Collector *self = reinterpret_cast<Collector *>(ctx);
-        self->cards += comma;
-        comma = ", ";
+        self->cards += space;
+        space = " ";
         self->cards += std::to_string(card);
     }
 
@@ -83,21 +83,21 @@ TEST_CASE("Simple range 256 cards")
         CHECK(!rec.IsRecorded(1));
         CHECK(0 == rec.Record(1));
         CHECK(rec.IsRecorded(1));
-        CHECK("0, 1" == Collector::GetList(rec));
+        CHECK("0 1" == Collector::GetList(rec));
         CHECK(!rec.IsRecorded(127));
         CHECK(0 == rec.Record(127));
         CHECK(rec.IsRecorded(127));
-        CHECK("0, 1, 127" == Collector::GetList(rec));
+        CHECK("0 1 127" == Collector::GetList(rec));
         CHECK(!rec.IsRecorded(255));
         CHECK(0 == rec.Record(255));
         CHECK(rec.IsRecorded(255));
-        CHECK("0, 1, 127, 255" == Collector::GetList(rec));
+        CHECK("0 1 127 255" == Collector::GetList(rec));
         CHECK(!rec.IsRecorded(256));
         CHECK(-1 == rec.Record(256));
-        CHECK("0, 1, 127, 255" == Collector::GetList(rec));
+        CHECK("0 1 127 255" == Collector::GetList(rec));
         CHECK(0 == rec.Record(255, false));
         CHECK(!rec.IsRecorded(255));
-        CHECK("0, 1, 127" == Collector::GetList(rec));
+        CHECK("0 1 127" == Collector::GetList(rec));
     }
 }
 
@@ -126,33 +126,33 @@ TEST_CASE("Restore record")
     CHECK(!rec.IsRecorded(1));
     CHECK(0 == rec.Record(1));
     CHECK(rec.IsRecorded(1));
-    CHECK("0, 1" == Collector::GetList(rec));
+    CHECK("0 1" == Collector::GetList(rec));
     {
         Recorder rec2(0, 37, eeprom);
         rec2.Setup();
-        CHECK("0, 1" == Collector::GetList(rec2));
+        CHECK("0 1" == Collector::GetList(rec2));
     }
     CHECK(!rec.IsRecorded(127));
     CHECK(0 == rec.Record(127));
     CHECK(rec.IsRecorded(127));
-    CHECK("0, 1, 127" == Collector::GetList(rec));
+    CHECK("0 1 127" == Collector::GetList(rec));
     {
         Recorder rec2(0, 37, eeprom);
         rec2.Setup();
-        CHECK("0, 1, 127" == Collector::GetList(rec2));
+        CHECK("0 1 127" == Collector::GetList(rec2));
     }
     CHECK(!rec.IsRecorded(255));
     CHECK(0 == rec.Record(255));
     CHECK(rec.IsRecorded(255));
-    CHECK("0, 1, 127, 255" == Collector::GetList(rec));
+    CHECK("0 1 127 255" == Collector::GetList(rec));
     {
         Recorder rec2(0, 37, eeprom);
         rec2.Setup();
-        CHECK("0, 1, 127, 255" == Collector::GetList(rec2));
+        CHECK("0 1 127 255" == Collector::GetList(rec2));
     }
     CHECK(!rec.IsRecorded(256));
     CHECK(-1 == rec.Record(256));
-    CHECK("0, 1, 127, 255" == Collector::GetList(rec));
+    CHECK("0 1 127 255" == Collector::GetList(rec));
 }
 
 TEST_CASE("Random record")
@@ -174,14 +174,14 @@ TEST_CASE("Random record")
         CHECK("" == Collector::GetList(rec));
 
         std::string record;
-        const char *comma = "";
+        const char *space = "";
         for (int j = 0; j < count; j += card_step_distr(gen))
         {
             CHECK(!rec.IsRecorded(j));
             CHECK(0 == rec.Record(j));
             CHECK(rec.IsRecorded(j));
-            record += comma;
-            comma = ", ";
+            record += space;
+            space = " ";
             record += std::to_string(j);
             CHECK(record == Collector::GetList(rec));
 
