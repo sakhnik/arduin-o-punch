@@ -69,6 +69,8 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     if (prevPunch.GetStation() == punch.GetStation())
     {
         progress(stages, stages);
+        if (_callback)
+            _callback->OnCardId(card_id);
         return ErrorCode::OK;
     }
 
