@@ -87,6 +87,7 @@ void Shell::_Process()
         Serial.println(F("recfmt 256        Clear/prepare recorder (card count)"));
         Serial.println(F("rec               List punched cards"));
         Serial.println(F("rec 123           Check if the card was punched"));
+        Serial.println(F("recclr 123        Clear card from the record"));
     }
     else if (_buffer.startsWith(F("info")))
     {
@@ -146,6 +147,10 @@ void Shell::_Process()
     else if (_buffer.startsWith(F("recfmt ")))
     {
         _RecorderFormat(_buffer.c_str() + 7);
+    }
+    else if (_buffer.startsWith(F("recclr ")))
+    {
+        _RecorderClear(_buffer.c_str() + 7);
     }
     else if (_buffer.startsWith(F("rec ")))
     {
@@ -289,6 +294,13 @@ void Shell::_RecorderCheck(const char *str)
     uint16_t card_id = ParseNum<uint16_t>(str);
     auto is_recorded = _context.GetRecorder().IsRecorded(card_id);
     Serial.println(is_recorded ? F("YES") : F("NO"));
+}
+
+void Shell::_RecorderClear(const char *str)
+{
+    uint16_t card_id = ParseNum<uint16_t>(str);
+    auto ok = _context.GetRecorder().Record(card_id, false);
+    Serial.println(ok ? F("FAIL") : F("OK"));
 }
 
 void Shell::_RecorderList()

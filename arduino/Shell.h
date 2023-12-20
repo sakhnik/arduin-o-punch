@@ -33,6 +33,7 @@ private:
     void _PrintTimeout();
     void _SetTimeout(const char *str);
     void _RecorderFormat(const char *str);
+    void _RecorderClear(const char *str);
     void _RecorderCheck(const char *str);
     void _RecorderList();
 };

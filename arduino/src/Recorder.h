@@ -20,7 +20,7 @@ public:
 
     int16_t GetSize() const { return _length * 8; }
     int8_t Format(int count);
-    int8_t Record(int card);
+    int8_t Record(int card, bool set = true);
     bool IsRecorded(int card);
 
     struct IVisitor

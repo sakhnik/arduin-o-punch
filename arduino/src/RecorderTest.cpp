@@ -95,6 +95,9 @@ TEST_CASE("Simple range 256 cards")
         CHECK(!rec.IsRecorded(256));
         CHECK(-1 == rec.Record(256));
         CHECK("0, 1, 127, 255" == Collector::GetList(rec));
+        CHECK(0 == rec.Record(255, false));
+        CHECK(!rec.IsRecorded(255));
+        CHECK("0, 1, 127" == Collector::GetList(rec));
     }
 }
 

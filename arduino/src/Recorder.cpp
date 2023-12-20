@@ -81,7 +81,7 @@ int8_t Recorder::Format(int count)
     return 0;
 }
 
-int8_t Recorder::Record(int card)
+int8_t Recorder::Record(int card, bool set)
 {
     int offset = card >> 3;
     int bit_offset = card & 7;
@@ -91,7 +91,7 @@ int8_t Recorder::Record(int card)
     if (addr >= _begin + _size)
         addr -= _size;
     uint8_t val = _eeprom.Read(addr);
-    int new_val = val | (1 << bit_offset);
+    uint8_t new_val = set ? (val | (uint8_t{1} << bit_offset)) : (val & ~(uint8_t{1} << bit_offset));
     if (val != new_val)
         _eeprom.Write(addr, new_val);
     return 0;
