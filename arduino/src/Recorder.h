@@ -18,6 +18,7 @@ public:
     Recorder(int begin, int size, IEeprom &);
     void Setup();
 
+    int16_t GetSize() const { return _length * 8; }
     int8_t Format(int count);
     int8_t Record(int card);
     bool IsRecorded(int card);

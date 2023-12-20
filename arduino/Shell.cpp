@@ -293,6 +293,8 @@ void Shell::_RecorderCheck(const char *str)
 
 void Shell::_RecorderList()
 {
+    Serial.print(F("Size="));
+    Serial.println(_context.GetRecorder().GetSize());
     struct Printer : AOP::Recorder::IVisitor
     {
         const char *comma = "";
