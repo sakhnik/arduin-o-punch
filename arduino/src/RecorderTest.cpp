@@ -33,7 +33,7 @@ struct Collector : Recorder::IVisitor
     std::string cards;
     const char *comma = "";
 
-    void OnCard(int card, void *ctx) override
+    void OnCard(uint16_t card, void *ctx) override
     {
         Collector *self = reinterpret_cast<Collector *>(ctx);
         self->cards += comma;

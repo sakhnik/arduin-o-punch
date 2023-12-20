@@ -310,7 +310,7 @@ void Shell::_RecorderList()
     struct Printer : AOP::Recorder::IVisitor
     {
         const char *comma = "";
-        void OnCard(int card, void *ctx) override
+        void OnCard(uint16_t card, void *ctx) override
         {
             Serial.print(comma);
             comma = ", ";

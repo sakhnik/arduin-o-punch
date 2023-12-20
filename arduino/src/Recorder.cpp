@@ -81,7 +81,7 @@ int8_t Recorder::Format(int count)
     return 0;
 }
 
-int8_t Recorder::Record(int card, bool set)
+int8_t Recorder::Record(uint16_t card, bool set)
 {
     int offset = card >> 3;
     int bit_offset = card & 7;
@@ -97,7 +97,7 @@ int8_t Recorder::Record(int card, bool set)
     return 0;
 }
 
-bool Recorder::IsRecorded(int card)
+bool Recorder::IsRecorded(uint16_t card)
 {
     int offset = card >> 3;
     int bit_offset = card & 7;
@@ -112,12 +112,12 @@ bool Recorder::IsRecorded(int card)
 
 struct IVisitor
 {
-    virtual void OnCard(int card, void *ctx) = 0;
+    virtual void OnCard(uint16_t card, void *ctx) = 0;
 };
 
 void Recorder::List(IVisitor &visitor, void *ctx)
 {
-    int card{};
+    uint16_t card{};
     int addr_end = _begin + _size;
     for (int i = 0, addr = _offset; i < _length; ++i, ++addr)
     {

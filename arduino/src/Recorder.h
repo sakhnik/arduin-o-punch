@@ -20,12 +20,12 @@ public:
 
     int16_t GetSize() const { return _length * 8; }
     int8_t Format(int count);
-    int8_t Record(int card, bool set = true);
-    bool IsRecorded(int card);
+    int8_t Record(uint16_t card, bool set = true);
+    bool IsRecorded(uint16_t card);
 
     struct IVisitor
     {
-        virtual void OnCard(int card, void *ctx) = 0;
+        virtual void OnCard(uint16_t card, void *ctx) = 0;
     };
 
     void List(IVisitor &, void *ctx);
