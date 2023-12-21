@@ -35,14 +35,6 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
         return res;
     progress(2, stages);
     uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
-    if (header[DESC_OFFSET] == DESC_SERVICE)
-    {
-        // Service card found, remember the key
-        if (!card_id && _callback)
-        {
-            _callback->OnNewKey(header + KEY_OFFSET);
-        }
-    }
     uint8_t index = header[INDEX_OFFSET];
     // If this is the start station punching, clear all the previous punches
     // except maybe the check station.

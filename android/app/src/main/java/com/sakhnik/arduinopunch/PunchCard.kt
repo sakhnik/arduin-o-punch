@@ -20,7 +20,6 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         const val TIMESTAMP_OFFSET: Int = 3
         const val XOR_OFFSET: Int = 7   // Xor sum of the previous header bytes to make the service card more distinctive
         const val INDEX_OFFSET = 8
-        const val KEY_OFFSET = 9
     }
 
     init {
@@ -85,32 +84,6 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         procedure.run(progress)
     }
 
-    fun prepareService(newKey: ByteArray, timestamp: Long, progress: Progress = Procedure.NO_PROGRESS) {
-        assert(newKey.size == mifare.keyDefault.size)
-
-        // If the desired key is different from the default, error out
-        if (!key.contentEquals(mifare.keyDefault)) {
-            throw RuntimeException(context.getString(R.string.service_card_should_use_the_default_key))
-        }
-
-        val procedure = Procedure()
-
-        // Check and configure the card setting KeyA into all sectors
-        procedure.add(mifare.sectorCount) { p ->
-            checkDefaultKeyUsable(p)
-        }
-
-        procedure.add(1) { p ->
-            writeInitialPunch(timestamp, p)
-        }
-
-        procedure.add(1) { p ->
-            writeServiceHeader(newKey, timestamp, p)
-        }
-
-        procedure.run(progress)
-    }
-
     private fun writeRunnerHeader(progress: Progress, id: Int, timestamp: Long) {
         progress(0, 1)
         authenticate(mifare.blockToSector(HEADER_BLOCK))
@@ -122,22 +95,6 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         for (i in 0..3) header[TIMESTAMP_OFFSET + i] = (timestamp shr (i * 8)).toByte()
         header[XOR_OFFSET] = calculateXorSum(header, XOR_OFFSET)
         header[INDEX_OFFSET] = 1
-        mifare.keyDefault.copyInto(header, KEY_OFFSET)
-        mifare.writeBlock(HEADER_BLOCK, header)
-    }
-
-    private fun writeServiceHeader(newKey: ByteArray, timestamp: Long, progress: Progress) {
-        progress(0, 1)
-        authenticate(mifare.blockToSector(HEADER_BLOCK))
-        val header = mifare.readBlock(HEADER_BLOCK) as ByteArray
-        // Format the index
-        header[DESC_OFFSET] = DESC_SERVICE
-        header[ID_OFFSET] = SERVICE_ID.toByte()
-        header[ID_OFFSET + 1] = (SERVICE_ID shr 8).toByte()
-        for (i in 0..3) header[TIMESTAMP_OFFSET + i] = (timestamp shr (i * 8)).toByte()
-        header[XOR_OFFSET] = calculateXorSum(header, XOR_OFFSET)
-        header[INDEX_OFFSET] = 1
-        newKey.copyInto(header, KEY_OFFSET)
         mifare.writeBlock(HEADER_BLOCK, header)
     }
 

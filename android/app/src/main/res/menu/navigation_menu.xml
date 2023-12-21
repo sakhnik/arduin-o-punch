@@ -5,7 +5,7 @@
     <group android:id="@+id/menu_group_runner" >
         <item
             android:id="@+id/menu_item_format"
-            android:title="@string/format_runner" />
+            android:title="@string/format_card" />
 
         <item
             android:id="@+id/menu_item_clear"
@@ -16,25 +16,11 @@
             android:title="@string/punch" />
 
         <item
-            android:id="@+id/menu_item_read_runner"
-            android:title="@string/read_runner" />
+            android:id="@+id/menu_item_read"
+            android:title="@string/read_card" />
 
         <item
             android:id="@+id/menu_item_reset"
             android:title="@string/reset_card" />
-    </group>
-
-    <group android:id="@+id/menu_group_service" >
-        <item
-            android:id="@+id/menu_item_format_service"
-            android:title="@string/format_service" />
-
-        <item
-            android:id="@+id/menu_item_punch_service"
-            android:title="@string/punch_service" />
-
-        <item
-            android:id="@+id/menu_item_read_service"
-            android:title="@string/read_service" />
     </group>
 </menu>

@@ -19,8 +19,8 @@ public:
     // Keep in sync with Android's Puncher
     //
     // Header format (sector 0, block 1):
-    // 0     | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9 ...
-    // DESC  | ID_LO | ID_HI | ..FORMATTING TIMESTAMP (LE).. | XOR CS| INDEX | KEY_A (SERVICE CARD)
+    // 0     | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     |
+    // DESC  | ID_LO | ID_HI | ..FORMATTING TIMESTAMP (LE).. | XOR CS| INDEX |
 
     static constexpr uint8_t HEADER_BLOCK = 1;
 
@@ -34,12 +34,10 @@ public:
     static constexpr const auto TIMESTAMP_OFFSET = 3;
     static constexpr const auto XOR_OFFSET = 7;
     static constexpr const auto INDEX_OFFSET = 8;
-    static constexpr const auto KEY_OFFSET = 9;
 
 public:
     struct ICallback
     {
-        virtual void OnNewKey(const uint8_t *key) = 0;
         // Notify about the card ID when punched successfully
         virtual void OnCardId(uint16_t card) = 0;
     };

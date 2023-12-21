@@ -92,7 +92,6 @@ ErrorCode Puncher::Punch()
     {
         uint16_t card_id{};
 
-        void OnNewKey(const uint8_t *key) override { }
         void OnCardId(uint16_t card_id) override
         {
             this->card_id = card_id;

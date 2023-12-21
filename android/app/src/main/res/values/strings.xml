@@ -14,17 +14,13 @@
     <string name="timestamp">Timestamp</string>
     <string name="key_12_hex_digits">Key (12 hex digits)</string>
     <string name="_1" translatable="false">1</string>
-    <string name="format_runner">Format Runner</string>
+    <string name="format_card">Format Card</string>
     <string name="clear_punches">Clear Punches</string>
     <string name="punch">Punch</string>
-    <string name="read_runner">Read Runner</string>
+    <string name="read_card">Read Card</string>
     <string name="reset_card">Reset Card</string>
-    <string name="format_service">Format Service</string>
-    <string name="punch_service">Punch Service</string>
-    <string name="read_service">Read Service</string>
     <string name="key_authentication_failure_to_sector">Key authentication failure to sector %d</string>
     <string name="bad_checksum">Bad checksum</string>
-    <string name="service_card_should_use_the_default_key">Service card should use the default key</string>
     <string name="our_key_or_default_authentication_failure_to_sector">Our key or default authentication failure to sector %d</string>
     <string name="our_key_authentication_failure_to_sector">Our key authentication failure to sector %d</string>
     <string name="the_card_is_full">The card is full</string>
@@ -36,14 +32,8 @@
     <string name="punch_runner_title">Punch runner card</string>
     <string name="punch_runner_instruction">Punch runner card with the given station ID (0..255) and current time.\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
     <string name="read_runner_title">Read runner card</string>
-    <string name="read_runner_instruction">Read out a runner card, display the punches and optionally upload to QuickEvent using qr-o-punch protocol.\nClock offsets from "Read service card" will be applied to adjust station clock readings.</string>
+    <string name="read_runner_instruction">Read out a runner card, display the punches and optionally upload to QuickEvent using qr-o-punch protocol.</string>
     <string name="reset_runner_title">Reset runner card</string>
     <string name="reset_runner_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
-    <string name="format_service_title">Format service card</string>
-    <string name="format_service_instruction">Create a service card for station configuration.\nA service card will allow writing an encryption key to the Arduino station.\nAs well as synchronizing Arduino clock.</string>
-    <string name="punch_service_title">Punch service card</string>
-    <string name="punch_service_instruction">To initialize a couple of Arduino stations, perform rhythmic punching:\n- Here in the app\n- Station 1\n- Station 2\n- Here in the app\nThis will allow calculating clock offsets in the selected stations.</string>
-    <string name="read_service_title">Read service card</string>
-    <string name="read_service_instruction">Read clock offsets from a service or a runner card.\nWhen punched properly (see Punch service card), clock offsets will be calculated, remembered.\nThey will later be used to adjust clock readings when reading the runner cards.</string>
     <string name="time">Time</string>
 </resources>
