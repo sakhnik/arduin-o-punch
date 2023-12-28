@@ -39,4 +39,6 @@ Wiring scheme:
 * All VCC 3.3v to the power rail of the perfboard with red wires
 * Power source GND → ground rail, 3.3v → power rail
 
+<img src="images/wiring.jpg" width="512"/>
+
 The switch the station off, disconnect a wire from the power source.
