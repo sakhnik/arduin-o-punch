@@ -3,15 +3,14 @@
     <string name="navigation_drawer_open">Navigation drawer open</string>
     <string name="navigation_drawer_close">Navigation drawer close</string>
     <string name="_31" translatable="false">31</string>
-    <string name="station_id">Station ID</string>
+    <string name="station_id">Station</string>
     <string name="from_runner_card">From runner card</string>
     <string name="clear">Clear</string>
     <string name="clock_offset">Clock offset</string>
     <string name="upload">Upload</string>
     <string name="url_for_qr_o_punch_upload">URL for qr-o-punch upload</string>
     <string name="https_sakhnik_com_qr_o_punch_card" translatable="false">https://sakhnik.com/qr-o-punch/card</string>
-    <string name="card_id">Card ID</string>
-    <string name="timestamp">Timestamp</string>
+    <string name="card_id">Card</string>
     <string name="key_12_hex_digits">Key (12 hex digits)</string>
     <string name="_1" translatable="false">1</string>
     <string name="format_card">Format Card</string>
@@ -36,4 +35,5 @@
     <string name="reset_runner_title">Reset runner card</string>
     <string name="reset_runner_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
     <string name="time">Time</string>
+    <string name="number">Number</string>
 </resources>

@@ -86,12 +86,12 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/station_id" />
+                    android:text="@string/number" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/timestamp" />
+                    android:text="@string/station_id" />
 
                 <TextView
                     android:layout_width="wrap_content"

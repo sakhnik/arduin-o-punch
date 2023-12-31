@@ -3,14 +3,13 @@
     <string name="app_name">Arduin-o-punch</string>
     <string name="navigation_drawer_open">Відкрити навігацію</string>
     <string name="navigation_drawer_close">Закрити навігацію</string>
-    <string name="station_id">ID Станції</string>
+    <string name="station_id">Станція</string>
     <string name="from_runner_card">З картки бігуна</string>
     <string name="clear">Очистити</string>
     <string name="clock_offset">Різниця годинника</string>
     <string name="upload">Вивантажити</string>
     <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
-    <string name="card_id">ID Картки</string>
-    <string name="timestamp">Таймштамп</string>
+    <string name="card_id">Картка</string>
     <string name="key_12_hex_digits">Ключ (12 шітсн. цифр)</string>
     <string name="format_card">Підготовка Картки</string>
     <string name="clear_punches">Очистити Відмітки</string>
@@ -34,4 +33,5 @@
     <string name="reset_runner_title">Скинути картку бігуна</string>
     <string name="reset_runner_instruction">Скинути картку, відновивши початкові ключі шифрування.\nЦе дозволить потім підготувати її до наступних змагань.</string>
     <string name="time">Час</string>
+    <string name="number">Номер</string>
 </resources>

@@ -276,13 +276,14 @@ class MainActivity : AppCompatActivity() {
             // Format LocalTime to "HH:mm:ss"
             val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
-            for (punch in readOut.punches) {
+            for ((index, punch) in readOut.punches.withIndex()) {
                 val tableRow = TableRow(this)
                 val cell1 = TextView(this)
-                cell1.text = punch.station.toString()
+                val strNumber = "${index + 1}"
+                cell1.text = strNumber
                 tableRow.addView(cell1)
                 val cell2 = TextView(this)
-                cell2.text = punch.timestamp.toString()
+                cell2.text = punch.station.toString()
                 tableRow.addView(cell2)
                 val cell3 = TextView(this)
                 val localTime = LocalTime.ofSecondOfDay(punch.timestamp)
