@@ -5,26 +5,32 @@
 * MIFARE Classic 1k tags/cards for runners
 * Base stations built with Arduino and MFRC 522 RFID reader/writer
 * Configuration station: base station + serial interface + PC application
-* (maybe) Android application for base station configuration, time calibration
-    and start/finish base station:
+* Android application for card formatting, readout and punches upload:
     [guide](https://developer.android.com/guide/topics/connectivity/nfc/nfc).
 
 ## Operation modes
 
 ### Arduino station configuration
 
-Arduino CPU clock is used because there's no real time clock. The base station
-must be configured with the number, actual crypto key.
+A high precision RTC clock DS323a is used backed with CR2032 battery. A station
+must be configured with the number, actual crypto key using built in CLI via UART.
+Clock is also synchronized with CLI using a scripted application taking into account
+communication latency.
 
-* A service card is programmed with the configurator containing station number
-    and marking current timestamp.
-* A base station configures itself from the
-    service card by assigning itself the next station number and writing the
-    number and current timestamp to the card
-* The service card is read again in the configurator app to map base station's
-    clock offset: Tﬆ -> t₁ + ½(t₂ - t₁)
+The crypto key should ideally be changed on every station before competition, the clocks
+are to be synchronized too.
 
-This data should be distributed to perform punch times readout.
+### Signaling
+
+Morse code is used by the base station for signaling. See `Buzzer.cpp` for the actual
+list of messages. Most notable are the following ones:
+
+- `RTC` upon startup if communication with RTC fails
+- `KEY` upon startup if the default encryption key is used (needs changing)
+- `.-` successful punch
+- `..-` successful punch of two cards at once
+- `...-` successful punch of three cards at once
+- `..-.` (Morse `F`) when the card can't be punched because it's full
 
 ### Card cleaning and setup
 
@@ -36,12 +42,11 @@ This data should be distributed to perform punch times readout.
 ### Card punching
 
 In the MIFARE Classic 1k card, there's only 720 bytes available for punches.
-Allocating 4 bytes per punch (1 byte station number + 2 bytes for timestamp in
-seconds + 1 reserved/service byte) allows storing at most 180 punches. The
-actual limit is lower because one block should be used for directory
-information.
+Allocating 4 bytes per punch (1 byte station number + 3 bytes for timestamp in
+seconds) allows storing at most 180 punches. The actual limit is lower because
+one block should be used for directory information.
 
-The Arduino base station records a punch with the following procedure:
+The Arduino station records a punch with the following procedure:
 
 * Read the directory to get the block and offset to write to
 * Read the previous punch (station, time)
@@ -72,4 +77,4 @@ about card states.
 
 ## Data layout
 
-TBD
+See `src/PunchCard.h` for the directory layout, and `src/Punch.h` for the punch data.
