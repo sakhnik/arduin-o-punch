@@ -7,6 +7,7 @@ account Assets:Privat
 account Expenses:Bank
 account Expenses:Bootstrap
 account Expenses:Post
+account Expenses:Production
 account Expenses:Prototype
 account Expenses:Prototype:18650
 account Expenses:Prototype:Arduino
@@ -168,3 +169,8 @@ account Expenses:Tools
     Expenses:Post                         56.00 ₴
     Assets:Privat
     ; BOX Z-77/чорн/                                                                             10x 118.00 ₴ -> 1180.00 ₴
+
+2023-12-31 * Jysk
+    Expenses:Production                  425.00 ₴
+    Assets:Privat
+    ; 8x pack CR2032                                                                              5x  85.00 ₴ ->  425.00 ₴
