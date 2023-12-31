@@ -154,8 +154,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getKey(): ByteArray {
-        val prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-        val keyRaw = prefs.getString("key", null) ?: ""
+        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
+        val keyRaw = prefs.getString(Prefs.KEY_KEY, null) ?: ""
         val keyHex = keyRaw + "0".repeat(12 - keyRaw.length)
         return keyHex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
     }
