@@ -38,25 +38,35 @@
         <TextView
             android:text="@string/key_12_digits"
             android:layout_row="0"
-            android:layout_column="0" />
+            android:layout_column="0"
+            android:labelFor="@id/editKey"
+            />
 
-        <EditText
-            android:id="@+id/editKey"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:digits="0123456789ABCDEF"
             android:hint="@string/key_12_hex_digits"
-            android:inputType="text"
-            android:maxLength="12"
-            android:layout_row="0"
-            android:layout_column="1"
-            tools:ignore="VisualLintTextFieldSize"
-            android:importantForAutofill="no" />
+            app:passwordToggleEnabled="true">
+
+            <EditText
+                android:id="@+id/editKey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="0123456789ABCDEF"
+                android:inputType="textPassword"
+                android:maxLength="12"
+                android:layout_row="0"
+                android:layout_column="1"
+                tools:ignore="VisualLintTextFieldSize"
+                android:importantForAutofill="no" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:text="@string/card_id"
             android:layout_row="1"
-            android:layout_column="0" />
+            android:layout_column="0"
+            android:labelFor="@id/editCardId" />
 
         <EditText
             android:id="@+id/editCardId"
@@ -73,6 +83,5 @@
             android:layout_column="1"
             android:importantForAutofill="no" />
     </GridLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
