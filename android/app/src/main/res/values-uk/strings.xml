@@ -35,4 +35,8 @@
     <string name="reset_runner_instruction">Скинути картку, відновивши початкові ключі шифрування.\nЦе дозволить потім підготувати її до наступних змагань.</string>
     <string name="time">Час</string>
     <string name="number">Номер</string>
+    <string name="cancelled">Скасовано</string>
+    <string name="not_from_qr_o_punch">Не з QR-O-Punch</string>
+    <string name="only_1k_mifare_classic_cards_are_expected">Тільки класичні картки MIFARE 1k</string>
+    <string name="scan_qr">Скан QR</string>
 </resources>

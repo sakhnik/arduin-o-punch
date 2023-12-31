@@ -37,4 +37,8 @@
     <string name="reset_runner_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
     <string name="time">Time</string>
     <string name="number">Number</string>
+    <string name="cancelled">Cancelled</string>
+    <string name="not_from_qr_o_punch">Not from QR-O-Punch</string>
+    <string name="only_1k_mifare_classic_cards_are_expected">Only 1k MIFARE Classic cards are expected</string>
+    <string name="scan_qr">Scan QR</string>
 </resources>

@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -19,11 +20,14 @@ import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalTime
@@ -45,6 +49,22 @@ class MainActivity : AppCompatActivity() {
         R.id.menu_item_read to R.layout.read_runner_view,
         R.id.menu_item_reset to R.layout.reset_view,
     )
+
+    private val barcodeLauncher: ActivityResultLauncher<ScanOptions> =
+        registerForActivityResult(ScanContract()) { result ->
+            if (result.contents == null) {
+                Toast.makeText(this@MainActivity, getString(R.string.cancelled), Toast.LENGTH_SHORT).show()
+            } else {
+                val regex = Regex("""SetStartNumber (\d+)""")
+                val number = regex.find(result.contents)?.groupValues?.get(1)
+                if (number != null) {
+                    findViewById<EditText>(R.id.editCardId)?.setText(number)
+                } else {
+                    Toast.makeText(this@MainActivity,
+                        getString(R.string.not_from_qr_o_punch), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,6 +125,15 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(viewId, container, false)
         container.addView(view)
         loadPreferences(viewId)
+
+        if (viewId == R.layout.format_view) {
+            val scanButton = findViewById<Button>(R.id.scanButton)
+            if (!scanButton.hasOnClickListeners()) {
+                scanButton.setOnClickListener {
+                    barcodeLauncher.launch(ScanOptions().setOrientationLocked(false))
+                }
+            }
+        }
     }
 
     private companion object {
@@ -203,7 +232,8 @@ class MainActivity : AppCompatActivity() {
             if (mifareClassic.type != MifareClassic.TYPE_CLASSIC || mifareClassic.size != MifareClassic.SIZE_1K) {
                 runOnUiThread {
                     failEffectPlayer.start()
-                    Toast.makeText(this, "Only 1k MIFARE Classic cards are expected", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this,
+                        getString(R.string.only_1k_mifare_classic_cards_are_expected), Toast.LENGTH_LONG).show()
                 }
                 return
             }
