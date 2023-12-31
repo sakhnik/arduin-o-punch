@@ -266,7 +266,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         runOnUiThread {
-            findViewById<TextView>(R.id.textViewCardNumber).text = readOut.cardNumber.toString()
+            findViewById<TextView>(R.id.textViewCardNumber).text = getString(R.string.card_id_report, readOut.cardNumber)
 
             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
             for (i in tableLayout.childCount - 1 downTo 1) {

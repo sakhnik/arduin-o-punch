@@ -10,6 +10,7 @@
     <string name="upload">Вивантажити</string>
     <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
     <string name="card_id">Картка</string>
+    <string name="card_id_report">Картка %d</string>
     <string name="key_12_hex_digits">Ключ (12 шітсн. цифр)</string>
     <string name="format_card">Підготовка Картки</string>
     <string name="clear_punches">Очистити Відмітки</string>

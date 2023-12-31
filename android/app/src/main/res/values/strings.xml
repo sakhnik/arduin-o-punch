@@ -11,6 +11,7 @@
     <string name="url_for_qr_o_punch_upload">URL for qr-o-punch upload</string>
     <string name="https_sakhnik_com_qr_o_punch_card" translatable="false">https://sakhnik.com/qr-o-punch/card</string>
     <string name="card_id">Card</string>
+    <string name="card_id_report">Card %d</string>
     <string name="key_12_hex_digits">Key (12 hex digits)</string>
     <string name="_1" translatable="false">1</string>
     <string name="format_card">Format Card</string>
