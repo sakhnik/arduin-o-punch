@@ -1,6 +1,7 @@
 package com.sakhnik.arduinopunch
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.nfc.NfcAdapter
@@ -36,7 +37,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var okEffectPlayer: MediaPlayer
     private lateinit var failEffectPlayer: MediaPlayer
     private var currentView: Int = R.layout.format_view
-    private val storage = Storage(this)
 
     private val menuToLayout = mapOf(
         R.id.menu_item_format to R.layout.format_view,
@@ -60,16 +60,17 @@ class MainActivity : AppCompatActivity() {
         toggle.syncState()
 
         val navigationView = findViewById<NavigationView>(R.id.navigation_view)
-
         navigationView.setNavigationItemSelectedListener { menuItem ->
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
             }
+            savePreferences(currentView)
             val viewId = menuToLayout.getOrDefault(menuItem.itemId, currentView)
             currentView = viewId
             setActiveView(viewId)
             true
         }
+        setActiveView(currentView)
 
         okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
         failEffectPlayer = MediaPlayer.create(this, R.raw.fail)
@@ -103,9 +104,60 @@ class MainActivity : AppCompatActivity() {
         container.removeAllViews()
         val view = layoutInflater.inflate(viewId, container, false)
         container.addView(view)
-        if (viewId == R.layout.format_view) {
-            findViewById<EditText>(R.id.editTextKey).setText(storage.getKeyHex())
+        loadPreferences(viewId)
+    }
+
+    private companion object {
+        private object Prefs {
+            const val NAME = "Prefs"
+            const val KEY_CARD_ID = "cardId"
+            const val KEY_KEY = "key"
+            const val KEY_STATION_ID = "stationId"
+            const val KEY_UPLOAD = "upload"
+            const val KEY_UPLOAD_URL = "uploadUrl"
         }
+    }
+
+    private fun savePreferences(viewId: Int) {
+        val editor = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE).edit()
+        when (viewId) {
+            R.layout.format_view -> {
+                editor.putString(Prefs.KEY_CARD_ID, findViewById<EditText>(R.id.editCardId).text.toString())
+                editor.putString(Prefs.KEY_KEY, findViewById<EditText>(R.id.editKey).text.toString())
+            }
+            R.layout.punch_view -> {
+                editor.putString(Prefs.KEY_STATION_ID, findViewById<EditText>(R.id.editStationId).text.toString())
+            }
+            R.layout.read_runner_view -> {
+                editor.putBoolean(Prefs.KEY_UPLOAD, findViewById<CheckBox>(R.id.checkBoxUpload).isChecked)
+                editor.putString(Prefs.KEY_UPLOAD_URL, findViewById<EditText>(R.id.editUploadUrl).text.toString())
+            }
+        }
+        editor.apply()
+    }
+
+    private fun loadPreferences(viewId: Int) {
+        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
+        when (viewId) {
+            R.layout.format_view -> {
+                findViewById<EditText>(R.id.editCardId).setText(prefs.getString(Prefs.KEY_CARD_ID, getString(R.string._1)))
+                findViewById<EditText>(R.id.editKey).setText(prefs.getString(Prefs.KEY_KEY, ""))
+            }
+            R.layout.punch_view -> {
+                findViewById<EditText>(R.id.editStationId).setText(prefs.getString(Prefs.KEY_STATION_ID, getString(R.string._31)))
+            }
+            R.layout.read_runner_view -> {
+                findViewById<CheckBox>(R.id.checkBoxUpload).isChecked = prefs.getBoolean(Prefs.KEY_UPLOAD, false)
+                findViewById<EditText>(R.id.editUploadUrl).setText(prefs.getString(Prefs.KEY_UPLOAD_URL, getString(R.string.https_sakhnik_com_qr_o_punch_card)))
+            }
+        }
+    }
+
+    private fun getKey(): ByteArray {
+        val prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val keyRaw = prefs.getString("key", null) ?: ""
+        val keyHex = keyRaw + "0".repeat(12 - keyRaw.length)
+        return keyHex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
     }
 
     override fun onDestroy() {
@@ -122,6 +174,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         nfcAdapter.disableForegroundDispatch(this)
+        savePreferences(currentView)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -195,20 +248,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun resetRunner(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = getKey()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
         card.reset(this::setProgress)
     }
 
     private fun readRunner(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = getKey()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
         var readOut = card.readOut(this::setProgress)
         // Adjust timestamps from the arduino stations
         readOut = PunchCard.Info(readOut.cardNumber, readOut.punches)
 
         if (findViewById<CheckBox>(R.id.checkBoxUpload).isChecked) {
-            val url = findViewById<EditText>(R.id.editTextUploadUrl).text.toString()
+            val url = findViewById<EditText>(R.id.editUploadUrl).text.toString()
             Uploader(this).upload(readOut, url)
         }
 
@@ -241,23 +294,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun punchRunner(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
-        val station = findViewById<EditText>(R.id.editTextStation).text.toString().toInt()
+        val key = getKey()
+        val station = findViewById<EditText>(R.id.editStationId).text.toString().toInt()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
         card.punch(Punch(station, getTimestamp()), this::setProgress)
     }
 
     private fun clearRunner(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = getKey()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
         card.clear(this::setProgress)
     }
 
     private fun formatRunner(mifareClassic: MifareClassic) {
-        val key = storage.checkKeyUpdate()
+        val key = getKey()
         Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
 
-        val etId = findViewById<EditText>(R.id.editTextId)
+        val etId = findViewById<EditText>(R.id.editCardId)
         val id = etId.text.toString().toInt()
         if (id != 0) {
             val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)

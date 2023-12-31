@@ -43,7 +43,7 @@
             android:layout_column="0" />
 
         <EditText
-            android:id="@+id/editTextUploadUrl"
+            android:id="@+id/editUploadUrl"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:inputType="textUri"

@@ -40,7 +40,7 @@
             android:layout_column="0" />
 
         <EditText
-            android:id="@+id/editTextStation"
+            android:id="@+id/editStationId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ems="10"

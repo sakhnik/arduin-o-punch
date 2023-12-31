@@ -41,7 +41,7 @@
             android:layout_column="0" />
 
         <EditText
-            android:id="@+id/editTextKey"
+            android:id="@+id/editKey"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:digits="0123456789ABCDEF"
@@ -59,7 +59,7 @@
             android:layout_column="0" />
 
         <EditText
-            android:id="@+id/editTextId"
+            android:id="@+id/editCardId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="@string/card_id"
