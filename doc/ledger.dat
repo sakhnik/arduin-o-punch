@@ -8,6 +8,7 @@ account Expenses:Bank
 account Expenses:Bootstrap
 account Expenses:Post
 account Expenses:Production
+account Expenses:Production:Charger
 account Expenses:Prototype
 account Expenses:Prototype:18650
 account Expenses:Prototype:Arduino
@@ -178,3 +179,7 @@ account Expenses:Tools
 2024-01-01 * AliExpress
     Expenses:Production                   76.45 $
     Assets:Privat                      -2961.20 ₴
+
+2024-01-02 * AliExpress
+    Expenses:Production:Charger           14.05 $
+    Assets:Privat                       -544.05 ₴
