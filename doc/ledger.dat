@@ -184,6 +184,7 @@ account Expenses:Tools
 2024-01-02 * AliExpress
     Expenses:Production:Charger           14.05 $
     Assets:Privat                       -544.05 ₴
+    ; 1x charger: https://www.aliexpress.com/item/1005005815635549.html
 
 2024-01-03 * AliExpress
     Expenses:Production:Cards             19.30 $
