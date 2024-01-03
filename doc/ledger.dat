@@ -8,6 +8,7 @@ account Expenses:Bank
 account Expenses:Bootstrap
 account Expenses:Post
 account Expenses:Production
+account Expenses:Production:Cards
 account Expenses:Production:Charger
 account Expenses:Prototype
 account Expenses:Prototype:18650
@@ -183,3 +184,8 @@ account Expenses:Tools
 2024-01-02 * AliExpress
     Expenses:Production:Charger           14.05 $
     Assets:Privat                       -544.05 ₴
+
+2024-01-03 * AliExpress
+    Expenses:Production:Cards             19.30 $
+    Assets:Privat                       -750.30 ₴
+    ; 100x RFID card: https://www.aliexpress.com/item/1005004418522478.html
