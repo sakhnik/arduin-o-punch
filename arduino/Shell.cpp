@@ -86,7 +86,7 @@ void Shell::_Process()
         Serial.println(F("timeout 3         Set timeout (hr)"));
         Serial.println(F("recfmt 256        Clear/prepare recorder (card count)"));
         Serial.println(F("rec               List punched cards"));
-        Serial.println(F("rec 123           Check if the card was punched"));
+        Serial.println(F("rec 123           Print punch count for a card"));
         Serial.println(F("recclr 123        Clear card from the record"));
     }
     else if (_buffer.startsWith(F("info")))
@@ -292,14 +292,14 @@ void Shell::_RecorderFormat(const char *str)
 void Shell::_RecorderCheck(const char *str)
 {
     uint16_t card_id = ParseNum<uint16_t>(str);
-    auto is_recorded = _context.GetRecorder().IsRecorded(card_id);
-    Serial.println(is_recorded ? F("YES") : F("NO"));
+    uint16_t punch_count = _context.GetRecorder().GetRecordCount(card_id);
+    Serial.println(punch_count);
 }
 
 void Shell::_RecorderClear(const char *str)
 {
     uint16_t card_id = ParseNum<uint16_t>(str);
-    auto ok = _context.GetRecorder().Record(card_id, false);
+    auto ok = _context.GetRecorder().Record(card_id, -1);
     Serial.println(ok ? F("FAIL") : F("OK"));
 }
 
@@ -309,10 +309,12 @@ void Shell::_RecorderList()
     Serial.println(_context.GetRecorder().GetSize());
     struct Printer : AOP::Recorder::IVisitor
     {
-        void OnCard(uint16_t card, void *ctx) override
+        void OnCard(uint16_t card, uint8_t count, void *ctx) override
         {
             Serial.print(' ');
             Serial.print(card);
+            Serial.print(':');
+            Serial.print(static_cast<uint16_t>(count));
         }
     } printer;
     _context.GetRecorder().List(printer, &printer);

@@ -25,6 +25,11 @@ void Recorder::Restore()
     if (length_val == 0xff)
         length_val = 0;
     _length = static_cast<int>(length_val) << LENGTH_SHIFT;
+
+    uint8_t bits_per_card_val = _eeprom.Read(_begin - 1);
+    if (bits_per_card_val == 0 || bits_per_card_val == 0xff)
+        bits_per_card_val = 1;
+    _bits_per_card = bits_per_card_val;
 }
 
 void Recorder::StoreOffset()
@@ -45,12 +50,25 @@ void Recorder::StoreLength()
         _eeprom.Write(_begin - 2, length_val);
 }
 
-int8_t Recorder::Format(int count)
+void Recorder::StoreBitsPerCard()
 {
+    if (_eeprom.Read(_begin - 1) != _bits_per_card)
+        _eeprom.Write(_begin - 1, _bits_per_card);
+}
+
+int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card)
+{
+    if (bits_per_card == 0)
+        bits_per_card = 1;
+    if (bits_per_card > 8)
+        bits_per_card = 8;
+
     // How many bytes are required to accomodate the runners?
-    int byte_count = count >> 3;
-    if (count & 7)
-        ++byte_count;
+    int bit_count = count * bits_per_card;
+    uint8_t bit_tail = bit_count & 7;
+    if (bit_tail)
+        bit_count += 8 - bit_tail;
+    int byte_count = bit_count >> 3;
 
     // Round to the length precision
     int mask = (1 << LENGTH_SHIFT) - 1;
@@ -68,6 +86,8 @@ int8_t Recorder::Format(int count)
     StoreOffset();
     _length = byte_count;
     StoreLength();
+    _bits_per_card = bits_per_card;
+    StoreBitsPerCard();
 
     // Clear the memory span
     int addr_end = _begin + _size;
@@ -81,54 +101,52 @@ int8_t Recorder::Format(int count)
     return 0;
 }
 
-int8_t Recorder::Record(uint16_t card, bool set)
+int8_t Recorder::Record(uint16_t card, int8_t increment)
 {
-    int offset = card >> 3;
-    int bit_offset = card & 7;
+    int offset = (card * _bits_per_card) >> 3;
+    int bit_offset = (card * _bits_per_card) & 7;
     if (offset >= _length)
         return -1;  // The card beyond the range
     int addr = _offset + offset;
     if (addr >= _begin + _size)
         addr -= _size;
-    uint8_t val = _eeprom.Read(addr);
-    uint8_t new_val = set ? (val | (uint8_t{1} << bit_offset)) : (val & ~(uint8_t{1} << bit_offset));
-    if (val != new_val)
-        _eeprom.Write(addr, new_val);
+    uint8_t byte_val = _eeprom.Read(addr);
+    uint8_t val_mask = (1 << _bits_per_card) - 1;
+    int8_t val = (byte_val >> bit_offset) & val_mask;
+    val += increment;
+    // Check the limits: can't go beyond 0 punches and above whatever can be accomodated in the available bits.
+    if (val < 0)
+        val = 0;
+    if (val >= val_mask)
+        val = val_mask;
+    int new_byte_val = byte_val & ~(val_mask << bit_offset);
+    new_byte_val |= val << bit_offset;
+    if (byte_val != new_byte_val)
+        _eeprom.Write(addr, new_byte_val);
     return 0;
 }
 
-bool Recorder::IsRecorded(uint16_t card)
+uint8_t Recorder::GetRecordCount(uint16_t card)
 {
-    int offset = card >> 3;
-    int bit_offset = card & 7;
+    int offset = (card * _bits_per_card) >> 3;
+    int bit_offset = (card * _bits_per_card) & 7;
     if (offset >= _length)
         return false;  // The card beyond the range
     int addr = _offset + offset;
     if (addr >= _begin + _size)
         addr -= _size;
-    uint8_t val = _eeprom.Read(addr);
-    return (val & (1 << bit_offset)) != 0;
+    uint8_t byte_val = _eeprom.Read(addr);
+    uint8_t val_mask = (1 << _bits_per_card) - 1;
+    return (byte_val >> bit_offset) & val_mask;
 }
-
-struct IVisitor
-{
-    virtual void OnCard(uint16_t card, void *ctx) = 0;
-};
 
 void Recorder::List(IVisitor &visitor, void *ctx)
 {
-    uint16_t card{};
-    int addr_end = _begin + _size;
-    for (int i = 0, addr = _offset; i < _length; ++i, ++addr)
+    for (int i = 0, n = _length * 8 / _bits_per_card; i < n; ++i)
     {
-        if (addr >= addr_end)
-            addr -= _size;
-        uint8_t val = _eeprom.Read(addr);
-        for (int j = 0; j < 8; ++j, ++card)
-        {
-            if (0 != (val & (1 << j)))
-                visitor.OnCard(card, ctx);
-        }
+        auto count = GetRecordCount(i);
+        if (count)
+            visitor.OnCard(i, count, ctx);
     }
 }
 
