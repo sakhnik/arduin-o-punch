@@ -84,7 +84,7 @@ void Shell::_Process()
         Serial.println(F("time              Current time"));
         Serial.println(F("timeout           Timeout (hr)"));
         Serial.println(F("timeout 3         Set timeout (hr)"));
-        Serial.println(F("recfmt 256        Clear/prepare recorder (card count)"));
+        Serial.println(F("recfmt 256 2      Clear/prepare recorder (card count, bits per record)"));
         Serial.println(F("rec               List punched cards"));
         Serial.println(F("rec 123           Print punch count for a card"));
         Serial.println(F("recclr 123        Clear card from the record"));
@@ -182,7 +182,7 @@ int16_t FromHex(char digit)
 }
 
 template <typename T>
-T ParseNum(const char *str)
+T ParseNum(const char *&str)
 {
     T num = 0;
     while (char ch = *str++)
@@ -277,7 +277,10 @@ void Shell::_SetTimeout(const char *str)
 
 void Shell::_RecorderFormat(const char *str)
 {
-    auto res = _context.GetRecorder().Format(ParseNum<uint16_t>(str));
+    uint16_t count = ParseNum<uint16_t>(str);
+    uint8_t bits_per_record = ParseNum<uint8_t>(str);
+
+    auto res = _context.GetRecorder().Format(count, bits_per_record);
     if (res < 0)
     {
         Serial.print(F("Error "));
@@ -286,6 +289,10 @@ void Shell::_RecorderFormat(const char *str)
     else
     {
         Serial.println(F("OK"));
+        Serial.print(F("count="));
+        Serial.print(_context.GetRecorder().GetSize());
+        Serial.print(F(" bits_per_record="));
+        Serial.println(_context.GetRecorder().GetBitsPerRecord());
     }
 }
 
