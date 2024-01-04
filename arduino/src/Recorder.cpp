@@ -58,9 +58,14 @@ void Recorder::StoreBitsPerCard()
 
 int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card)
 {
+    // Round bits_per_card to the nearest power of 2 for proper byte alignment
     if (bits_per_card == 0)
         bits_per_card = 1;
-    if (bits_per_card > 8)
+    else if (bits_per_card <= 2)
+        ;
+    else if (bits_per_card <= 4)
+        bits_per_card = 4;
+    else
         bits_per_card = 8;
 
     // How many bytes are required to accomodate the runners?
