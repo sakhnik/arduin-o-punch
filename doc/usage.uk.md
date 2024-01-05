@@ -1,6 +1,6 @@
 # Користування Arduin-O-Punch
 
-[![Зелеста](zelesta.jpg)](https://www.facebook.com/ZELESTAclub)
+<a href="https://www.facebook.com/ZELESTAclub"><img alt="Зелеста" src="zelesta.jpg" width="512"/></a>
 
 [Facebook: ZELESTAclub](https://www.facebook.com/ZELESTAclub)
 
