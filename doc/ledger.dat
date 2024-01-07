@@ -193,10 +193,15 @@ account Expenses:Tools
 
 2024-01-03 * AliExpress
     Expenses:Production:Cards             32.05 $
-    Assets:Privat                       1245.30 ₴
+    Assets:Privat                      -1245.30 ₴
     ; 200x RFID card: https://www.aliexpress.com/item/1005005316669197.html
 
 2024-01-05 * AliExpress
     Expenses:Production:Cards             35.95 $
     Assets:Privat                      -1396.45 ₴
     ; 200x RFID card: https://www.aliexpress.com/item/1005005704417450.html
+
+2024-01-07 * AliExpress
+    Expenses:Production                    9.95 $
+    Assets:Privat                       -387.00 ₴
+    ; 4x 10x 40-pin header: https://www.aliexpress.com/item/1005005421501266.html
