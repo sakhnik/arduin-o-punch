@@ -205,3 +205,8 @@ account Expenses:Tools
     Expenses:Production                    9.95 $
     Assets:Privat                       -387.00 ₴
     ; 4x 10x 40-pin header: https://www.aliexpress.com/item/1005005421501266.html
+
+2024-01-08 * Imrad
+    Expenses:Production                 1568.80 ₴
+    Assets:Privat
+    ; 11x Z-77 + resistors, leds and perfboards
