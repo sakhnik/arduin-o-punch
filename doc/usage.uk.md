@@ -136,14 +136,84 @@ Arduino Pro Mini, використаний у базовій станції, н�
 
 <img alt="USB-UART" src="images/usb-uart.jpg" width="512"/>
 
-Для програмування контролера потрібно виконати таку команду в директорії
-`arduino`:
+Для програмування контролера потрібно виконати команду `arduino-cli compile -m
+pro -u` в директорії `arduino`:
 
 ```
-arduino-cli compile -m pro -u
+~/work/orienteering/arduin-o-punch/arduino main*
+$ arduino-cli compile -m pro -u
+Sketch uses 20804 bytes (67%) of program storage space. Maximum is 30720 bytes.
+Global variables use 1027 bytes (50%) of dynamic memory, leaving 1021 bytes for local variables. Maximum is 2048 bytes.
+
+Used library   Version Path
+arduino-timer  3.0.1   /run/media/sakhnik/Android/.arduino15/internal/arduino-timer_3.0.1_36ffc03aaebfc200/arduino-timer
+CircularBuffer 1.3.3   /run/media/sakhnik/Android/.arduino15/internal/CircularBuffer_1.3.3_3f83e7a13d03bd99/CircularBuffer
+RTClib         2.1.1   /run/media/sakhnik/Android/.arduino15/internal/RTClib_2.1.1_f2201db8b01ac10f/RTClib
+Adafruit BusIO 1.14.4  /run/media/sakhnik/Android/.arduino15/internal/Adafruit_BusIO_1.14.4_5eb49b1eb2687802/Adafruit BusIO
+Wire           1.0     /run/media/sakhnik/Android/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54/libraries/Wire
+RFID_MFRC522v2 2.0.4   /run/media/sakhnik/Android/.arduino15/internal/RFID_MFRC522v2_2.0.4_afe983b92307f2cf/RFID_MFRC522v2
+SPI            1.0     /run/media/sakhnik/Android/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54/libraries/SPI
+Low-Power      1.81    /run/media/sakhnik/Android/.arduino15/internal/Low-Power_1.81_0cf867b7b6accc3b/Low-Power
+EEPROM         2.0     /run/media/sakhnik/Android/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54/libraries/EEPROM
+
+Used platform Version Path
+arduino:avr   1.8.6   /home/sakhnik/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54
 ```
 
 ### Командна оболонка
+
+До запрограмованої станції при під’єднаному акумуляторі можна під’єднатися через
+послідовний порт `/dev/ttyUSB0` у Linux з допомогою команди `screen /dev/ttyUSB0
+9600` або скористатися будь-якою іншою термінальною програмою. При під’єднанні
+контролер перевантажується і демонструє запрошення ввести команду:
+
+```
+Arduin-o-punch>
+```
+
+Перша команда, яку потрібно знати, `help`:
+
+```
+Arduin-o-punch> help
+Commands:
+info              All info
+id                ID
+id 33             Set ID: check=1 start=10 finish=255
+key               Key
+key 112233445566  Set key
+clock             Clock reading (ms)
+clock 12345000    Set clock (ms)
+time              Current time
+timeout           Timeout (hr)
+timeout 3         Set timeout (hr)
+recfmt 256 2      Clear/prepare recorder (card count, bits per record)
+rec               List punched cards
+rec 123           Print punch count for a card
+recclr 123        Clear card from the record
+Arduin-o-punch>
+```
+
+Це підказка із списком підтримуваних команд і їхніх аргументів.
+Друга важлива команда — `info`:
+
+```
+Arduin-o-punch> info
+version=1.0
+id=41
+key=112233445566
+clock=40821000
+time=11:20:21
+timeout=3
+rec=0 x 1 bpr
+Arduin-o-punch>
+```
+
+Вона друкує актуальний статус станції: версію програми, ідентифікатор, ключ
+шифрування, час годинника, розмір журналу відмітки. Про всі ці команди
+детальніше в наступних розділах.
+
+Для виходу з програми `screen` потрібно натиснути `ctrl-a`, ввести команду
+`:quit` і натиснути `enter`.
 
 ### Ключ шифрування
 

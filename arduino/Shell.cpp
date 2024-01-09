@@ -91,6 +91,7 @@ void Shell::_Process()
     }
     else if (_buffer.startsWith(F("info")))
     {
+        Serial.println(F("version=1.0"));
         Serial.print(F("id="));
         _PrintId();
         Serial.print(F("key="));
@@ -102,6 +103,11 @@ void Shell::_Process()
         _PrintTime(now);
         Serial.print(F("timeout="));
         _PrintTimeout();
+        Serial.print(F("rec="));
+        Serial.print(_context.GetRecorder().GetSize());
+        Serial.print(F(" x "));
+        Serial.print(static_cast<int>(_context.GetRecorder().GetBitsPerRecord()));
+        Serial.println(F(" bpr"));
     }
     else if (_buffer.startsWith(F("id ")))
     {
