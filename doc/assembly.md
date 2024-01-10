@@ -11,7 +11,7 @@
 | Solder indicator to the 18650 pads of 18650 power source    | <img src="images/05-charge-indicator.jpg" width="256"/>        |
 | Glue the indicator to the side of the 18650 power source    | <img src="images/06-glue-charge-indicator.jpg" width="256"/>   |
 | Cut the charging circuit of DS3231 to allow using non-rechargable CR2032 | <img src="images/09-cut-clock-charging.jpg" width="256"/>  |
-| Remove power led from DS3231                                | <img src="images/10-remove-clock-power-led.jpg" width="256"/>  |
+| Remove power led from DS3231. Be careful not to break the trace from Bat+ to the pin 14 of the IC. | <img src="images/10-remove-clock-power-led.jpg" width="256"/>  |
 | Prepare perfboard approximately 10x5 holes                  | <img src="images/11-prepare-perfboard.jpg" width="256"/>       |
 | Prepare the required parts: led, active buzzer for 3.3v (5v will also work), 100Ω, 2 5x1 pin headers and a pin header 2x1  | <img src="images/12-prepare-parts.jpg" width="256"/>  |
 | Solder the parts onto the perfboard (scheme below)          | <img src="images/13-solder-top.jpg" width="256"/><img src="images/13-solder-bottom.jpg" width="256"/>   |
