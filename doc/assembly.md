@@ -17,7 +17,7 @@
 | Solder the parts onto the perfboard (scheme below)          | <img src="images/13-solder-top.jpg" width="256"/><img src="images/13-solder-bottom.jpg" width="256"/>   |
 | Insert backup battery CR2032 into the clock module          | <img src="images/14-insert-clock-battery.jpg" width="256"/>    |
 | Connect wires between modules (scheme below)                | <img src="images/15-connect-wires.jpg" width="256"/>           |
-| Upload the firmware and test                                |                                                                |
+| Upload the firmware and test (the procedure below)          |                                                                |
 | Drill a hole for LED (I use the swiss knife awl)            | <img src="images/16-drill-hole.jpg" width="256"/>              |
 | Glue components to the box                                  | <img src="images/17-glue-parts.jpg" width="256"/>              |
 
@@ -42,3 +42,14 @@ Wiring scheme:
 <img src="images/wiring.jpg" width="512"/>
 
 The switch the station off, disconnect a wire from the power source.
+
+Test procedure:
+
+* Synchronize the clock
+* Configure station id, encryption key
+* Punch a test card and verify the punch
+* Switch the station off (disconnect from the power source)
+* Wait a minute
+* Switch the station on
+* Check the clock stays set
+* Punch a test card and verify the punch
