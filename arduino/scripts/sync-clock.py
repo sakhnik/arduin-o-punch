@@ -4,7 +4,7 @@
 
 import serial
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 serial_port = '/dev/ttyUSB0'
 baud_rate = 9600
@@ -18,6 +18,13 @@ def get_current_time():
     return elapsed_ms
 
 
+def format_time(clock):
+    seconds = clock / 1000
+    time_difference = timedelta(seconds=seconds)
+    formatted_time = (datetime(1, 1, 1) + time_difference).strftime("%H:%M:%S")
+    return formatted_time
+
+
 with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     # Get current time before interacting with Arduino
     start = get_current_time()
@@ -26,7 +33,8 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
             # Get Arduin-o-punch clock reading
             ser.write(b'clock\r')
             arduino_clock = int(ser.readline().decode().strip())
-            print(f"Before: clock={arduino_clock}")
+            arduino_time = format_time(arduino_clock)
+            print(f"Before: clock={arduino_clock} time={arduino_time}")
             break
         except ValueError:
             pass
@@ -51,4 +59,5 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     # Update Arduino clock
     ser.write(f'clock {target_time}\r'.encode())
     arduino_clock = int(ser.readline().decode().strip())
-    print(f"After: clock={arduino_clock}")
+    arduino_time = format_time(arduino_clock)
+    print(f"After: clock={arduino_clock} time={arduino_time}")
