@@ -1,6 +1,6 @@
 # Arduin-o-punch
 
-<img alt="Icon" src="icon.svg" width="256"/>
+<img alt="Icon" src="icon.svg" width="64"/>
 
 Arduino-based punching for orienteering
 
