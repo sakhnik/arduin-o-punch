@@ -2,7 +2,7 @@
 
 <img alt="Icon" src="icon.svg" width="64"/>
 
-Arduino-based punching for orienteering
+Arduino-based punching for orienteering with Mifare NFC cards.
 
 <a href="https://www.facebook.com/ZELESTAclub"><img alt="Зелеста" src="doc/zelesta.jpg" width="512"/></a>
 
