@@ -1,5 +1,7 @@
 # Arduin-o-punch
 
+<img alt="Icon" src="icon.svg" width="256"/>
+
 Arduino-based punching for orienteering
 
 <a href="https://www.facebook.com/ZELESTAclub"><img alt="Зелеста" src="doc/zelesta.jpg" width="512"/></a>
