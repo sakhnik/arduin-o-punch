@@ -21,7 +21,7 @@
 | Connect wires between modules (scheme below)                | <img src="images/15-connect-wires.jpg" width="256"/>           |
 | Upload the firmware and test (the procedure below)          |                                                                |
 | Drill a hole for LED (I use the swiss knife awl)            | <img src="images/16-drill-hole.jpg" width="256"/>              |
-| Glue components to the box                                  | <img src="images/17-glue-parts.jpg" width="256"/>              |
+| Glue components to the box. Harden with the glue the micro USB input for battery charger. | <img src="images/17-glue-parts.jpg" width="256"/>              |
 
 ## Soldering scheme
 
