@@ -175,7 +175,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     }
 
     private fun getId(header: ByteArray): Int {
-        return header[ID_OFFSET].toInt() or (header[ID_OFFSET + 1].toInt() shl 8)
+        return (header[ID_OFFSET].toInt() and 0xff) or ((header[ID_OFFSET + 1].toInt() and 0xff) shl 8)
     }
 
     fun punch(newPunch: Punch, progress: Progress = Procedure.NO_PROGRESS): Boolean {

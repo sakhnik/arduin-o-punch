@@ -62,7 +62,8 @@ class PunchCardTest {
     fun prepareReset() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, byteArrayOf(0x12, 0x34, 0x56, 0x78, 0x90.toByte(), 0xab.toByte()), context)
-        punchCard.prepareRunner(42, 0.toLong())
+        punchCard.prepareRunner(12345, 0.toLong())
+        assertEquals(12345, punchCard.readOut().cardNumber)
         punchCard.reset()
     }
 

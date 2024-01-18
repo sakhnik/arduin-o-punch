@@ -101,6 +101,38 @@ TEST_CASE("Simple range 256 cards")
     }
 }
 
+TEST_CASE("Long range 1024 cards")
+{
+    std::string mem(260, -1);
+    TestEeprom eeprom{mem};
+    Recorder rec(0, 260, eeprom);
+    rec.Setup();
+    CHECK(0 == rec.Format(1024, 2));
+    CHECK("" == Collector::GetList(rec));
+    CHECK(0 == rec.GetRecordCount(0));
+    CHECK(0 == rec.Record(0));
+    CHECK(1 == rec.GetRecordCount(0));
+    CHECK("0:1" == Collector::GetList(rec));
+    CHECK(0 == rec.GetRecordCount(256));
+    CHECK(0 == rec.Record(256));
+    CHECK(1 == rec.GetRecordCount(0));
+    CHECK("0:1 256:1" == Collector::GetList(rec));
+    CHECK(0 == rec.GetRecordCount(513));
+    CHECK(0 == rec.Record(513));
+    CHECK(1 == rec.GetRecordCount(513));
+    CHECK("0:1 256:1 513:1" == Collector::GetList(rec));
+    CHECK(0 == rec.GetRecordCount(1000));
+    CHECK(0 == rec.Record(1000));
+    CHECK(1 == rec.GetRecordCount(1000));
+    CHECK("0:1 256:1 513:1 1000:1" == Collector::GetList(rec));
+    CHECK(0 == rec.Record(1000));
+    CHECK(2 == rec.GetRecordCount(1000));
+    CHECK("0:1 256:1 513:1 1000:2" == Collector::GetList(rec));
+    CHECK(0 == rec.Record(1000));
+    CHECK(3 == rec.GetRecordCount(1000));
+    CHECK("0:1 256:1 513:1 1000:3" == Collector::GetList(rec));
+}
+
 TEST_CASE("Restore record")
 {
     std::string mem(38, -1);

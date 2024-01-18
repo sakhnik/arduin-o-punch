@@ -287,8 +287,6 @@ class MainActivity : AppCompatActivity() {
         val key = getKey()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
         var readOut = card.readOut(this::setProgress)
-        // Adjust timestamps from the arduino stations
-        readOut = PunchCard.Info(readOut.cardNumber, readOut.punches)
 
         if (findViewById<CheckBox>(R.id.checkBoxUpload).isChecked) {
             val url = findViewById<EditText>(R.id.editUploadUrl).text.toString()
