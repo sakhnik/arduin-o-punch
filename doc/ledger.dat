@@ -217,3 +217,8 @@ account Expenses:Tools
     Expenses:Post                          8.60 ₴
     Assets:Privat
     ; battery tester
+
+2024-01-22 * Arduino.ua
+    Expenses:Production                  466.00 ₴
+    Assets:Privat
+    ; connectors, header pins
