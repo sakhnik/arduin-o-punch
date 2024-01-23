@@ -220,5 +220,6 @@ account Expenses:Tools
 
 2024-01-22 * Arduino.ua
     Expenses:Production                  466.00 ₴
+    Expenses:Post                         50.00 ₴
     Assets:Privat
     ; connectors, header pins
