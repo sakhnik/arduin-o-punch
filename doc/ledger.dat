@@ -223,3 +223,8 @@ account Expenses:Tools
     Expenses:Post                         50.00 ₴
     Assets:Privat
     ; connectors, header pins
+
+2024-01-25 * Imrad
+    Expenses:Production                 3708.60 ₴
+    Assets:Privat
+    ; 30x Z-77
