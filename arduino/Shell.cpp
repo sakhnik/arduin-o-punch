@@ -91,7 +91,7 @@ void Shell::_Process()
     }
     else if (_buffer.startsWith(F("info")))
     {
-        Serial.println(F("version=1.0"));
+        Serial.println(F("version=1.1"));
         Serial.print(F("id="));
         _PrintId();
         Serial.print(F("key="));
