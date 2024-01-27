@@ -2,7 +2,6 @@ package com.sakhnik.arduinopunch
 
 import android.content.Context
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertTrue
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.mockito.Mockito
@@ -75,7 +74,7 @@ class PunchCardTest {
         assertEquals(0, punchCard.readOut().punches.size)
         val punches = listOf(Punch(31, 100), Punch(32, 130), Punch(33, 221))
         for (i in punches.indices) {
-            assertTrue(punchCard.punch(punches[i]))
+            punchCard.punch(punches[i])
             val readOut = punchCard.readOut().punches
             assertEquals(i + 1, readOut.size)
             assertEquals(punches[i], readOut[i])
@@ -98,7 +97,7 @@ class PunchCardTest {
 
         val maxPunches: Int = 16 * (16 * 3 - 2) / Punch.STORAGE_SIZE - 1
         for (i in 0 until maxPunches) {
-            assertTrue(punchCard.punch(testPunch(i)))
+            punchCard.punch(testPunch(i))
         }
         // No more space
         assertThrows(RuntimeException::class.java) {

@@ -38,12 +38,9 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     uint8_t index = header[INDEX_OFFSET];
     // If this is the start station punching, clear all the previous punches
     // except maybe the check station.
-    if (punch.GetStation() == CHECK_STATION && index > 1)
-        index = 1;
-    if (punch.GetStation() == START_STATION && index > 2)
+    if (punch.GetStation() == START_STATION && index > 1)
     {
-        // We don't care if the first punch station isn't CHECK_STATION
-        index = 2;
+        index = 1;
     }
     auto addr = _GetPunchAddr(index - 1);
     if (auto res = _Authenticate(_mifare->BlockToSector(addr.block)))
@@ -57,8 +54,9 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
 
     // 2. read the last record
     AOP::Punch prevPunch{punchBlock, addr.offset};
-    //   a. check the station is different
-    if (prevPunch.GetStation() == punch.GetStation())
+    //   a. check the station is different unless it's the start station.
+    //   allow punching the start station many times because the index is reset.
+    if (punch.GetStation() != START_STATION && prevPunch.GetStation() == punch.GetStation())
     {
         progress(stages, stages);
         if (_callback)

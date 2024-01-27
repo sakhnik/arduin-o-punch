@@ -16,10 +16,6 @@ import java.io.IOException
 class Uploader(private val activity: ComponentActivity) : Callback {
     companion object {
         const val START_HOUR: Int = 0
-
-        const val CHECK_STATION: Int = 1
-        const val START_STATION: Int = 10
-        const val FINISH_STATION: Int = 255
     }
 
     fun upload(readOut: PunchCard.Info, url: String) {
@@ -45,11 +41,12 @@ class Uploader(private val activity: ComponentActivity) : Callback {
         request.put("cardNumber", readOut.cardNumber)
         val punches = readOut.punches
         var startIdx = 0
-        if (punches[startIdx].station == CHECK_STATION) {
+        if (punches[startIdx].station == PunchCard.CHECK_STATION) {
             request.put("checkTime", encodeTime(punches[startIdx].timestamp))
             ++startIdx
         }
-        if (punches[startIdx].station == START_STATION) {
+        // The START_STATION can be punched at idx == 0 or idx == 1, take into account the last one.
+        while (punches[startIdx].station == PunchCard.START_STATION) {
             val startTime = encodeTime(punches[startIdx].timestamp)
             if (startIdx == 0) {
                 request.put("checkTime", startTime)
@@ -57,8 +54,8 @@ class Uploader(private val activity: ComponentActivity) : Callback {
             request.put("startTime", startTime)
             ++startIdx
         }
-        var finishIdx = punches.size - 1
-        if (punches[finishIdx].station == FINISH_STATION) {
+        val finishIdx = punches.size - 1
+        if (punches[finishIdx].station == PunchCard.FINISH_STATION) {
             request.put("finishTime", encodeTime(punches[finishIdx].timestamp))
         }
         val punchesDto = JSONArray()

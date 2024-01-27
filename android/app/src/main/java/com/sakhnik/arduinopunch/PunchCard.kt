@@ -12,14 +12,18 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         const val DESC_OFFSET: Int = 0
         const val DESC_RUNNER: Byte = 1
-        const val DESC_SERVICE: Byte = 2
+        //const val DESC_SERVICE: Byte = 2
 
         const val ID_OFFSET: Int = 1
-        const val SERVICE_ID: Int = 0
+        //const val SERVICE_ID: Int = 0
 
         const val TIMESTAMP_OFFSET: Int = 3
         const val XOR_OFFSET: Int = 7   // Xor sum of the previous header bytes to make the service card more distinctive
         const val INDEX_OFFSET = 8
+
+        const val CHECK_STATION = 1
+        const val START_STATION = 10
+        const val FINISH_STATION = 255
     }
 
     init {
@@ -178,7 +182,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         return (header[ID_OFFSET].toInt() and 0xff) or ((header[ID_OFFSET + 1].toInt() and 0xff) shl 8)
     }
 
-    fun punch(newPunch: Punch, progress: Progress = Procedure.NO_PROGRESS): Boolean {
+    fun punch(newPunch: Punch, progress: Progress = Procedure.NO_PROGRESS) {
         val stages = 8
         progress(0, stages)
 
@@ -191,9 +195,13 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             throw RuntimeException(context.getString(R.string.bad_checksum))
         }
         progress(2, stages)
-        val desc = header[DESC_OFFSET]
-        val id = getId(header)
-        val index = header[INDEX_OFFSET].toInt() and 0xff
+        //val desc = header[DESC_OFFSET]
+        //val id = getId(header)
+        var index = header[INDEX_OFFSET].toInt() and 0xff
+        // If this is the start station punching, clear all the previous punches
+        if (newPunch.station == START_STATION && index > 1) {
+            index = 1
+        }
         val (block, offset) = getPunchAddress(index - 1)
         authenticate(mifare.blockToSector(block))
         progress(3, stages)
@@ -202,11 +210,11 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         // 2. read the last record
         val prevPunch = Punch(punchBlock, offset)
-        //   a. check the station is different or is a service card
-        if (prevPunch.station == newPunch.station &&
-            (desc != DESC_SERVICE || id == 0)) {
+        //   a. check the station is different and not the start station.
+        // allow punching the start station many times because the index is reset
+        if (newPunch.station != START_STATION && prevPunch.station == newPunch.station) {
             progress(stages, stages)
-            return true
+            return
         }
 
         // 3. write the next record
@@ -233,7 +241,6 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         authenticate(headerSector)
         mifare.writeBlock(HEADER_BLOCK, header)
         progress(stages, stages)
-        return true
     }
 
     data class Info(val cardNumber: Int, val punches: List<Punch>)
