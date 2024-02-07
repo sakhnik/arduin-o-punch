@@ -234,3 +234,20 @@ account Expenses:Tools
     Expenses:Production                  149.00 ₴
     Assets:Privat
     ; Box
+
+2024-02-06 * Arduino.ua
+    Assets:Privat                       -618.00 ₴
+    Assets:Privat                        -50.00 ₴
+    Expenses:Post                         50.00 ₴
+    Expenses:Tools                       339.00 ₴
+    Expenses:Prototype                   329.00 ₴  ; switches, connectors
+    ; Кнопка 6pin 8.5х8.5 з фіксацією, шток 5мм     2 шт.   UAH 4.00    UAH 8.00
+    ; USB-UART міні-перехідник на CP2102    1 шт.   UAH 78.00   UAH 78.00
+    ; UART-USB перехідник на FT232RL    1 шт.   UAH 89.00   UAH 89.00
+    ; Килимок монтажний силіконовий термостійкий 380х210мм, 500 °C  1 шт.   UAH 339.00  UAH 339.00
+    ; Перемикач KCD1-106-2P ON-OFF 2-контактний 6A/220V чорний  1 шт.   UAH 7.00    UAH 7.00
+    ; Конектори 6 пін 2.54мм 10шт.  1 шт.   UAH 9.00    UAH 9.00
+    ; Конектор для Arduino 6pin     2 шт.   UAH 5.00    UAH 10.00
+    ; Гніздо монтажне на плату 5.5 x 2.1 мм     2 шт.   UAH 5.00    UAH 10.00
+    ; Плата-перехідник microUSB-B на DIP 2.54   2 шт.   UAH 11.00   UAH 22.00
+    ; Кабель живлення USB тип A на штекер 5.5 x 2.1мм   2 шт.   UAH 23.00   UAH 46.00
