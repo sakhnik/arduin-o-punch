@@ -20,6 +20,7 @@ import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ToggleButton
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +29,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import com.sakhnik.arduinopunch.R.id.toggleUrlEditing
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalTime
@@ -126,11 +128,19 @@ class MainActivity : AppCompatActivity() {
         container.addView(view)
         loadPreferences(viewId)
 
-        if (viewId == R.layout.format_view) {
-            val scanButton = findViewById<Button>(R.id.scanButton)
-            if (!scanButton.hasOnClickListeners()) {
-                scanButton.setOnClickListener {
-                    barcodeLauncher.launch(ScanOptions().setOrientationLocked(false))
+        when (viewId) {
+            R.layout.format_view -> {
+                val scanButton = findViewById<Button>(R.id.scanButton)
+                if (!scanButton.hasOnClickListeners()) {
+                    scanButton.setOnClickListener {
+                        barcodeLauncher.launch(ScanOptions().setOrientationLocked(false))
+                    }
+                }
+            }
+            R.layout.read_runner_view -> {
+                val toggleEditUrl = findViewById<ToggleButton>(toggleUrlEditing)
+                toggleEditUrl.setOnCheckedChangeListener{_, isChecked ->
+                    findViewById<EditText>(R.id.editUploadUrl).isEnabled = isChecked
                 }
             }
         }
@@ -286,7 +296,7 @@ class MainActivity : AppCompatActivity() {
     private fun readRunner(mifareClassic: MifareClassic) {
         val key = getKey()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-        var readOut = card.readOut(this::setProgress)
+        val readOut = card.readOut(this::setProgress)
 
         if (findViewById<CheckBox>(R.id.checkBoxUpload).isChecked) {
             val url = findViewById<EditText>(R.id.editUploadUrl).text.toString()

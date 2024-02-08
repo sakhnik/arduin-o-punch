@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -25,6 +26,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title"/>
 
+    <CheckBox
+        android:id="@+id/checkBoxUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/upload"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/instruction"/>
+
     <GridLayout
         android:id="@+id/gridLayout"
         android:layout_width="wrap_content"
@@ -32,27 +41,31 @@
         android:columnCount="2"
         android:rowCount="1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/instruction">
+        app:layout_constraintTop_toBottomOf="@+id/checkBoxUpload">
 
-        <CheckBox
-            android:id="@+id/checkBoxUpload"
+        <ToggleButton
+            android:id="@+id/toggleUrlEditing"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/upload"
             android:layout_row="0"
-            android:layout_column="0" />
+            android:layout_column="0"
+            android:textColor="#B71C1C"
+            android:textOff="🔒"
+            android:textOn="🔓"
+            tools:ignore="HardcodedText" />
 
         <EditText
             android:id="@+id/editUploadUrl"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="textUri"
-            android:padding="16dp"
-            android:hint="@string/url_for_qr_o_punch_upload"
-            android:text="@string/https_sakhnik_com_qr_o_punch_card"
             android:layout_row="0"
             android:layout_column="1"
-            android:importantForAutofill="no" />
+            android:hint="@string/url_for_qr_o_punch_upload"
+            android:importantForAutofill="no"
+            android:inputType="textUri"
+            android:minHeight="48dp"
+            android:enabled="false"
+            android:text="@string/https_sakhnik_com_qr_o_punch_card" />
     </GridLayout>
 
     <TextView
