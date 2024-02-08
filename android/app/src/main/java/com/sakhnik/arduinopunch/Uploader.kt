@@ -54,9 +54,10 @@ class Uploader(private val activity: ComponentActivity) : Callback {
             request.put("startTime", startTime)
             ++startIdx
         }
-        val finishIdx = punches.size - 1
+        var finishIdx = punches.size - 1
         if (punches[finishIdx].station == PunchCard.FINISH_STATION) {
             request.put("finishTime", encodeTime(punches[finishIdx].timestamp))
+            --finishIdx
         }
         val punchesDto = JSONArray()
         request.put("punches", punchesDto)
