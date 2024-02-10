@@ -251,3 +251,14 @@ account Expenses:Tools
     ; Гніздо монтажне на плату 5.5 x 2.1 мм     2 шт.   UAH 5.00    UAH 10.00
     ; Плата-перехідник microUSB-B на DIP 2.54   2 шт.   UAH 11.00   UAH 22.00
     ; Кабель живлення USB тип A на штекер 5.5 x 2.1мм   2 шт.   UAH 23.00   UAH 46.00
+
+2024-02-09 * Domovychok
+    Expenses:Prototype                    45.00 ₴  ; Switch KCD1-101
+    Assets:Privat
+
+2024-02-09 * Prom.us
+    Expenses:Production                  920.00 ₴
+    Assets:Privat
+    ; 50x DC socket 5.5x2.1
+    ; 50x round switch button
+    ; butterfly drills
