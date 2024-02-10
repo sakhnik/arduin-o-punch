@@ -62,18 +62,19 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         progress(3, stages)
     }
 
-    fun prepareRunner(id: Int, timestamp: Long, progress: Progress = Procedure.NO_PROGRESS) {
+    fun prepareRunner(id: Int, timestamp: Long, keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS) {
         val procedure = Procedure()
+        val goodKeys = ArrayList<ByteArray>()
 
         // Check and configure the card setting KeyA into all sectors
         procedure.add(mifare.sectorCount) { p ->
-            checkDefaultKeyUsable(p)
+            pickKeyToSector(keysToTry, goodKeys, p)
         }
 
         // If the desired key is different from the default, update the key
         if (!key.contentEquals(mifare.keyDefault)) {
             procedure.add(mifare.sectorCount) { p ->
-                writeNewKey(p)
+                writeNewKey(goodKeys, p)
             }
         }
 
@@ -120,13 +121,11 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         mifare.writeBlock(block, punchBlock)
     }
 
-    private fun writeNewKey(progress: Progress) {
+    private fun writeNewKey(keys: List<ByteArray>, progress: Progress) {
         for (sector in 0 until mifare.sectorCount) {
             progress(sector, mifare.sectorCount)
-            if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
-                if (!mifare.authenticateSectorWithKeyA(sector, key)) {
-                    throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
-                }
+            if (!mifare.authenticateSectorWithKeyA(sector, keys[sector])) {
+                throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
             }
             val blockIndex = 3 + 4 * sector
             val trailer = mifare.readBlock(blockIndex)
@@ -135,13 +134,15 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
     }
 
-    private fun checkDefaultKeyUsable(progress: Progress) {
+    private fun pickKeyToSector(keysToTry: List<ByteArray>, goodKeys: MutableList<ByteArray>, progress: Progress) {
         for (sector in 0 until mifare.sectorCount) {
             progress(sector, mifare.sectorCount)
-            if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)
-                && !mifare.authenticateSectorWithKeyA(sector, key)
-            ) {
-                throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
+            if (mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault))
+                goodKeys.add(mifare.keyDefault)
+            else {
+                val k = keysToTry.find { mifare.authenticateSectorWithKeyA(sector, it) }
+                    ?: throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
+                goodKeys.add(k)
             }
         }
     }

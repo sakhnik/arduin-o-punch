@@ -1,5 +1,6 @@
 package com.sakhnik.arduinopunch
 
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -136,6 +137,10 @@ class MainActivity : AppCompatActivity() {
                         barcodeLauncher.launch(ScanOptions().setOrientationLocked(false))
                     }
                 }
+                val showOldKeys = findViewById<Button>(R.id.showOldKeys)
+                showOldKeys.setOnClickListener {
+                    showPreviousKeys()
+                }
             }
             R.layout.read_runner_view -> {
                 val toggleEditUrl = findViewById<ToggleButton>(toggleUrlEditing)
@@ -151,9 +156,14 @@ class MainActivity : AppCompatActivity() {
             const val NAME = "Prefs"
             const val KEY_CARD_ID = "cardId"
             const val KEY_KEY = "key"
+            const val KEY_PREV_KEYS = "prevKeys"
             const val KEY_STATION_ID = "stationId"
             const val KEY_UPLOAD = "upload"
             const val KEY_UPLOAD_URL = "uploadUrl"
+        }
+
+        private fun parseKey(hex: String): ByteArray {
+            return hex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
         }
     }
 
@@ -192,11 +202,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getKey(): ByteArray {
+    private fun getKeyHex(): String {
         val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
         val keyRaw = prefs.getString(Prefs.KEY_KEY, null) ?: ""
-        val keyHex = keyRaw + "0".repeat(12 - keyRaw.length)
-        return keyHex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
+        return keyRaw + "0".repeat(12 - keyRaw.length)
+    }
+
+    private fun getKey(): ByteArray {
+        return parseKey(getKeyHex())
     }
 
     override fun onDestroy() {
@@ -353,7 +366,52 @@ class MainActivity : AppCompatActivity() {
         val id = etId.text.toString().toInt()
         if (id != 0) {
             val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-            card.prepareRunner(id, getTimestamp(), this::setProgress)
+            card.prepareRunner(id, getTimestamp(), getPrevKeys(), this::setProgress)
+            updatePreviousKeys()
         }
+    }
+
+    private fun getPrevKeys(): List<ByteArray> {
+        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
+        return prefs.getString(Prefs.KEY_PREV_KEYS, "")!!.split(",").map { parseKey(it) }
+    }
+
+    private fun showPreviousKeys() {
+        val keyHex = getKeyHex()
+        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
+        var prevKeys = prefs.getString(Prefs.KEY_PREV_KEYS, "")!!
+        // prevKeys contains the actual key too, skip it
+        if (prevKeys.startsWith(keyHex)) {
+            prevKeys = prevKeys.subSequence(keyHex.length, prevKeys.length).toString()
+        }
+        if (prevKeys != ",") {
+            val msg = prevKeys.replace(",", "\n")
+            val builder = AlertDialog.Builder(this)
+            builder.setMessage(msg)
+                .setPositiveButton("OK") {_, _ -> }
+                .show()
+        }
+    }
+
+    // Take the current key and make sure it's in the list of previous keys
+    private fun updatePreviousKeys() {
+        val keyHex = getKeyHex()
+        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
+        val prevKeys = prefs.getString(Prefs.KEY_PREV_KEYS, "")!!
+        if (prevKeys.startsWith(keyHex)) {
+            // It's already there
+            return
+        }
+        val prevKeysList = prevKeys.split(",")
+        val newList = ArrayList<String>()
+        newList.add(keyHex)
+        // Limit the history of the previous keys by 3 entries
+        if (prevKeysList.size > 2)
+            newList.addAll(prevKeysList.subList(0, 2))
+        else
+            newList.addAll(prevKeysList)
+        val editor = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE).edit()
+        editor.putString(Prefs.KEY_PREV_KEYS, newList.joinToString(","))
+        editor.apply()
     }
 }
