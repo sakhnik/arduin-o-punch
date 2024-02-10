@@ -125,7 +125,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         for (sector in 0 until mifare.sectorCount) {
             progress(sector, mifare.sectorCount)
             if (!mifare.authenticateSectorWithKeyA(sector, keys[sector])) {
-                throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
+                throw RuntimeException(context.getString(R.string.no_known_key_for_sector, sector))
             }
             val blockIndex = 3 + 4 * sector
             val trailer = mifare.readBlock(blockIndex)
@@ -137,35 +137,49 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     private fun pickKeyToSector(keysToTry: List<ByteArray>, goodKeys: MutableList<ByteArray>, progress: Progress) {
         for (sector in 0 until mifare.sectorCount) {
             progress(sector, mifare.sectorCount)
-            if (mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault))
+            // Try the previous sector's key first for better luck
+            if (sector > 0 && mifare.authenticateSectorWithKeyA(sector, goodKeys[sector - 1])) {
+                goodKeys.add(goodKeys[sector - 1])
+            }
+            else if (mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
                 goodKeys.add(mifare.keyDefault)
-            else {
-                val k = keysToTry.find { mifare.authenticateSectorWithKeyA(sector, it) }
-                    ?: throw RuntimeException(context.getString(R.string.our_key_or_default_authentication_failure_to_sector, sector))
+            } else {
+                val k = keysToTry.find {
+                    mifare.authenticateSectorWithKeyA(sector, it)
+                }
+                    ?: throw RuntimeException(context.getString(R.string.no_known_key_for_sector, sector))
                 goodKeys.add(k)
             }
         }
     }
 
-    fun reset(progress: Progress = Procedure.NO_PROGRESS) {
-        val sectorCount = mifare.sectorCount
-        // Restore the card to its pristine state
-        for (sector in 0 until mifare.sectorCount) {
-            progress(sector, sectorCount)
-            if (!mifare.authenticateSectorWithKeyA(sector, key)) {
-                // Try with the default key too
-                if (!mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
-                    throw RuntimeException(context.getString(R.string.our_key_authentication_failure_to_sector, sector))
-                } else {
-                    continue
-                }
-            }
-            val blockIndex = 3 + 4 * sector
-            val trailer = mifare.readBlock(blockIndex) as ByteArray
-            mifare.keyDefault.copyInto(trailer)
-            mifare.writeBlock(blockIndex, trailer)
+    fun reset(keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS) {
+        val procedure = Procedure()
+        val goodKeys = ArrayList<ByteArray>()
+
+        // Check and configure the card setting KeyA into all sectors
+        procedure.add(mifare.sectorCount) { p ->
+            pickKeyToSector(keysToTry, goodKeys, p)
         }
-        progress(sectorCount, sectorCount)
+
+        procedure.add(mifare.sectorCount) { p ->
+            val sectorCount = mifare.sectorCount
+            // Restore the card to its pristine state
+            for (sector in 0 until sectorCount) {
+                p(sector, sectorCount)
+                if (goodKeys[sector].contentEquals(mifare.keyDefault))
+                    continue
+                if (!mifare.authenticateSectorWithKeyA(sector, goodKeys[sector])) {
+                    throw RuntimeException(context.getString(R.string.key_authentication_failure_to_sector, sector))
+                }
+                val blockIndex = 3 + 4 * sector
+                val trailer = mifare.readBlock(blockIndex) as ByteArray
+                mifare.keyDefault.copyInto(trailer)
+                mifare.writeBlock(blockIndex, trailer)
+            }
+        }
+
+        procedure.run(progress)
     }
 
     private fun getPunchAddress(index: Int): Pair<Int, Int> {

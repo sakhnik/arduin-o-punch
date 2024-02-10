@@ -156,10 +156,12 @@ class MainActivity : AppCompatActivity() {
             const val NAME = "Prefs"
             const val KEY_CARD_ID = "cardId"
             const val KEY_KEY = "key"
-            const val KEY_PREV_KEYS = "prevKeys"
+            const val KEY_KNOWN_KEYS = "knownKeys"
             const val KEY_STATION_ID = "stationId"
             const val KEY_UPLOAD = "upload"
             const val KEY_UPLOAD_URL = "uploadUrl"
+
+            const val KNOWN_KEYS_HISTORY_SIZE = 4
         }
 
         private fun parseKey(hex: String): ByteArray {
@@ -303,7 +305,7 @@ class MainActivity : AppCompatActivity() {
     private fun resetRunner(mifareClassic: MifareClassic) {
         val key = getKey()
         val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-        card.reset(this::setProgress)
+        card.reset(getKnownKeys(), this::setProgress)
     }
 
     private fun readRunner(mifareClassic: MifareClassic) {
@@ -361,31 +363,34 @@ class MainActivity : AppCompatActivity() {
     private fun formatRunner(mifareClassic: MifareClassic) {
         val key = getKey()
         Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
+        updateKnownKeys()
 
         val etId = findViewById<EditText>(R.id.editCardId)
         val id = etId.text.toString().toInt()
         if (id != 0) {
             val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-            card.prepareRunner(id, getTimestamp(), getPrevKeys(), this::setProgress)
-            updatePreviousKeys()
+            card.prepareRunner(id, getTimestamp(), getKnownKeys(), this::setProgress)
         }
     }
 
-    private fun getPrevKeys(): List<ByteArray> {
+    private fun getKnownKeys(): List<ByteArray> {
         val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-        return prefs.getString(Prefs.KEY_PREV_KEYS, "")!!.split(",").map { parseKey(it) }
+        return prefs.getString(Prefs.KEY_KNOWN_KEYS, "")!!.split(",").filter { it.isNotEmpty() }.map { parseKey(it) }
     }
 
     private fun showPreviousKeys() {
         val keyHex = getKeyHex()
         val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-        var prevKeys = prefs.getString(Prefs.KEY_PREV_KEYS, "")!!
-        // prevKeys contains the actual key too, skip it
-        if (prevKeys.startsWith(keyHex)) {
-            prevKeys = prevKeys.subSequence(keyHex.length, prevKeys.length).toString()
+        var knownKeys = prefs.getString(Prefs.KEY_KNOWN_KEYS, "")!!
+        // knownKeys contains the actual key too, skip it
+        if (knownKeys.startsWith(keyHex)) {
+            knownKeys = knownKeys.subSequence(keyHex.length, knownKeys.length).toString()
         }
-        if (prevKeys != ",") {
-            val msg = prevKeys.replace(",", "\n")
+        if (knownKeys.endsWith(",")) {
+            knownKeys = knownKeys.subSequence(0, knownKeys.length - 1).toString()
+        }
+        if (knownKeys.length > 1) {
+            val msg = knownKeys.replace(",", "\n")
             val builder = AlertDialog.Builder(this)
             builder.setMessage(msg)
                 .setPositiveButton("OK") {_, _ -> }
@@ -393,25 +398,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Take the current key and make sure it's in the list of previous keys
-    private fun updatePreviousKeys() {
+    // Take the current key and make sure it's in the list of known keys
+    private fun updateKnownKeys() {
         val keyHex = getKeyHex()
         val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-        val prevKeys = prefs.getString(Prefs.KEY_PREV_KEYS, "")!!
-        if (prevKeys.startsWith(keyHex)) {
+        val knownKeys = prefs.getString(Prefs.KEY_KNOWN_KEYS, "")!!
+        if (knownKeys.startsWith(keyHex)) {
             // It's already there
             return
         }
-        val prevKeysList = prevKeys.split(",")
+        val knownKeysList = knownKeys.split(",")
         val newList = ArrayList<String>()
         newList.add(keyHex)
-        // Limit the history of the previous keys by 3 entries
-        if (prevKeysList.size > 2)
-            newList.addAll(prevKeysList.subList(0, 2))
+        // Limit the history of the known keys
+        if (knownKeysList.size > Prefs.KNOWN_KEYS_HISTORY_SIZE)
+            newList.addAll(knownKeysList.subList(0, Prefs.KNOWN_KEYS_HISTORY_SIZE))
         else
-            newList.addAll(prevKeysList)
+            newList.addAll(knownKeysList)
         val editor = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE).edit()
-        editor.putString(Prefs.KEY_PREV_KEYS, newList.joinToString(","))
+        editor.putString(Prefs.KEY_KNOWN_KEYS, newList.joinToString(","))
         editor.apply()
     }
 }

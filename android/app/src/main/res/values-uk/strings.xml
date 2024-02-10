@@ -19,8 +19,7 @@
     <string name="reset_card">Скинути Картку</string>
     <string name="key_authentication_failure_to_sector">Невдача автентифікації ключем у секторі %d</string>
     <string name="bad_checksum">Помилка контрольної суми</string>
-    <string name="our_key_or_default_authentication_failure_to_sector">Невдача автентифікацї нашим або початковим ключем у секторі %d</string>
-    <string name="our_key_authentication_failure_to_sector">Невдача автентифікації нашим ключем у секторі %d</string>
+    <string name="no_known_key_for_sector">Невідомий ключ до сектора %d</string>
     <string name="the_card_is_full">Картка переповнена</string>
     <string name="format_runner_title">Підготувати картку бігуна</string>
     <string name="format_runner_instruction">Підготувати картку бігуна: відформатувати заданим ключем шифрування 12-шістн. цифр, призначити ID (0..65535).</string>
