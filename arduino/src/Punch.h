@@ -27,8 +27,14 @@ public:
     {
     }
 
-    int GetStation() const { return _station; }
-    uint32_t GetTimestamp() const { return _timestamp; }
+    int GetStation() const
+    {
+        return _station;
+    }
+    uint32_t GetTimestamp() const
+    {
+        return _timestamp;
+    }
 
     void Serialize(uint8_t *data, int offset)
     {

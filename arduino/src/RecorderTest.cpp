@@ -71,8 +71,7 @@ TEST_CASE("Simple range 256 cards")
     TestEeprom eeprom{mem};
     Recorder rec(0, 38, eeprom);
     rec.Setup();
-    for (int i = 0; i < 32; ++i)
-    {
+    for (int i = 0; i < 32; ++i) {
         CAPTURE(i);
         CHECK(0 == rec.Format(250));
         CHECK("" == Collector::GetList(rec));
@@ -277,8 +276,7 @@ TEST_CASE("4 bit per record")
         rec2.Setup();
         CHECK("" == Collector::GetList(rec2));
     }
-    for (int i = 0; i < 16; ++i)
-    {
+    for (int i = 0; i < 16; ++i) {
         CHECK(i == rec.GetRecordCount(0));
         CHECK(0 == rec.Record(0));
     }
@@ -292,8 +290,7 @@ TEST_CASE("4 bit per record")
         CHECK("0:15" == Collector::GetList(rec2));
     }
 
-    for (int i = 0; i < 7; ++i)
-    {
+    for (int i = 0; i < 7; ++i) {
         CHECK(i == rec.GetRecordCount(1));
         CHECK(0 == rec.Record(1));
     }
@@ -321,8 +318,7 @@ TEST_CASE("Random record")
     TestEeprom eeprom{mem};
     Recorder rec(0, 133, eeprom);
     rec.Setup();
-    for (int i = 0; i < 32; ++i)
-    {
+    for (int i = 0; i < 32; ++i) {
         CAPTURE(i);
         int count = count_distr(gen);
         CAPTURE(count);
@@ -332,8 +328,7 @@ TEST_CASE("Random record")
 
         std::string record;
         const char *space = "";
-        for (int j = 0; j < count; j += card_step_distr(gen))
-        {
+        for (int j = 0; j < count; j += card_step_distr(gen)) {
             CHECK(0 == rec.GetRecordCount(j));
             CHECK(0 == rec.Record(j));
             CHECK(1 == rec.GetRecordCount(j));

@@ -17,20 +17,21 @@ unsigned long _timeout_ms = -1ul;
 unsigned long _last_punch_time = 0;
 
 namespace {
-    // Check the actual timeout from the settings context. If a change is noticed,
-    // recalculate timeout_ms.
-    unsigned long GetTimeoutMs()
-    {
-        // Caching to avoid constant multiplication
-        auto timeout_hr = context.GetTimeoutHours();
-        if (timeout_hr == _timeout_hr)
-            return _timeout_ms;
-        _timeout_hr = timeout_hr;
-        return _timeout_ms = 60ul * 60ul * 1000ul * timeout_hr;
-    }
+// Check the actual timeout from the settings context. If a change is noticed,
+// recalculate timeout_ms.
+unsigned long GetTimeoutMs()
+{
+    // Caching to avoid constant multiplication
+    auto timeout_hr = context.GetTimeoutHours();
+    if (timeout_hr == _timeout_hr)
+        return _timeout_ms;
+    _timeout_hr = timeout_hr;
+    return _timeout_ms = 60ul * 60ul * 1000ul * timeout_hr;
+}
 } //namespace;
 
-void setup() {
+void setup()
+{
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
 
@@ -39,16 +40,14 @@ void setup() {
 
     buzzer.Setup();
 
-    if (context.Setup())
-    {
+    if (context.Setup()) {
         while (true)
             buzzer.Tick();
     }
 
     bool initialization_ok = true;
 
-    if (context.IsKeyDefault())
-    {
+    if (context.IsKeyDefault()) {
         buzzer.SignalDefaultKey();
         initialization_ok = false;
     }
@@ -57,8 +56,7 @@ void setup() {
     shell.Setup();
     _last_punch_time = millis();
 
-    if (initialization_ok)
-    {
+    if (initialization_ok) {
         buzzer.SignalOk();
     }
 }
@@ -69,14 +67,12 @@ void loop()
     auto now = millis();
 
     auto res = puncher.Punch();
-    if (!res)
-    {
+    if (!res) {
         _last_punch_time = now;
         buzzer.ConfirmPunch();
     }
 
-    if (res == ErrorCode::CARD_IS_FULL)
-    {
+    if (res == ErrorCode::CARD_IS_FULL) {
         _last_punch_time = now;
         buzzer.SignalCardFull();
     }
@@ -85,8 +81,7 @@ void loop()
     shell.Tick();
 
     // Sleep to economize power after configured hours of no punches
-    if (now - _last_punch_time > GetTimeoutMs())
-    {
+    if (now - _last_punch_time > GetTimeoutMs()) {
         puncher.AntennaOff();
         LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
         puncher.AntennaOn();

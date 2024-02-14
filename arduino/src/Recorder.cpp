@@ -96,8 +96,7 @@ int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card)
 
     // Clear the memory span
     int addr_end = _begin + _size;
-    for (int i = 0, addr = _offset; i < _length; ++i, ++addr)
-    {
+    for (int i = 0, addr = _offset; i < _length; ++i, ++addr) {
         if (addr >= addr_end)
             addr -= _size;
         if (_eeprom.Read(addr) != 0)
@@ -147,8 +146,7 @@ uint8_t Recorder::GetRecordCount(uint16_t card)
 
 void Recorder::List(IVisitor &visitor, void *ctx)
 {
-    for (int i = 0, n = _length * 8 / _bits_per_card; i < n; ++i)
-    {
+    for (int i = 0, n = _length * 8 / _bits_per_card; i < n; ++i) {
         auto count = GetRecordCount(i);
         if (count)
             visitor.OnCard(i, count, ctx);

@@ -16,7 +16,10 @@ public:
     int8_t Setup();
 
     static const uint8_t KEY_SIZE = 6;
-    const uint8_t* GetKey() const { return _key; }
+    const uint8_t* GetKey() const
+    {
+        return _key;
+    }
     bool IsKeyDefault() const;
     void OnNewKey(const uint8_t *key);
 
@@ -24,13 +27,22 @@ public:
     uint32_t GetClock(const DateTime *date_time) const;
     void SetClock(uint32_t clock);
 
-    uint8_t GetId() const { return _id; }
+    uint8_t GetId() const
+    {
+        return _id;
+    }
     void SetId(uint8_t id);
 
-    uint8_t GetTimeoutHours() const { return _timeout_hr; }
+    uint8_t GetTimeoutHours() const
+    {
+        return _timeout_hr;
+    }
     void SetTimeoutHours(uint8_t hours);
 
-    AOP::Recorder& GetRecorder() { return _recorder; }
+    AOP::Recorder& GetRecorder()
+    {
+        return _recorder;
+    }
 
 private:
     Buzzer &_buzzer;

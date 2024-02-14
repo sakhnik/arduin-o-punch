@@ -19,8 +19,7 @@ void Buzzer::Tick()
 void Buzzer::Player::Play(const Melody &melody)
 {
     // If another melody is being played, enqueue
-    if (_task)
-    {
+    if (_task) {
         melodies.push(melody);
         return;
     }
@@ -37,16 +36,14 @@ bool Buzzer::Player::OnTimeout(void *ctx)
     // Is there another melody to play and we should go to it?
     bool to_next_melody = self->idx >= self->melody.interrupt_idx && !self->melodies.isEmpty();
     // If there's another melody to play, this one can be already interrupted.
-    if (to_next_melody)
-    {
+    if (to_next_melody) {
         self->melody = self->melodies.shift();
         self->idx = 0;
         self->state = LOW;
     }
     // If the melody has ended, remove the timer and relax.
     uint8_t cur_duration = self->melody.sequence[self->idx];
-    if (!cur_duration)
-    {
+    if (!cur_duration) {
         self->_timer.cancel(self->_task);
         return true;
     }

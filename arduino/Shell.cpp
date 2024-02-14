@@ -30,19 +30,16 @@ void Shell::Setup()
 
 void Shell::OnSerial()
 {
-    while (Serial.available())
-    {
+    while (Serial.available()) {
         char ch = Serial.read();
-        if (!_buffer.length())
-        {
+        if (!_buffer.length()) {
             // In the automated communication we don't need the echo, neither the prompt.
             // If timeout elapses since the first character, revert to interactive move.
             _echo_timeout = millis() + 100;
             _echo_idx = 0;
         }
         _buffer += ch;
-        if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r"))
-        {
+        if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r")) {
             // Echo the rest of the command if necessary
             if (Tick())
                 Serial.println();
@@ -51,7 +48,7 @@ void Shell::OnSerial()
             if (Tick())
                 Prompt();
         }
-	}
+    }
 }
 
 // Return true if started echoing (interactive mode)
@@ -66,8 +63,7 @@ boolean Shell::Tick()
 
 void Shell::_Process()
 {
-    if (_buffer.startsWith(F("help")))
-    {
+    if (_buffer.startsWith(F("help"))) {
         Serial.println(F("Commands:"));
         Serial.println(F("info              All info"));
         Serial.println(F("id                ID"));
@@ -88,9 +84,7 @@ void Shell::_Process()
         Serial.println(F("rec               List punched cards"));
         Serial.println(F("rec 123           Print punch count for a card"));
         Serial.println(F("recclr 123        Clear card from the record"));
-    }
-    else if (_buffer.startsWith(F("info")))
-    {
+    } else if (_buffer.startsWith(F("info"))) {
         Serial.println(F("version=1.1"));
         Serial.print(F("id="));
         _PrintId();
@@ -108,66 +102,38 @@ void Shell::_Process()
         Serial.print(F(" x "));
         Serial.print(static_cast<int>(_context.GetRecorder().GetBitsPerRecord()));
         Serial.println(F(" bpr"));
-    }
-    else if (_buffer.startsWith(F("id ")))
-    {
+    } else if (_buffer.startsWith(F("id "))) {
         _SetId(_buffer.c_str() + 3);
         _PrintId();
-    }
-    else if (_buffer.startsWith(F("id")))
-    {
+    } else if (_buffer.startsWith(F("id"))) {
         _PrintId();
-    }
-    else if (_buffer.startsWith(F("key ")))
-    {
+    } else if (_buffer.startsWith(F("key "))) {
         _SetKey(_buffer.c_str() + 4);
         _PrintKey();
         _buzzer.ConfirmPunch();
-    }
-    else if (_buffer.startsWith(F("key")))
-    {
+    } else if (_buffer.startsWith(F("key"))) {
         _PrintKey();
-    }
-    else if (_buffer.startsWith(F("clock ")))
-    {
+    } else if (_buffer.startsWith(F("clock "))) {
         _SetClock(_buffer.c_str() + 6);
         _PrintClock(_context.GetDateTime());
-    }
-    else if (_buffer.startsWith(F("clock")))
-    {
+    } else if (_buffer.startsWith(F("clock"))) {
         _PrintClock(_context.GetDateTime());
-    }
-    else if (_buffer.startsWith(F("timeout ")))
-    {
+    } else if (_buffer.startsWith(F("timeout "))) {
         _SetTimeout(_buffer.c_str() + 8);
         _PrintTimeout();
-    }
-    else if (_buffer.startsWith(F("timeout")))
-    {
+    } else if (_buffer.startsWith(F("timeout"))) {
         _PrintTimeout();
-    }
-    else if (_buffer.startsWith(F("time")))
-    {
+    } else if (_buffer.startsWith(F("time"))) {
         _PrintTime(_context.GetDateTime());
-    }
-    else if (_buffer.startsWith(F("recfmt ")))
-    {
+    } else if (_buffer.startsWith(F("recfmt "))) {
         _RecorderFormat(_buffer.c_str() + 7);
-    }
-    else if (_buffer.startsWith(F("recclr ")))
-    {
+    } else if (_buffer.startsWith(F("recclr "))) {
         _RecorderClear(_buffer.c_str() + 7);
-    }
-    else if (_buffer.startsWith(F("rec ")))
-    {
+    } else if (_buffer.startsWith(F("rec "))) {
         _RecorderCheck(_buffer.c_str() + 4);
-    }
-    else if (_buffer.startsWith(F("rec")))
-    {
+    } else if (_buffer.startsWith(F("rec"))) {
         _RecorderList();
-    }
-    else
-    {
+    } else {
         Serial.print(F("Unknown command: "));
         Serial.println(_buffer);
     }
@@ -178,12 +144,15 @@ namespace {
 int16_t FromHex(char digit)
 {
     if (!digit) return -1;
-    switch (digit)
-    {
-    case '0'...'9': return digit - '0';
-    case 'A'...'F': return digit - 'A' + 10;
-    case 'a'...'f': return digit - 'a' + 10;
-    default: return -1;
+    switch (digit) {
+    case '0'...'9':
+        return digit - '0';
+    case 'A'...'F':
+        return digit - 'A' + 10;
+    case 'a'...'f':
+        return digit - 'a' + 10;
+    default:
+        return -1;
     }
 }
 
@@ -191,8 +160,7 @@ template <typename T>
 T ParseNum(const char *&str)
 {
     T num = 0;
-    while (char ch = *str++)
-    {
+    while (char ch = *str++) {
         if (ch < '0' || ch > '9')
             break;
         num = num * 10 + (ch - '0');
@@ -205,8 +173,7 @@ T ParseNum(const char *&str)
 void Shell::_SetKey(const char *hex)
 {
     uint8_t key[Context::KEY_SIZE] = {0};
-    for (uint8_t i = 0; i < sizeof(key); ++i)
-    {
+    for (uint8_t i = 0; i < sizeof(key); ++i) {
         auto d1 = FromHex(*hex++);
         if (d1 == -1)
             break;
@@ -221,8 +188,7 @@ void Shell::_SetKey(const char *hex)
 void Shell::_PrintKey()
 {
     const uint8_t *key = _context.GetKey();
-    for (uint8_t i = 0; i < Context::KEY_SIZE; ++i)
-    {
+    for (uint8_t i = 0; i < Context::KEY_SIZE; ++i) {
         char buf[3];
         sprintf(buf, "%02X", key[i]);
         Serial.print(buf);
@@ -287,13 +253,10 @@ void Shell::_RecorderFormat(const char *str)
     uint8_t bits_per_record = ParseNum<uint8_t>(str);
 
     auto res = _context.GetRecorder().Format(count, bits_per_record);
-    if (res < 0)
-    {
+    if (res < 0) {
         Serial.print(F("Error "));
         Serial.println(-res);
-    }
-    else
-    {
+    } else {
         Serial.println(F("OK"));
         Serial.print(F("count="));
         Serial.print(_context.GetRecorder().GetSize());

@@ -23,7 +23,10 @@ struct ErrorCode
 
     uint8_t code;
 
-    operator uint8_t() const { return code; }
+    operator uint8_t() const
+    {
+        return code;
+    }
 
     ErrorCode(uint8_t code)
         : code{code}

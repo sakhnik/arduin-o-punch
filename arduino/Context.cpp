@@ -45,8 +45,7 @@ Context::Context(Buzzer &buzzer)
 
 int8_t Context::Setup()
 {
-    if (!rtc.begin())
-    {
+    if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
         _buzzer.SignalRTCFail();
@@ -65,8 +64,7 @@ int8_t Context::Setup()
 
 bool Context::IsKeyDefault() const
 {
-    for (int i = 0; i < KEY_SIZE; ++i)
-    {
+    for (int i = 0; i < KEY_SIZE; ++i) {
         if (_key[i] != 0xff)
             return false;
     }
@@ -86,8 +84,7 @@ DateTime Context::GetDateTime() const
 
 uint32_t Context::GetClock(const DateTime *date_time) const
 {
-    if (!date_time)
-    {
+    if (!date_time) {
         auto now = rtc.now();
         return GetClock(&now);
     }
