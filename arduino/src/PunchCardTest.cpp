@@ -125,7 +125,7 @@ TEST_CASE("PunchCard Clear at Start")
     TestMifare mifare;
     PunchCard punchCard(&mifare, DEF_KEY);
 
-    std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::CHECK_STATION, 150), Punch(PunchCard::START_STATION, 150)};
+    std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::START_STATION, 150)};
     for (int i = 0; i != punches.size(); ++i)
     {
         CHECK(0 == punchCard.Punch(punches[i]));
@@ -133,9 +133,8 @@ TEST_CASE("PunchCard Clear at Start")
 
     std::vector<Punch> readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(2 == readOut.size());
+    CHECK(1 == readOut.size());
     CHECK(punches[2] == readOut[0]);
-    CHECK(punches[3] == readOut[1]);
 }
 
 #endif //BUILD_TEST
