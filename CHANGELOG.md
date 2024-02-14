@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Try previous keys in Android to facilitate card preparation and resetting
 - Lock upload URL to prevent accidental modification
+- Successful startup confirmation (OK = --- -.-)
 
 ### Changed
 

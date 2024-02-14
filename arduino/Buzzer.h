@@ -15,6 +15,7 @@ public:
     void SignalDefaultKey();
     void SignalRTCFail();
     void SignalCardFull();
+    void SignalOk();
 
     struct Melody
     {

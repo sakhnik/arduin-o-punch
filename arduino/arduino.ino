@@ -45,9 +45,22 @@ void setup() {
             buzzer.Tick();
     }
 
+    bool initialization_ok = true;
+
+    if (context.IsKeyDefault())
+    {
+        buzzer.SignalDefaultKey();
+        initialization_ok = false;
+    }
+
     puncher.Setup();
     shell.Setup();
     _last_punch_time = millis();
+
+    if (initialization_ok)
+    {
+        buzzer.SignalOk();
+    }
 }
 
 // Don't loop here to make sure serialEvent() is processed.

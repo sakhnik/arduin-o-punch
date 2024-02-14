@@ -88,6 +88,10 @@ const Buzzer::Melody CONFIRM{CONFIRM_SEQUENCE, 2};  // allow interrupting after 
 const uint8_t CARD_FULL_SEQUENCE[] = {START, DIT, P, DIT, P, DAH, P, DIT, P, 0};
 const Buzzer::Melody CARD_FULL{CARD_FULL_SEQUENCE, 255};
 
+// OK = --- -.-
+const uint8_t OK_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P_L,    DAH, P, DIT, P, DAH, P, 0};
+const Buzzer::Melody OK{OK_SEQUENCE, 255};
+
 } //namespace;
 
 void Buzzer::SignalRTCFail()
@@ -108,4 +112,9 @@ void Buzzer::ConfirmPunch()
 void Buzzer::SignalCardFull()
 {
     _player.Play(CARD_FULL);
+}
+
+void Buzzer::SignalOk()
+{
+    _player.Play(OK);
 }

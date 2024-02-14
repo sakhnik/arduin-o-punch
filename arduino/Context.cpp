@@ -57,11 +57,6 @@ int8_t Context::Setup()
     EEPROM.get(ADDROF(_key), _key);
     EEPROM.get(ADDROF(_timeout_hr), _timeout_hr);
 
-    if (IsKeyDefault())
-    {
-        _buzzer.SignalDefaultKey();
-    }
-
     // Restore current record
     _recorder.Setup();
 
