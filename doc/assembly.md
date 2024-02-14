@@ -20,8 +20,6 @@
 | Insert backup battery CR2032 into the clock module          | <img src="images/14-insert-clock-battery.jpg" width="256"/>    |
 | Connect wires between modules (scheme below)                | <img src="images/15-connect-wires.jpg" width="256"/>           |
 | Upload the firmware and test (the procedure below)          |                                                                |
-| Drill a hole for LED (I use the swiss knife awl)            | <img src="images/16-drill-hole.jpg" width="256"/>              |
-| Glue components to the box. Harden with the glue the micro USB input for battery charger. | <img src="images/17-glue-parts.jpg" width="256"/>              |
 
 ## Soldering scheme
 
@@ -55,3 +53,15 @@ The switch the station off, disconnect a wire from the power source.
 * Switch the station on
 * Check the clock stays set
 * Punch a test card and verify the punch
+
+## Encasing
+
+| Step                                                        | Reference picture                                              |
+|-------------------------------------------------------------|----------------------------------------------------------------|
+| Drill a hole for LED (3mm or 5mm)                           | <img src="images/16-drill-hole.jpg" width="256"/>              |
+| Drill holes for the switch and DC charger input. | <img src="images/17-dc-switch.jpg" width="256"/><br/> <img src="images/18-dc-switch-back.jpg" width="256"/> |
+| Drill and cut a hole for indicator wires | <img src="images/19-indicator-hole.jpg" width="256"/> |
+| Cut a hole for UART connector 6P Dupont | <img src="images/20-uart-hole.jpg" width="256"/> |
+| Solder charger wires GND and 5.2V as shown | <img src="images/21-dc-charger-wires.jpg" width="256"/> |
+| Solder the wires to the DC input and test | <img src="images/22-dc-charger-test.jpg" width="256"/> |
+| Solder the connector wires to the switch | <img src="images/23-switch-wires.jpg" width="256"/> |
