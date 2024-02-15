@@ -11,7 +11,7 @@
 | Прибрати вивід USB, вимикач з джерела живлення 18650        | <img src="images/03-cut-off-usb.jpg" width="256"/>             |
 | Припаяти виводи до виходу 3.3 В джерела живлення 18650      | <img src="images/04-power-header-pins.jpg" width="256"/>       |
 | Припаяти індикатор заряду до полюсів 18650                  | <img src="images/05-charge-indicator.jpg" width="256"/>        |
-| Приклеїти індикатор до боку джерела живлення 18650          | <img src="images/06-glue-charge-indicator.jpg" width="256"/>   |
+| Припаяти конектор JST-2 для під’єднання батареї | <img src="images/06-solder-battery-connector.jpg" width="256"/>   |
 | Розірвати ланцюг заряджання DS3231 щоб застосувати незаряджуваний елемент CR2032 | <img src="images/09-cut-clock-charging.jpg" width="256"/>  |
 | Прибрати індикатор живлення з DS3231. Обережно, щоб не пошкодити доріжку від Bat+ до виходу 14 мікросхеми! | <img src="images/10-remove-clock-power-led.jpg" width="256"/>  |
 | Підготувати макетну плату розміром приблизно 10x5 отворів   | <img src="images/11-prepare-perfboard.jpg" width="256"/>       |
@@ -19,6 +19,7 @@
 | Припаяти деталі на макетну плату (схема нижче)              | <img src="images/13-solder-top.jpg" width="256"/><img src="images/13-solder-bottom.jpg" width="256"/>   |
 | Встановити резервний елемент живлення CR2032 в модуль годинника | <img src="images/14-insert-clock-battery.jpg" width="256"/>    |
 | З’єднати модулі проводами (схема нижче)                     | <img src="images/15-connect-wires.jpg" width="256"/>           |
+| Підготувати для UART з’єднувач 6P Дюпон | <img src="images/15.5-uart-connector.jpg" width="256"/>           |
 | Вивантажити програму і перевірити (процедура нижче)         |                                                                |
 
 ## Схема паяння
