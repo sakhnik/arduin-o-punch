@@ -16,8 +16,8 @@
 | Box Z-77     |   123.60 ₴   | 10      | Boz Z-77          |           | https://imrad.com.ua/ua/box-z-77-chern-               |
 |--------------|--------------|---------|-------------------|-----------|-------------------------------------------------------|
 | JST 2-pin    |     7.00 ₴   | 10      | Battery connector |           | https://arduino.ua/prod5607-konnektori-jst-2pin-tato-mama-26awg-1-para |
-| Switch       |     3.50 ₴   | 10      | Switch            |           | https://imrad.com.ua/ua/knopka-s-fiksaciej-yt-1208-yd-on-off-chernaya-7 |
-| USB plug     |     8.50 ₴   | 10      | USB A plug        |           | https://imrad.com.ua/ua/usba-bk-1c-0 |
+| Switch       |    10.00 ₴   | 10      | Switch            |           | https://prom.ua/ua/p1262601707-knopka-fiksatsiej-ds428425.html |
+| USB plug     |     5.00 ₴   | 10      | DC 5.5x2.1        |           | https://prom.ua/ua/p733432376-gnezdo-pitaniya-55x21.html |
 
 
-Total        421.60 ₴
+Total        424.60 ₴
