@@ -10,6 +10,9 @@ Puncher::Puncher(Context &context)
 
 void Puncher::Setup()
 {
+    // Power the RC522 from Arduino's IO pin
+    pinMode(RFID_VCC_PIN, OUTPUT);
+    digitalWrite(RFID_VCC_PIN, HIGH);
     mfrc522.PCD_Init();  // Init MFRC522 board.
 }
 
@@ -113,10 +116,15 @@ ErrorCode Puncher::Punch()
 
 void Puncher::AntennaOn()
 {
-    mfrc522.PCD_AntennaOn();
+    // Power off RC522 completely
+    digitalWrite(RFID_VCC_PIN, HIGH);
+    mfrc522.PCD_Init();  // Init MFRC522 board.
+    // Antenna is switched on automatically in PCD_Init()
+    //mfrc522.PCD_AntennaOn();
 }
 
 void Puncher::AntennaOff()
 {
-    mfrc522.PCD_AntennaOff();
+    //mfrc522.PCD_AntennaOff();
+    digitalWrite(RFID_VCC_PIN, LOW);
 }

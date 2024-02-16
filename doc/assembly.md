@@ -37,7 +37,8 @@
 * NFC reader RC522: SS, SCK, MOSI, MISO → 10, 13, 11, 12
 * Led and buzzer: 4, 5
 * All GND to the ground rail of the perfboard with black wires
-* All VCC 3.3v to the power rail of the perfboard with red wires
+* RC522 VCC 3.3v to the Arduino's pin 3
+* The rest VCC 3.3v to the power rail of the perfboard with red wires
 * Power source: GND → ground rail, 3.3v → power rail
 
 <img src="images/wiring.jpg" width="512"/>
