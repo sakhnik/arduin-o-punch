@@ -26,6 +26,10 @@ unsigned long GetTimeoutMs()
     if (timeout_hr == _timeout_hr)
         return _timeout_ms;
     _timeout_hr = timeout_hr;
+    if (!_timeout_hr) {
+        // 1 minute for testing
+        return _timeout_ms = 60ul * 1000ul;
+    }
     return _timeout_ms = 60ul * 60ul * 1000ul * timeout_hr;
 }
 } //namespace;

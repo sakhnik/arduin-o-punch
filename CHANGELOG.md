@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix start time by the *last* start control punch
 - Prototype casing with DC input, switch and programmator connector
 - Increase sleeping time to 8 seconds
+- Set timeout=0 to have timeout time 1 minute for testing
 
 ### Removed
 
