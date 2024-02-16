@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix finish control uploading: shouldn't be uploaded, the number should be 900 in QuickEvent
 - Fix start time by the *last* start control punch
 - Prototype casing with DC input, switch and programmator connector
+- Increase sleeping time to 8 seconds
 
 ### Removed
 

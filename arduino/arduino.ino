@@ -83,7 +83,7 @@ void loop()
     // Sleep to economize power after configured hours of no punches
     if (now - _last_punch_time > GetTimeoutMs()) {
         puncher.AntennaOff();
-        LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
+        LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
         puncher.AntennaOn();
     }
 }
