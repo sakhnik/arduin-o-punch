@@ -85,7 +85,7 @@ void Shell::_Process()
         Serial.println(F("rec 123           Print punch count for a card"));
         Serial.println(F("recclr 123        Clear card from the record"));
     } else if (_buffer.startsWith(F("info"))) {
-        Serial.println(F("version=1.1"));
+        Serial.println(F("version=1.1.0"));
         Serial.print(F("id="));
         _PrintId();
         Serial.print(F("key="));
