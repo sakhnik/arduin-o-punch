@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power RC522 from IO pin to switch it off during timeouts
 - Increase sleeping time to 8 seconds
 - Set timeout=0 to have timeout time 1 minute for testing
+- Fix DNF when finish wasn't punched (finishTime = 0xEEEE)
 
 ### Removed
 

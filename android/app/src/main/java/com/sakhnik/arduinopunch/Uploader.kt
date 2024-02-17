@@ -39,13 +39,15 @@ class Uploader(private val activity: ComponentActivity) : Callback {
         val request = JSONObject()
         request.put("stationNumber", 1)
         request.put("cardNumber", readOut.cardNumber)
+        request.put("startTime", 0xEEEE)
+        request.put("finishTime", 0xEEEE)
         val punches = readOut.punches
         var startIdx = 0
         if (punches[startIdx].station == PunchCard.CHECK_STATION) {
             request.put("checkTime", encodeTime(punches[startIdx].timestamp))
             ++startIdx
         }
-        // The START_STATION can be punched at idx == 0 or idx == 1, take into account the last one.
+        // The START_STATION may be punched at idx == 0 or idx == 1, take into account the last one.
         while (punches[startIdx].station == PunchCard.START_STATION) {
             val startTime = encodeTime(punches[startIdx].timestamp)
             if (startIdx == 0) {
