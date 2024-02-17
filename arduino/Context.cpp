@@ -2,10 +2,7 @@
 #include "Buzzer.h"
 #include <EEPROM.h>
 #include <RTClib.h>
-
-#ifdef BUILD_TEST
-# include <cstddef>
-#endif
+#include <stddef.h>
 
 namespace {
 

@@ -1,9 +1,20 @@
 #include "Recorder.h"
+#include <stddef.h>
 
 namespace AOP {
 
+struct Header
+{
+    uint8_t start_lo;
+    uint8_t start_hi;
+    uint8_t length;
+    uint8_t bits_per_card;
+};
+
+#define ADDROF(begin, field) (begin - sizeof(Header) + offsetof(Header, field))
+
 Recorder::Recorder(int begin, int size, IEeprom &eeprom)
-    : _begin{begin + 4}
+    : _begin(begin + sizeof(Header))
     , _eeprom{eeprom}
     , _size{size - 4}
 {
@@ -16,17 +27,17 @@ void Recorder::Setup()
 
 void Recorder::Restore()
 {
-    uint8_t start_lo = _eeprom.Read(_begin - 4);
-    uint8_t start_hi = _eeprom.Read(_begin - 3);
+    uint8_t start_lo = _eeprom.Read(ADDROF(_begin, start_lo));
+    uint8_t start_hi = _eeprom.Read(ADDROF(_begin, start_hi));
     _offset = start_hi == 0xff ? 0 : static_cast<int>(start_hi) << 8 | start_lo;
     _offset += _begin;
 
-    uint8_t length_val = _eeprom.Read(_begin - 2);
+    uint8_t length_val = _eeprom.Read(ADDROF(_begin, length));
     if (length_val == 0xff)
         length_val = 0;
     _length = static_cast<int>(length_val) << LENGTH_SHIFT;
 
-    uint8_t bits_per_card_val = _eeprom.Read(_begin - 1);
+    uint8_t bits_per_card_val = _eeprom.Read(ADDROF(_begin, bits_per_card));
     if (bits_per_card_val == 0 || bits_per_card_val == 0xff)
         bits_per_card_val = 1;
     _bits_per_card = bits_per_card_val;
@@ -37,23 +48,23 @@ void Recorder::StoreOffset()
     int start = _offset - _begin;
     uint8_t start_lo = start & 0xff;
     uint8_t start_hi = start >> 8;
-    if (_eeprom.Read(_begin - 4) != start_lo)
-        _eeprom.Write(_begin - 4, start_lo);
-    if (_eeprom.Read(_begin - 3) != start_hi)
-        _eeprom.Write(_begin - 3, start_hi);
+    if (_eeprom.Read(ADDROF(_begin, start_lo)) != start_lo)
+        _eeprom.Write(ADDROF(_begin, start_lo), start_lo);
+    if (_eeprom.Read(ADDROF(_begin, start_hi)) != start_hi)
+        _eeprom.Write(ADDROF(_begin, start_hi), start_hi);
 }
 
 void Recorder::StoreLength()
 {
     uint8_t length_val = _length >> LENGTH_SHIFT;
-    if (_eeprom.Read(_begin - 2) != length_val)
-        _eeprom.Write(_begin - 2, length_val);
+    if (_eeprom.Read(ADDROF(_begin, length)) != length_val)
+        _eeprom.Write(ADDROF(_begin, length), length_val);
 }
 
 void Recorder::StoreBitsPerCard()
 {
-    if (_eeprom.Read(_begin - 1) != _bits_per_card)
-        _eeprom.Write(_begin - 1, _bits_per_card);
+    if (_eeprom.Read(ADDROF(_begin, bits_per_card)) != _bits_per_card)
+        _eeprom.Write(ADDROF(_begin, bits_per_card), _bits_per_card);
 }
 
 int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card)
