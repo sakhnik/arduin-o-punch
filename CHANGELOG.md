@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Try previous keys in Android to facilitate card preparation and resetting
 - Lock upload URL to prevent accidental modification
 - Successful startup confirmation (OK = --- -.-)
+- Set both date and time with UNIX timestamp
 
 ### Changed
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase sleeping time to 8 seconds
 - Set timeout=0 to have timeout time 1 minute for testing
 - Fix DNF when finish wasn't punched (finishTime = 0xEEEE)
+- Use arduino clock for millisecond measurement of clock during synchronization
 
 ### Removed
 

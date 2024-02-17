@@ -41,23 +41,19 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     # Get current time again
     finish = get_current_time()
 
-    latency = (finish - start) // 2
-    clock_offset = start + latency - arduino_clock
-
+    latency_us = 1000 * (finish - start) / 2
+    assert latency_us < 1000000
     # Aim at the edge of the second
-    time_left_ms = finish % 1000
-    target_time = finish - time_left_ms
-    time_left_ms -= latency
-    if time_left_ms < 0:
-        # Too little time has left, try better luck on the next second
-        time_left_ms += 1000
-        target_time += 1000
+    while True:
+        dt_us = latency_us + datetime.now().microsecond - 1000000
+        if dt_us >= 0 and dt_us < 1000:
+            break
 
-    # Let's assume the sleep time will be accurate enough to return in time
-    time.sleep(0.001 * time_left_ms)
+    target_timestamp = int(datetime.now().timestamp()) + 1
 
     # Update Arduino clock
-    ser.write(f'clock {target_time}\r'.encode())
+    ser.write(f'datetime {target_timestamp}\r'.encode())
+    ser.write('clock\r'.encode())
     arduino_clock = int(ser.readline().decode().strip())
     arduino_time = format_time(arduino_clock)
     print(f"After: clock={arduino_clock} time={arduino_time}")

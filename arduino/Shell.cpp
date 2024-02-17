@@ -77,7 +77,9 @@ void Shell::_Process()
         Serial.println(F("key 112233445566  Set key"));
         Serial.println(F("clock             Clock reading (ms)"));
         Serial.println(F("clock 12345000    Set clock (ms)"));
+        Serial.println(F("date              Current date"));
         Serial.println(F("time              Current time"));
+        Serial.println(F("datetime 12345    Set date and time with UNIX timestamp"));
         Serial.println(F("timeout           Timeout (hr)"));
         Serial.println(F("timeout 3         Set timeout (hr)"));
         Serial.println(F("recfmt 256 2      Clear/prepare recorder (card count, bits per record)"));
@@ -91,8 +93,8 @@ void Shell::_Process()
         Serial.print(F("key="));
         _PrintKey();
         auto now = _context.GetDateTime();
-        Serial.print(F("clock="));
-        _PrintClock(now);
+        Serial.print(F("date="));
+        _PrintDate(now);
         Serial.print(F("time="));
         _PrintTime(now);
         Serial.print(F("timeout="));
@@ -123,8 +125,12 @@ void Shell::_Process()
         _PrintTimeout();
     } else if (_buffer.startsWith(F("timeout"))) {
         _PrintTimeout();
+    } else if (_buffer.startsWith(F("datetime"))) {
+        _SetDateTime(_buffer.c_str() + 9);
     } else if (_buffer.startsWith(F("time"))) {
         _PrintTime(_context.GetDateTime());
+    } else if (_buffer.startsWith(F("date"))) {
+        _PrintDate(_context.GetDateTime());
     } else if (_buffer.startsWith(F("recfmt "))) {
         _RecorderFormat(_buffer.c_str() + 7);
     } else if (_buffer.startsWith(F("recclr "))) {
@@ -206,6 +212,11 @@ void Shell::_PrintClock(const DateTime &time)
     Serial.println(_context.GetClock(&time));
 }
 
+void Shell::_SetDateTime(const char *str)
+{
+    _context.SetDateTime(ParseNum<uint32_t>(str));
+}
+
 namespace {
 
 void PrintDD(uint8_t d)
@@ -216,6 +227,16 @@ void PrintDD(uint8_t d)
 }
 
 } //namespace;
+
+void Shell::_PrintDate(const DateTime &date)
+{
+    Serial.print(date.year());
+    Serial.print(F("-"));
+    PrintDD(date.month());
+    Serial.print(F("-"));
+    PrintDD(date.day());
+    Serial.println();
+}
 
 void Shell::_PrintTime(const DateTime &time)
 {

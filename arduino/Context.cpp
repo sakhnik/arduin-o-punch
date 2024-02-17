@@ -92,19 +92,26 @@ uint32_t Context::GetClock(const DateTime *date_time) const
     uint32_t clock = date_time->hour();
     clock = clock * 60 + date_time->minute();
     clock = clock * 60 + date_time->second();
-    return clock * 1000;
+    // We take milliseconds from arduino clock. This is only useful if we copare
+    // close clock readings. Otherwise, the milliseconds should be ignored.
+    return clock * 1000 + millis() % 1000;
 }
 
 void Context::SetClock(uint32_t clock)
 {
+    auto now = rtc.now();
     auto ms = clock % 1000;
     clock /= 1000;
     auto sec = clock % 60;
     clock /= 60;
     auto min = clock % 60;
     clock /= 60;
-    // Trick or treat!
-    rtc.adjust(DateTime(2023, 10, 31, clock, min, sec));
+    rtc.adjust(DateTime(now.year(), now.month(), now.day(), clock, min, sec));
+}
+
+void Context::SetDateTime(uint32_t timestamp)
+{
+    rtc.adjust(DateTime(timestamp));
 }
 
 void Context::SetId(uint8_t id)

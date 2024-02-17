@@ -26,6 +26,7 @@ public:
     DateTime GetDateTime() const;
     uint32_t GetClock(const DateTime *date_time) const;
     void SetClock(uint32_t clock);
+    void SetDateTime(uint32_t timestamp);
 
     uint8_t GetId() const
     {
