@@ -14,10 +14,6 @@ import org.json.JSONObject
 import java.io.IOException
 
 class Uploader(private val activity: ComponentActivity) : Callback {
-    companion object {
-        const val START_HOUR: Int = 0
-    }
-
     fun upload(readOut: PunchCard.Info, url: String) {
         val jsonData = formatJson(readOut)
         val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
@@ -44,12 +40,12 @@ class Uploader(private val activity: ComponentActivity) : Callback {
         val punches = readOut.punches
         var startIdx = 0
         if (punches[startIdx].station == PunchCard.CHECK_STATION) {
-            request.put("checkTime", encodeTime(punches[startIdx].timestamp))
+            request.put("checkTime", punches[startIdx].timestamp)
             ++startIdx
         }
         // The START_STATION may be punched at idx == 0 or idx == 1, take into account the last one.
         while (punches[startIdx].station == PunchCard.START_STATION) {
-            val startTime = encodeTime(punches[startIdx].timestamp)
+            val startTime = punches[startIdx].timestamp
             if (startIdx == 0) {
                 request.put("checkTime", startTime)
             }
@@ -58,7 +54,7 @@ class Uploader(private val activity: ComponentActivity) : Callback {
         }
         var finishIdx = punches.size - 1
         if (punches[finishIdx].station == PunchCard.FINISH_STATION) {
-            request.put("finishTime", encodeTime(punches[finishIdx].timestamp))
+            request.put("finishTime", punches[finishIdx].timestamp)
             --finishIdx
         }
         val punchesDto = JSONArray()
@@ -68,13 +64,9 @@ class Uploader(private val activity: ComponentActivity) : Callback {
             punchesDto.put(punch)
             punch.put("cardNumber", readOut.cardNumber)
             punch.put("code", punches[idx].station)
-            punch.put("time", encodeTime(punches[idx].timestamp))
+            punch.put("time", punches[idx].timestamp)
         }
         return request.toString()
-    }
-
-    private fun encodeTime(timestamp: Long): Long {
-        return timestamp + START_HOUR * 60 * 60
     }
 
     override fun onFailure(call: Call, e: IOException) {

@@ -248,7 +248,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getTimestamp(): Long {
-        return Duration.between(LocalTime.of(Uploader.START_HOUR, 0), LocalTime.now()).seconds
+        return Duration.between(LocalTime.of(0, 0), LocalTime.now()).seconds
     }
 
     private fun handleMifare(mifare: MifareClassic?) {

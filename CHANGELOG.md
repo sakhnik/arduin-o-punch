@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Batteries from the BOM (can use recycled ones from wapes)
+- Time measurement from custom point, always from midnight
 
 ## [1.0] - 2024-01-27
 
