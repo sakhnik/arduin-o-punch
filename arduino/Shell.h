@@ -38,4 +38,6 @@ private:
     void _RecorderClear(const char *str);
     void _RecorderCheck(const char *str);
     void _RecorderList();
+    void _PrintRecordRetainDays();
+    void _SetRecordRetainDays(const char *str);
 };

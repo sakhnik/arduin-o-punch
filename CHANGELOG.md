@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lock upload URL to prevent accidental modification
 - Successful startup confirmation (OK = --- -.-)
 - Set both date and time with UNIX timestamp
+- Record retaining period in days
 
 ### Changed
 

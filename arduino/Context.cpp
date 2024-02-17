@@ -7,7 +7,6 @@
 namespace {
 
 RTC_DS3231 rtc;
-//RTC_Millis rtc;
 
 struct EepromImpl : AOP::Recorder::IEeprom
 {
@@ -52,9 +51,21 @@ int8_t Context::Setup()
     EEPROM.get(ADDROF(_id), _id);
     EEPROM.get(ADDROF(_key), _key);
     EEPROM.get(ADDROF(_timeout_hr), _timeout_hr);
+    EEPROM.get(ADDROF(_record_retain_days), _record_retain_days);
+    if (_record_retain_days == 0xff)
+        _record_retain_days = 1;
 
     // Restore current record
     _recorder.Setup();
+
+    if (_record_retain_days > 0) {
+        // If record is older than the retain period, reformat.
+        uint32_t timestamp = rtc.now().unixtime();
+        uint16_t cur_day = timestamp / _recorder.SECONDS_IN_DAY;
+        if (cur_day - _recorder.GetFormatDay() > _record_retain_days) {
+            _recorder.Format(_recorder.GetSize(), _recorder.GetBitsPerRecord(), timestamp);
+        }
+    }
 
     return 0;
 }
@@ -121,4 +132,10 @@ void Context::SetTimeoutHours(uint8_t hours)
 {
     _timeout_hr = hours;
     EEPROM.put(ADDROF(_timeout_hr), _timeout_hr);
+}
+
+void Context::SetRecordRetainDays(uint8_t days)
+{
+    _record_retain_days = days;
+    EEPROM.put(ADDROF(_record_retain_days), days);
 }

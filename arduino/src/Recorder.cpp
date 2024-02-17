@@ -5,10 +5,15 @@ namespace AOP {
 
 struct Header
 {
+    // Start offset after _begin
     uint8_t start_lo;
     uint8_t start_hi;
+    // Length of the byte range (multiplied by 8)
     uint8_t length;
     uint8_t bits_per_card;
+    // Format timestamp in days (unix_timestamp / seconds_in_day)
+    uint8_t day_lo;
+    uint8_t day_hi;
 };
 
 #define ADDROF(begin, field) (begin - sizeof(Header) + offsetof(Header, field))
@@ -16,7 +21,7 @@ struct Header
 Recorder::Recorder(int begin, int size, IEeprom &eeprom)
     : _begin(begin + sizeof(Header))
     , _eeprom{eeprom}
-    , _size{size - 4}
+    , _size(size - sizeof(Header))
 {
 }
 
@@ -41,6 +46,10 @@ void Recorder::Restore()
     if (bits_per_card_val == 0 || bits_per_card_val == 0xff)
         bits_per_card_val = 1;
     _bits_per_card = bits_per_card_val;
+
+    uint8_t day_lo = _eeprom.Read(ADDROF(_begin, day_lo));
+    uint8_t day_hi = _eeprom.Read(ADDROF(_begin, day_hi));
+    _format_day = start_hi == 0xff ? 0 : static_cast<uint16_t>(day_hi) << 8 | day_lo;
 }
 
 void Recorder::StoreOffset()
@@ -67,7 +76,17 @@ void Recorder::StoreBitsPerCard()
         _eeprom.Write(ADDROF(_begin, bits_per_card), _bits_per_card);
 }
 
-int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card)
+void Recorder::StoreFormatDay()
+{
+    uint8_t day_lo = _format_day & 0xff;
+    uint8_t day_hi = _format_day >> 8;
+    if (_eeprom.Read(ADDROF(_begin, day_lo)) != day_lo)
+        _eeprom.Write(ADDROF(_begin, day_lo), day_lo);
+    if (_eeprom.Read(ADDROF(_begin, day_hi)) != day_hi)
+        _eeprom.Write(ADDROF(_begin, day_hi), day_hi);
+}
+
+int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card, uint32_t timestamp)
 {
     // Round bits_per_card to the nearest power of 2 for proper byte alignment
     if (bits_per_card == 0)
@@ -104,6 +123,8 @@ int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card)
     StoreLength();
     _bits_per_card = bits_per_card;
     StoreBitsPerCard();
+    _format_day = timestamp / SECONDS_IN_DAY;
+    StoreFormatDay();
 
     // Clear the memory span
     int addr_end = _begin + _size;

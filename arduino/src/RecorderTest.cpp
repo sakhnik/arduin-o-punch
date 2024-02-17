@@ -53,11 +53,11 @@ struct Collector : Recorder::IVisitor
 
 TEST_CASE("No recording")
 {
-    std::string mem(34, -1);
+    std::string mem(36, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 34, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
-    CHECK(0 == rec.Format(0));
+    CHECK(0 == rec.Format(0, 1, 0));
     CHECK(-1 == rec.Record(0));
     CHECK(0 == rec.GetRecordCount(0));
     CHECK(-1 == rec.Record(1));
@@ -69,11 +69,11 @@ TEST_CASE("Simple range 256 cards")
 {
     std::string mem(38, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 38, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
     for (int i = 0; i < 32; ++i) {
         CAPTURE(i);
-        CHECK(0 == rec.Format(250));
+        CHECK(0 == rec.Format(250, 1, 0));
         CHECK("" == Collector::GetList(rec));
         CHECK(0 == rec.GetRecordCount(0));
         CHECK(0 == rec.Record(0));
@@ -102,11 +102,11 @@ TEST_CASE("Simple range 256 cards")
 
 TEST_CASE("Long range 1024 cards")
 {
-    std::string mem(260, -1);
+    std::string mem(262, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 260, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
-    CHECK(0 == rec.Format(1024, 2));
+    CHECK(0 == rec.Format(1024, 2, 0));
     CHECK("" == Collector::GetList(rec));
     CHECK(0 == rec.GetRecordCount(0));
     CHECK(0 == rec.Record(0));
@@ -134,14 +134,14 @@ TEST_CASE("Long range 1024 cards")
 
 TEST_CASE("Restore record")
 {
-    std::string mem(38, -1);
+    std::string mem(40, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 38, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
-    CHECK(0 == rec.Format(250));
+    CHECK(0 == rec.Format(250, 1, 0));
     CHECK("" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("" == Collector::GetList(rec2));
     }
@@ -150,7 +150,7 @@ TEST_CASE("Restore record")
     CHECK(1 == rec.GetRecordCount(0));
     CHECK("0:1" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:1" == Collector::GetList(rec2));
     }
@@ -159,7 +159,7 @@ TEST_CASE("Restore record")
     CHECK(1 == rec.GetRecordCount(1));
     CHECK("0:1 1:1" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:1 1:1" == Collector::GetList(rec2));
     }
@@ -168,7 +168,7 @@ TEST_CASE("Restore record")
     CHECK(1 == rec.GetRecordCount(127));
     CHECK("0:1 1:1 127:1" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:1 1:1 127:1" == Collector::GetList(rec2));
     }
@@ -177,7 +177,7 @@ TEST_CASE("Restore record")
     CHECK(1 == rec.GetRecordCount(255));
     CHECK("0:1 1:1 127:1 255:1" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:1 1:1 127:1 255:1" == Collector::GetList(rec2));
     }
@@ -188,14 +188,14 @@ TEST_CASE("Restore record")
 
 TEST_CASE("2 bit per record")
 {
-    std::string mem(38, -1);
+    std::string mem(40, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 38, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
-    CHECK(0 == rec.Format(125, 2));
+    CHECK(0 == rec.Format(125, 2, 0));
     CHECK("" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("" == Collector::GetList(rec2));
     }
@@ -210,7 +210,7 @@ TEST_CASE("2 bit per record")
     CHECK(3 == rec.GetRecordCount(0));
     CHECK("0:3" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:3" == Collector::GetList(rec2));
     }
@@ -221,7 +221,7 @@ TEST_CASE("2 bit per record")
     CHECK(2 == rec.GetRecordCount(1));
     CHECK("0:3 1:2" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:3 1:2" == Collector::GetList(rec2));
     }
@@ -230,7 +230,7 @@ TEST_CASE("2 bit per record")
     CHECK(1 == rec.GetRecordCount(63));
     CHECK("0:3 1:2 63:1" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:3 1:2 63:1" == Collector::GetList(rec2));
     }
@@ -245,7 +245,7 @@ TEST_CASE("2 bit per record")
     CHECK(3 == rec.GetRecordCount(127));
     CHECK("0:3 1:2 63:1 127:3" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:3 1:2 63:1 127:3" == Collector::GetList(rec2));
     }
@@ -257,7 +257,7 @@ TEST_CASE("2 bit per record")
     CHECK(0 == rec.Record(127, -1));
     CHECK(1 == rec.GetRecordCount(127));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:3 1:2 63:1 127:1" == Collector::GetList(rec2));
     }
@@ -265,14 +265,14 @@ TEST_CASE("2 bit per record")
 
 TEST_CASE("4 bit per record")
 {
-    std::string mem(38, -1);
+    std::string mem(40, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 38, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
-    CHECK(0 == rec.Format(60, 4));
+    CHECK(0 == rec.Format(60, 4, 0));
     CHECK("" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("" == Collector::GetList(rec2));
     }
@@ -285,7 +285,7 @@ TEST_CASE("4 bit per record")
     CHECK(15 == rec.GetRecordCount(0));
     CHECK("0:15" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:15" == Collector::GetList(rec2));
     }
@@ -297,7 +297,7 @@ TEST_CASE("4 bit per record")
     CHECK(7 == rec.GetRecordCount(1));
     CHECK("0:15 1:7" == Collector::GetList(rec));
     {
-        Recorder rec2(0, 38, eeprom);
+        Recorder rec2(0, mem.size(), eeprom);
         rec2.Setup();
         CHECK("0:15 1:7" == Collector::GetList(rec2));
     }
@@ -314,16 +314,16 @@ TEST_CASE("Random record")
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> count_distr(31, 1024);
 
-    std::string mem(133, -1);
+    std::string mem(136, -1);
     TestEeprom eeprom{mem};
-    Recorder rec(0, 133, eeprom);
+    Recorder rec(0, mem.size(), eeprom);
     rec.Setup();
     for (int i = 0; i < 32; ++i) {
         CAPTURE(i);
         int count = count_distr(gen);
         CAPTURE(count);
         std::uniform_int_distribution<int> card_step_distr(1, count / 8);
-        CHECK(0 == rec.Format(count));
+        CHECK(0 == rec.Format(count, 1, 0));
         CHECK("" == Collector::GetList(rec));
 
         std::string record;
@@ -338,7 +338,7 @@ TEST_CASE("Random record")
             CHECK(record == Collector::GetList(rec));
 
             {
-                Recorder rec2(0, 133, eeprom);
+                Recorder rec2(0, mem.size(), eeprom);
                 rec2.Setup();
                 REQUIRE(1 == rec2.GetRecordCount(j));
                 REQUIRE(0 == rec2.GetRecordCount(j + 1));

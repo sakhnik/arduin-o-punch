@@ -7,7 +7,8 @@ namespace AOP {
 class Recorder
 {
 public:
-    static const int LENGTH_SHIFT = 3;  // 64 runners : 8 runners/byte = 8 bytes
+    static constexpr const int LENGTH_SHIFT = 3;  // 64 runners : 8 runners/byte = 8 bytes
+    static constexpr const uint32_t SECONDS_IN_DAY = 60 * 60 * 24;
 
     struct IEeprom
     {
@@ -22,11 +23,18 @@ public:
     {
         return _length * 8 / _bits_per_card;
     }
+
     uint8_t GetBitsPerRecord() const
     {
         return _bits_per_card;
     }
-    int8_t Format(uint16_t count, uint8_t bits_per_card = 1);
+
+    uint16_t GetFormatDay() const
+    {
+        return _format_day;
+    }
+
+    int8_t Format(uint16_t count, uint8_t bits_per_card, uint32_t timestamp);
     int8_t Record(uint16_t card, int8_t increment = 1);
     uint8_t GetRecordCount(uint16_t card);
 
@@ -42,11 +50,13 @@ private:
     IEeprom &_eeprom;
     int _offset{}, _length{};
     uint8_t _bits_per_card{1};
+    uint16_t _format_day{0};
 
     void Restore();
     void StoreOffset();
     void StoreLength();
     void StoreBitsPerCard();
+    void StoreFormatDay();
 };
 
 } //namespace AOP;
