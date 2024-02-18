@@ -8,7 +8,7 @@ class Recorder
 {
 public:
     static constexpr const int LENGTH_SHIFT = 3;  // 64 runners : 8 runners/byte = 8 bytes
-    static constexpr const uint32_t SECONDS_IN_DAY = 60 * 60 * 24;
+    static constexpr const uint32_t SECONDS_IN_DAY = 60ul * 60ul * 24ul;
 
     struct IEeprom
     {
