@@ -180,22 +180,22 @@ pro -u` в директорії `arduino`:
 ```
 ~/work/orienteering/arduin-o-punch/arduino main*
 $ arduino-cli compile -m pro -u
-Sketch uses 20804 bytes (67%) of program storage space. Maximum is 30720 bytes.
-Global variables use 1027 bytes (50%) of dynamic memory, leaving 1021 bytes for local variables. Maximum is 2048 bytes.
+Sketch uses 22848 bytes (74%) of program storage space. Maximum is 30720 bytes.
+Global variables use 1046 bytes (51%) of dynamic memory, leaving 1002 bytes for local variables. Maximum is 2048 bytes.
 
 Used library   Version Path
-arduino-timer  3.0.1   /run/media/sakhnik/Android/.arduino15/internal/arduino-timer_3.0.1_36ffc03aaebfc200/arduino-timer
-CircularBuffer 1.3.3   /run/media/sakhnik/Android/.arduino15/internal/CircularBuffer_1.3.3_3f83e7a13d03bd99/CircularBuffer
-RTClib         2.1.1   /run/media/sakhnik/Android/.arduino15/internal/RTClib_2.1.1_f2201db8b01ac10f/RTClib
-Adafruit BusIO 1.14.4  /run/media/sakhnik/Android/.arduino15/internal/Adafruit_BusIO_1.14.4_5eb49b1eb2687802/Adafruit BusIO
-Wire           1.0     /run/media/sakhnik/Android/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54/libraries/Wire
-RFID_MFRC522v2 2.0.4   /run/media/sakhnik/Android/.arduino15/internal/RFID_MFRC522v2_2.0.4_afe983b92307f2cf/RFID_MFRC522v2
-SPI            1.0     /run/media/sakhnik/Android/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54/libraries/SPI
-Low-Power      1.81    /run/media/sakhnik/Android/.arduino15/internal/Low-Power_1.81_0cf867b7b6accc3b/Low-Power
-EEPROM         2.0     /run/media/sakhnik/Android/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54/libraries/EEPROM
+arduino-timer  3.0.1   /run/media/sakhnik/Android/Arduino/libraries/arduino-timer
+CircularBuffer 1.3.3   /run/media/sakhnik/Android/Arduino/libraries/CircularBuffer
+RTClib         2.1.1   /run/media/sakhnik/Android/Arduino/libraries/RTClib
+Adafruit BusIO 1.14.4  /run/media/sakhnik/Android/Arduino/libraries/Adafruit_BusIO
+Wire           1.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/Wire
+RFID_MFRC522v2 2.0.4   /run/media/sakhnik/Android/Arduino/libraries/RFID_MFRC522v2
+SPI            1.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/SPI
+Low-Power      1.81    /run/media/sakhnik/Android/Arduino/libraries/Low-Power
+EEPROM         2.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/EEPROM
 
 Used platform Version Path
-arduino:avr   1.8.6   /home/sakhnik/.arduino15/internal/arduino_avr_1.8.6_78e0815c6047bc54
+arduino:avr   1.8.6   /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6
 ```
 
 ### Командна оболонка
@@ -221,13 +221,18 @@ key               Key
 key 112233445566  Set key
 clock             Clock reading (ms)
 clock 12345000    Set clock (ms)
+date              Current date
 time              Current time
+timestamp         Print UNIX timestamp
+timestamp 12345   Set date and time with UNIX timestamp
 timeout           Timeout (hr)
 timeout 3         Set timeout (hr)
 recfmt 256 2      Clear/prepare recorder (card count, bits per record)
 rec               List punched cards
 rec 123           Print punch count for a card
 recclr 123        Clear card from the record
+recdays           How many days to keep the record
+recdays 1         Clear record after so many days
 Arduin-o-punch>
 ```
 
@@ -236,13 +241,14 @@ Arduin-o-punch>
 
 ```
 Arduin-o-punch> info
-version=1.0
+version=1.1.0
 id=41
 key=112233445566
-clock=40821000
-time=11:20:21
+date=2024-02-18
+time=13:57:58
 timeout=3
-rec=0 x 1 bpr
+rec=256 x 2 bpr
+recdays=1
 Arduin-o-punch>
 ```
 
