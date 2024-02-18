@@ -339,12 +339,8 @@ venv $ pip install -r requirements.txt
 Requirement already satisfied: pyserial in /tmp/venv/lib/python3.11/site-packages (from -r requirements.txt (line 1)) (3.5)
 
 venv $ ./sync-clock.py
-Before: clock=656000 time=00:10:56
-Before: clock=40652000 time=11:17:32
-
-venv $ ./sync-clock.py
-Before: clock=40652000 time=11:17:32
-After: clock=40653000 time=11:17:33
+Before: clock=55224357 time=15:20:24
+After: 2024-02-18 15:20:23
 
 venv $
 ```
