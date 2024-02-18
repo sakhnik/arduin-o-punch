@@ -79,7 +79,8 @@ void Shell::_Process()
         Serial.println(F("clock 12345000    Set clock (ms)"));
         Serial.println(F("date              Current date"));
         Serial.println(F("time              Current time"));
-        Serial.println(F("datetime 12345    Set date and time with UNIX timestamp"));
+        Serial.println(F("timestamp         Print UNIX timestamp"));
+        Serial.println(F("timestamp 12345   Set date and time with UNIX timestamp"));
         Serial.println(F("timeout           Timeout (hr)"));
         Serial.println(F("timeout 3         Set timeout (hr)"));
         Serial.println(F("recfmt 256 2      Clear/prepare recorder (card count, bits per record)"));
@@ -129,8 +130,10 @@ void Shell::_Process()
         _PrintTimeout();
     } else if (_buffer.startsWith(F("timeout"))) {
         _PrintTimeout();
-    } else if (_buffer.startsWith(F("datetime"))) {
-        _SetDateTime(_buffer.c_str() + 9);
+    } else if (_buffer.startsWith(F("timestamp "))) {
+        _SetTimestamp(_buffer.c_str() + 10);
+    } else if (_buffer.startsWith(F("timestamp"))) {
+        _PrintTimestamp();
     } else if (_buffer.startsWith(F("time"))) {
         _PrintTime(_context.GetDateTime());
     } else if (_buffer.startsWith(F("date"))) {
@@ -220,9 +223,15 @@ void Shell::_PrintClock(const DateTime &time)
     Serial.println(_context.GetClock(&time));
 }
 
-void Shell::_SetDateTime(const char *str)
+void Shell::_SetTimestamp(const char *str)
 {
     _context.SetDateTime(ParseNum<uint32_t>(str));
+    _PrintTimestamp();
+}
+
+void Shell::_PrintTimestamp()
+{
+    Serial.println(_context.GetDateTime().unixtime());
 }
 
 namespace {

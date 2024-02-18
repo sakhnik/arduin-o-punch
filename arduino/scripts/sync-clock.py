@@ -3,8 +3,7 @@
 # Synchronize Arduin-o-punch clock via serial port
 
 import serial
-import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 serial_port = '/dev/ttyUSB0'
 baud_rate = 9600
@@ -45,15 +44,16 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     assert latency_us < 1000000
     # Aim at the edge of the second
     while True:
-        dt_us = latency_us + datetime.now().microsecond - 1000000
+        now_us = datetime.now().microsecond
+        dt_us = latency_us + now_us - 1000000
         if dt_us >= 0 and dt_us < 1000:
             break
 
-    target_timestamp = int(datetime.now().timestamp()) + 1
+    now = datetime.now().replace(tzinfo=timezone.utc)
+    target_timestamp = int(now.timestamp()) + 1
 
     # Update Arduino clock
-    ser.write(f'datetime {target_timestamp}\r'.encode())
-    ser.write('clock\r'.encode())
-    arduino_clock = int(ser.readline().decode().strip())
-    arduino_time = format_time(arduino_clock)
-    print(f"After: clock={arduino_clock} time={arduino_time}")
+    ser.write(f'timestamp {target_timestamp}\r'.encode())
+    timestamp = int(ser.readline().decode().strip())
+    dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    print(f"After: {dt.strftime('%Y-%m-%d %H:%M:%S')}")

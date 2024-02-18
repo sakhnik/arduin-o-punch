@@ -29,7 +29,8 @@ private:
     void _PrintKey();
     void _SetClock(const char *str);
     void _PrintClock(const DateTime &time);
-    void _SetDateTime(const char *str);
+    void _SetTimestamp(const char *str);
+    void _PrintTimestamp();
     void _PrintDate(const DateTime &time);
     void _PrintTime(const DateTime &time);
     void _PrintTimeout();
