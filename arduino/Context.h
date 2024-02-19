@@ -34,12 +34,6 @@ public:
     }
     void SetId(uint8_t id);
 
-    uint8_t GetTimeoutHours() const
-    {
-        return _timeout_hr;
-    }
-    void SetTimeoutHours(uint8_t hours);
-
     AOP::Recorder& GetRecorder()
     {
         return _recorder;
@@ -56,7 +50,7 @@ private:
     Buzzer &_buzzer;
     uint8_t _id = 1;
     uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-    uint8_t _timeout_hr = 3;
+    uint8_t _reserved0 = 0xff;
     uint8_t _record_retain_days = 1;
     uint8_t _reserved[7];
     AOP::Recorder _recorder;

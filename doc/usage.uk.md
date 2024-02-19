@@ -192,7 +192,6 @@ Adafruit BusIO 1.14.4  /run/media/sakhnik/Android/Arduino/libraries/Adafruit_Bus
 Wire           1.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/Wire
 RFID_MFRC522v2 2.0.4   /run/media/sakhnik/Android/Arduino/libraries/RFID_MFRC522v2
 SPI            1.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/SPI
-Low-Power      1.81    /run/media/sakhnik/Android/Arduino/libraries/Low-Power
 EEPROM         2.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/EEPROM
 
 Used platform Version Path
@@ -226,8 +225,6 @@ date              Current date
 time              Current time
 timestamp         Print UNIX timestamp
 timestamp 12345   Set date and time with UNIX timestamp
-timeout           Timeout (hr)
-timeout 3         Set timeout (hr)
 recfmt 256 2      Clear/prepare recorder (card count, bits per record)
 rec               List punched cards
 rec 123           Print punch count for a card
@@ -247,7 +244,6 @@ id=41
 key=112233445566
 date=2024-02-18
 time=13:57:58
-timeout=3
 rec=256 x 2 bpr
 recdays=1
 Arduin-o-punch>

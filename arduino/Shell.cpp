@@ -81,8 +81,6 @@ void Shell::_Process()
         Serial.println(F("time              Current time"));
         Serial.println(F("timestamp         Print UNIX timestamp"));
         Serial.println(F("timestamp 12345   Set date and time with UNIX timestamp"));
-        Serial.println(F("timeout           Timeout (hr)"));
-        Serial.println(F("timeout 3         Set timeout (hr)"));
         Serial.println(F("recfmt 256 2      Clear/prepare recorder (card count, bits per record)"));
         Serial.println(F("rec               List punched cards"));
         Serial.println(F("rec 123           Print punch count for a card"));
@@ -100,8 +98,6 @@ void Shell::_Process()
         _PrintDate(now);
         Serial.print(F("time="));
         _PrintTime(now);
-        Serial.print(F("timeout="));
-        _PrintTimeout();
         Serial.print(F("rec="));
         Serial.print(_context.GetRecorder().GetSize());
         Serial.print(F(" x "));
@@ -125,11 +121,6 @@ void Shell::_Process()
         _PrintClock(_context.GetDateTime());
     } else if (_buffer.startsWith(F("clock"))) {
         _PrintClock(_context.GetDateTime());
-    } else if (_buffer.startsWith(F("timeout "))) {
-        _SetTimeout(_buffer.c_str() + 8);
-        _PrintTimeout();
-    } else if (_buffer.startsWith(F("timeout"))) {
-        _PrintTimeout();
     } else if (_buffer.startsWith(F("timestamp "))) {
         _SetTimestamp(_buffer.c_str() + 10);
     } else if (_buffer.startsWith(F("timestamp"))) {
@@ -273,16 +264,6 @@ void Shell::_PrintId()
 void Shell::_SetId(const char *str)
 {
     _context.SetId(ParseNum<uint8_t>(str));
-}
-
-void Shell::_PrintTimeout()
-{
-    Serial.println(_context.GetTimeoutHours());
-}
-
-void Shell::_SetTimeout(const char *str)
-{
-    _context.SetTimeoutHours(ParseNum<uint8_t>(str));
 }
 
 void Shell::_RecorderFormat(const char *str)

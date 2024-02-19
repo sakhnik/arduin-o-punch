@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix finish control uploading: shouldn't be uploaded, the number should be 900 in QuickEvent
 - Fix start time by the *last* start control punch
 - Prototype casing with DC input, switch and programmator connector
-- Set timeout=0 to have timeout time 1 minute for testing
 - Fix DNF when finish wasn't punched (finishTime = 0xEEEE)
 - Use arduino clock for millisecond measurement of clock during synchronization
 
@@ -28,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Batteries from the BOM (can use recycled ones from wapes)
 - Time measurement from custom point, always from midnight
+- Sleeping on timeout in favour of the power off button
 
 ## [1.0] - 2024-01-27
 
