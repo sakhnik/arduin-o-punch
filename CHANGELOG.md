@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix start time by the *last* start control punch
 - Prototype casing with DC input, switch and programmator connector
 - Power RC522 from IO pin to switch it off during timeouts
-- Increase sleeping time to 8 seconds
 - Set timeout=0 to have timeout time 1 minute for testing
 - Fix DNF when finish wasn't punched (finishTime = 0xEEEE)
 - Use arduino clock for millisecond measurement of clock during synchronization
