@@ -66,3 +66,14 @@
 | Припаяти проводи заряджання GND і 5.2 В, як на ілюстрації | <img src="images/21-dc-charger-wires.jpg" width="256"/> |
 | Припаяти проводи до входу DC і перевірити | <img src="images/22-dc-charger-test.jpg" width="256"/> |
 | Припаяти проводи з конектором до вимикача | <img src="images/23-switch-wires.jpg" width="256"/> |
+| Під’єднати тимчасово акумулятор і проводи живлення, перевірити функціональність |     |
+| Укріпити з’єднувачі Дюпон клеєм     | <img src="images/24-glue-connections.jpg" width="256"/> |
+| Приклеїти зчитувачч і материнську плату, просадивши світлодіод у отвір | <img src="images/25-glue-nfc-mb.jpg" width="256"/> |
+| Приклеїти годинник | <img src="images/26-glue-clock.jpg" width="256"/> |
+| Приклеїти індикатор заряду акумулятора на зовнішню стінку | <img src="images/27-glue-indicator.jpg" width="256"/> |
+| Приклеїти плату живлення | <img src="images/28-glue-power.jpg" width="256"/> |
+| Під’єднати проводи живлення до материнської плати | <img src="images/29-connect-power.jpg" width="256"/> |
+| Приклеїти контролер Arduino до бічної стінки | <img src="images/30-glue-arduino.jpg" width="256"/> |
+| Встановити акумулятор від електронної цигарки у вільне місце (або вставити 18650 у тримач) | <img src="images/31-fit-battery.jpg" width="256"/> |
+| Приклеїти з’єднувач UART на кришку біля щілини | <img src="images/32-glue-uart.jpg" width="256"/> |
+| Закрити кришку і закріпити шурупами | <img src="images/33-fasten-lid.jpg" width="256"/> |

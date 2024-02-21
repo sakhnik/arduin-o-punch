@@ -66,3 +66,14 @@ The switch the station off, disconnect a wire from the power source.
 | Solder charger wires GND and 5.2V as shown | <img src="images/21-dc-charger-wires.jpg" width="256"/> |
 | Solder the wires to the DC input and test | <img src="images/22-dc-charger-test.jpg" width="256"/> |
 | Solder the connector wires to the switch | <img src="images/23-switch-wires.jpg" width="256"/> |
+| Connect the battery and power lines temorarily and test functionality   |     |
+| Fasten Dupont connectors with glue     | <img src="images/24-glue-connections.jpg" width="256"/> |
+| Glue NFC reader and motherboard fitting the LED into the hole | <img src="images/25-glue-nfc-mb.jpg" width="256"/> |
+| Glue the clock                         | <img src="images/26-glue-clock.jpg" width="256"/> |
+| Glue power indicator to the outer side | <img src="images/27-glue-indicator.jpg" width="256"/> |
+| Glue the power adapter      | <img src="images/28-glue-power.jpg" width="256"/> |
+| Connect the power lines to the motherboard | <img src="images/29-connect-power.jpg" width="256"/> |
+| Glue the Arduino controller to the side wall | <img src="images/30-glue-arduino.jpg" width="256"/> |
+| Fit vape battery into the free space (or insert 18650 into the holder) | <img src="images/31-fit-battery.jpg" width="256"/> |
+| Glue UART connector to the slit in the lid | <img src="images/32-glue-uart.jpg" width="256"/> |
+| Close the lid and fasten with the screws | <img src="images/33-fasten-lid.jpg" width="256"/> |
