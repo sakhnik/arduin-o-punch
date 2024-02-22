@@ -71,13 +71,14 @@ class Uploader(private val activity: ComponentActivity) : Callback {
 
     override fun onFailure(call: Call, e: IOException) {
         activity.runOnUiThread {
-            Toast.makeText(activity, "Failed to upload: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity,
+                activity.getString(R.string.failed_to_upload, e.message), Toast.LENGTH_LONG).show()
         }
     }
 
     override fun onResponse(call: Call, response: Response) {
         activity.runOnUiThread {
-            Toast.makeText(activity, "Uploaded", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, activity.getString(R.string.uploaded), Toast.LENGTH_SHORT).show()
         }
     }
 }

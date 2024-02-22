@@ -40,4 +40,6 @@
     <string name="not_from_qr_o_punch">Not from QR-O-Punch</string>
     <string name="only_1k_mifare_classic_cards_are_expected">Only 1k MIFARE Classic cards are expected</string>
     <string name="scan_qr">Scan QR</string>
+    <string name="uploaded">Uploaded</string>
+    <string name="failed_to_upload">Failed to upload: %1$s</string>
 </resources>

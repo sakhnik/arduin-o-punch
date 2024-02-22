@@ -38,4 +38,6 @@
     <string name="not_from_qr_o_punch">Не з QR-O-Punch</string>
     <string name="only_1k_mifare_classic_cards_are_expected">Тільки класичні картки MIFARE 1k</string>
     <string name="scan_qr">Скан QR</string>
+    <string name="uploaded">Вивантажено</string>
+    <string name="failed_to_upload">Не вдалося вивантажити: %1$s</string>
 </resources>
