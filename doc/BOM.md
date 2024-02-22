@@ -8,7 +8,7 @@
 | DS3231       |    48.00 ₴   | 10      | DS3231N (Not M!)  |           | https://www.aliexpress.com/item/1005005216959684.html |
 | CR2032       |    11.00 ₴   | 10      |                   |           |                                                       |
 | Indicator    |    28.00 ₴   | 10      | Battery Indicator | 1s        | https://www.aliexpress.com/item/1005006191335066.html |
-| Wires        |     8.00 ₴   | 5       | Wires F-F         | 10 cm     | https://www.aliexpress.com/item/32825558073.html      |
+| Wires        |    16.00 ₴   | 10      | Wires F-F         | 10 cm     | https://www.aliexpress.com/item/32825558073.html      |
 | Buzzer       |     4.00 ₴   |         |                   |           |                                                       |
 | Led          |     1.00 ₴   |         |                   |           |                                                       |
 | R            |     1.00 ₴   |         |                   |           |                                                       |
@@ -20,4 +20,4 @@
 | USB plug     |     5.00 ₴   | 10      | DC 5.5x2.1        |           | https://prom.ua/ua/p733432376-gnezdo-pitaniya-55x21.html |
 
 
-Total        424.60 ₴
+Total        432.60 ₴
