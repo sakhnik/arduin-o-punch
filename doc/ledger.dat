@@ -236,7 +236,7 @@ account Expenses:Tools
     ; Box
 
 2024-02-06 * Arduino.ua
-    Assets:Privat                       -618.00 ₴
+    Assets:Privat                       -668.00 ₴
     Assets:Privat                        -50.00 ₴
     Expenses:Post                         50.00 ₴
     Expenses:Tools                       339.00 ₴
@@ -267,3 +267,11 @@ account Expenses:Tools
     Expenses:Production                   60.00 ₴
     Assets:Privat
     ; Mini USB cable
+
+2024-02-22 * Arduino.ua
+    Expenses:Production                  965.00 ₴
+    Assets:Privat
+
+2024-02-22 * AliExpress
+    Expenses:Production                   13.60 $
+    Assets:Privat                       -532.90 ₴
