@@ -239,7 +239,7 @@ Arduin-o-punch>
 
 ```
 Arduin-o-punch> info
-version=1.1.0
+version=1.1.1
 id=41
 key=112233445566
 date=2024-02-18
