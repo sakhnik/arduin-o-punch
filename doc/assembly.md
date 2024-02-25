@@ -76,4 +76,4 @@ The switch the station off, disconnect a wire from the power source.
 | Glue the Arduino controller to the side wall | <img src="images/30-glue-arduino.jpg" width="256"/> |
 | Fit vape battery into the free space (or insert 18650 into the holder) | <img src="images/31-fit-battery.jpg" width="256"/> |
 | Glue UART connector to the slit in the lid | <img src="images/32-glue-uart.jpg" width="256"/> |
-| Close the lid and fasten with the screws | <img src="images/33-fasten-lid.jpg" width="256"/> |
+| Close the lid and fasten with the screws | <img src="images/33-overview.jpg" width="256"/><br/> <img src="images/33-fasten-lid.jpg" width="256"/> |

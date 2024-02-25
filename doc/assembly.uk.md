@@ -76,4 +76,4 @@
 | Приклеїти контролер Arduino до бічної стінки | <img src="images/30-glue-arduino.jpg" width="256"/> |
 | Встановити акумулятор від електронної цигарки у вільне місце (або вставити 18650 у тримач) | <img src="images/31-fit-battery.jpg" width="256"/> |
 | Приклеїти з’єднувач UART на кришку біля щілини | <img src="images/32-glue-uart.jpg" width="256"/> |
-| Закрити кришку і закріпити шурупами | <img src="images/33-fasten-lid.jpg" width="256"/> |
+| Закрити кришку і закріпити шурупами | <img src="images/33-overview.jpg" width="256"/><br/> <img src="images/33-fasten-lid.jpg" width="256"/> |
