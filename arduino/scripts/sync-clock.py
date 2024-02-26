@@ -31,10 +31,17 @@ def echo_output(data):
 with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     # Wait for a clear prompt
     ser.write(b'\r')
+    idle_count = 0
     while True:
         line = ser.readline()
         echo_output(line)
-        if b"Arduin-o-punch> " == line:
+        if b'Arduin-o-punch> ' == line:
+            break
+        if line:
+            idle_count = 0
+            continue
+        idle_count += 1
+        if idle_count == 3:
             break
 
     # Get current time before interacting with Arduino
