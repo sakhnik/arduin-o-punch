@@ -335,8 +335,13 @@ venv $ pip install -r requirements.txt
 Requirement already satisfied: pyserial in /tmp/venv/lib/python3.11/site-packages (from -r requirements.txt (line 1)) (3.5)
 
 venv $ ./sync-clock.py
-Before: clock=55224357 time=15:20:24
-After: 2024-02-18 15:20:23
+>> b''
+>> b'\r\n'
+>> b'Arduin-o-punch> '
+>> b'37103085\r\n'
+Before: clock=37103085 time=10:18:23
+>> b'1708942704\r\n'
+After: 2024-02-26 10:18:24
 
 venv $
 ```

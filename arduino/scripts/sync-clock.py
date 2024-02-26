@@ -24,19 +24,28 @@ def format_time(clock):
     return formatted_time
 
 
+def echo_output(data):
+    print(">> " + str(data))
+
+
 with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
+    # Wait for a clear prompt
+    ser.write(b'\r')
+    while True:
+        line = ser.readline()
+        echo_output(line)
+        if b"Arduin-o-punch> " == line:
+            break
+
     # Get current time before interacting with Arduino
     start = get_current_time()
-    for i in range(10):
-        try:
-            # Get Arduin-o-punch clock reading
-            ser.write(b'clock\r')
-            arduino_clock = int(ser.readline().decode().strip())
-            arduino_time = format_time(arduino_clock)
-            print(f"Before: clock={arduino_clock} time={arduino_time}")
-            break
-        except ValueError:
-            pass
+    # Get Arduin-o-punch clock reading
+    ser.write(b'clock\r')
+    line = ser.readline()
+    echo_output(line)
+    arduino_clock = int(line.decode().strip())
+    arduino_time = format_time(arduino_clock)
+    print(f"Before: clock={arduino_clock} time={arduino_time}")
     # Get current time again
     finish = get_current_time()
 
@@ -54,6 +63,8 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
 
     # Update Arduino clock
     ser.write(f'timestamp {target_timestamp}\r'.encode())
-    timestamp = int(ser.readline().decode().strip())
+    line = ser.readline()
+    echo_output(line)
+    timestamp = int(line.decode().strip())
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     print(f"After: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
