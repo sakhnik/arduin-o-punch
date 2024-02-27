@@ -11,7 +11,7 @@
     <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
     <string name="card_id">Картка</string>
     <string name="card_id_report">Картка %d</string>
-    <string name="key_12_hex_digits">Ключ (12 шітсн. цифр)</string>
+    <string name="key">Ключ</string>
     <string name="format_card">Підготовка Картки</string>
     <string name="clear_punches">Очистити Відмітки</string>
     <string name="punch">Відмітка</string>
@@ -22,8 +22,7 @@
     <string name="no_known_key_for_sector">Невідомий ключ до сектора %d</string>
     <string name="the_card_is_full">Картка переповнена</string>
     <string name="format_runner_title">Підготувати картку бігуна</string>
-    <string name="format_runner_instruction">Підготувати картку бігуна: відформатувати заданим ключем шифрування 12-шістн. цифр, призначити ID (0..65535).</string>
-    <string name="key_12_digits">Ключ (12 цифр)</string>
+    <string name="format_runner_instruction">Підготувати картку бігуна: відформатувати заданим ключем шифрування розміром 12 шістнадцяткових цифр, призначити ID (0..65535).</string>
     <string name="clear_runner_title">Очистити картку бігуна</string>
     <string name="clear_runner_instruction">Очистити попередні відмітки у картці без зміни інформації (наприклад, ID).</string>
     <string name="punch_runner_title">Відмітка в картці бігуна</string>

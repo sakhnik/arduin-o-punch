@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Fix latency calculation in sync_clock.py, wait for the prompt explicitly
+- Fix layout in Android app for smaller screens
 
 ### Removed
 
