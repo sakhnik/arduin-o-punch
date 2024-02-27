@@ -93,6 +93,13 @@ class MainActivity : AppCompatActivity() {
             setActiveView(viewId)
             true
         }
+
+        if (savedInstanceState != null) {
+            currentView = savedInstanceState.getInt(CURRENT_VIEW_KEY)
+            if (currentView == 0) {
+                currentView = R.layout.format_view
+            }
+        }
         setActiveView(currentView)
 
         okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
@@ -106,6 +113,17 @@ class MainActivity : AppCompatActivity() {
             this, 0,
             Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), flags
         )
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(CURRENT_VIEW_KEY, currentView)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        currentView = savedInstanceState.getInt(CURRENT_VIEW_KEY)
+        setActiveView(currentView)
+        super.onRestoreInstanceState(savedInstanceState)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -152,6 +170,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
+        const val CURRENT_VIEW_KEY = "currentView"
+
         private object Prefs {
             const val NAME = "Prefs"
             const val KEY_CARD_ID = "cardId"
