@@ -3,6 +3,11 @@
 #include "src/IMifare.h"
 #include "src/PunchCard.h"
 
+//#define LOGGER
+#ifdef LOGGER
+#include "Logger.h"
+#endif
+
 Puncher::Puncher(Context &context)
     : _context{context}
 {
@@ -12,6 +17,12 @@ void Puncher::Setup()
 {
     mfrc522.PCD_Init();  // Init MFRC522 board.
 }
+
+namespace {
+
+#ifdef LOGGER
+Logger logger;
+#endif
 
 struct MifareClassic : AOP::IMifare
 {
@@ -29,6 +40,11 @@ struct MifareClassic : AOP::IMifare
 
     uint8_t AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) override
     {
+#ifdef LOGGER
+        logger.Out("A");
+        logger.Out(sector);
+        logger.Out("\r\n");
+#endif
         auto firstBlock = sector * 4;
         auto status = mfrc522.PCD_Authenticate(
                           MFRC522Constants::PICC_Command::PICC_CMD_MF_AUTH_KEY_A,
@@ -45,16 +61,35 @@ struct MifareClassic : AOP::IMifare
 
     uint8_t ReadBlock(uint8_t block, uint8_t *data, uint8_t &dataSize) override
     {
+#ifdef LOGGER
+        logger.Out("R");
+        logger.Out(block);
+        logger.Out(" ");
+#endif
         auto status = mfrc522.MIFARE_Read(block, data, &dataSize);
         if (status) {
             Serial.print(F("Read failed: "));
             Serial.println(static_cast<int>(status));
+        } else {
+#ifdef LOGGER
+            logger.Out(data, 16);
+#endif
         }
+#ifdef LOGGER
+        logger.Out("\r\n");
+#endif
         return status;
     }
 
     uint8_t WriteBlock(uint8_t block, const uint8_t *data, uint8_t dataSize) override
     {
+#ifdef LOGGER
+        logger.Out("W");
+        logger.Out(block);
+        logger.Out(" ");
+        logger.Out(data, 16);
+        logger.Out("\r\n");
+#endif
         auto status = mfrc522.MIFARE_Write(block, const_cast<uint8_t *>(data), IMifare::BLOCK_SIZE);
         if (status) {
             Serial.print(F("Write failed: "));
@@ -63,6 +98,8 @@ struct MifareClassic : AOP::IMifare
         return status;
     }
 };
+
+} //namespace;
 
 ErrorCode Puncher::Punch()
 {
@@ -81,6 +118,10 @@ ErrorCode Puncher::Punch()
         return ErrorCode::WRONG_CARD;
     }
 
+#ifdef LOGGER
+    logger.Clear();
+#endif
+    Serial.println(F("----"));
     struct Callback : AOP::PunchCard::ICallback
     {
         uint16_t card_id{};
@@ -104,6 +145,9 @@ ErrorCode Puncher::Punch()
     //auto res = punchCard.Clear();
     Serial.print(F("Punch result: "));
     Serial.println(static_cast<int>(res));
+#ifdef LOGGER
+    logger.Print();
+#endif
 
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
