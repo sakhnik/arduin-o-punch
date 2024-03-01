@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix layout in Android app for smaller screens
 - Keep current view when the screen is rotated
 - Fix the capacity number
+- Fix crash when garbage in the timestamp
 
 ### Removed
 

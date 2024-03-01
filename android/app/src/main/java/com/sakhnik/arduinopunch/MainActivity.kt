@@ -32,6 +32,7 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.sakhnik.arduinopunch.R.id.toggleUrlEditing
 import java.io.IOException
+import java.time.DateTimeException
 import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -365,8 +366,12 @@ class MainActivity : AppCompatActivity() {
                 cell2.text = punch.station.toString()
                 tableRow.addView(cell2)
                 val cell3 = TextView(this)
+                try {
                 val localTime = LocalTime.ofSecondOfDay(punch.timestamp)
                 cell3.text = localTime.format(formatter)
+                } catch (ex: DateTimeException) {
+                    cell3.text = "???";
+                }
                 tableRow.addView(cell3)
                 tableLayout.addView(tableRow)
             }
