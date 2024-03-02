@@ -23,7 +23,7 @@ class MifareImpl(private val mifare: MifareClassic) : IMifare {
         return mifare.readBlock(blockIndex)
     }
 
-    override fun writeBlock(blockIndex: Int, data: ByteArray?) {
+    override fun writeBlock(blockIndex: Int, data: ByteArray) {
         mifare.writeBlock(blockIndex, data)
     }
 }

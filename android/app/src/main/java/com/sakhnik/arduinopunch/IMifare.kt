@@ -9,5 +9,5 @@ interface IMifare {
 
     fun authenticateSectorWithKeyA(sectorIndex: Int, key: ByteArray?): Boolean
     fun readBlock(blockIndex: Int): ByteArray?
-    fun writeBlock(blockIndex: Int, data: ByteArray?)
+    fun writeBlock(blockIndex: Int, data: ByteArray)
 }

@@ -370,7 +370,7 @@ class MainActivity : AppCompatActivity() {
                 val localTime = LocalTime.ofSecondOfDay(punch.timestamp)
                 cell3.text = localTime.format(formatter)
                 } catch (ex: DateTimeException) {
-                    cell3.text = "???";
+                    cell3.text = "???"
                 }
                 tableRow.addView(cell3)
                 tableLayout.addView(tableRow)
@@ -400,7 +400,7 @@ class MainActivity : AppCompatActivity() {
         val id = etId.text.toString().toInt()
         if (id != 0) {
             val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-            card.prepareRunner(id, getTimestamp(), getKnownKeys(), this::setProgress)
+            card.format(id, getKnownKeys(), this::setProgress)
         }
     }
 

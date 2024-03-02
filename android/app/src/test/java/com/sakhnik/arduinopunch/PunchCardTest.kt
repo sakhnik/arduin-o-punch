@@ -2,9 +2,13 @@ package com.sakhnik.arduinopunch
 
 import android.content.Context
 import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
+import java.util.Arrays
+import kotlin.random.Random
 
 class PunchCardTest {
 
@@ -13,6 +17,9 @@ class PunchCardTest {
     class TestMifare : IMifare {
         private val blocks: ArrayList<ByteArray> = ArrayList()
         private val defKey = ByteArray(6) { _ -> 0xff.toByte() }
+        private var authSector = -1
+        // Schedule subsequent writes to fail this many times
+        private var failWrites = 0
 
         init {
             repeat(blockCount) {
@@ -21,6 +28,14 @@ class PunchCardTest {
             repeat(sectorCount) {
                 defKey.copyInto(blocks[it * 4 + 3])
             }
+        }
+
+        fun setFailWrites(count: Int) {
+            failWrites = count
+        }
+
+        fun getFailWrites(): Int {
+            return failWrites
         }
 
         override val sectorCount: Int
@@ -43,17 +58,30 @@ class PunchCardTest {
                     return false
                 }
             }
+            authSector = sectorIndex
             return true
         }
 
         override fun readBlock(blockIndex: Int): ByteArray {
+            if (authSector != blockToSector(blockIndex)) {
+                throw RuntimeException("Auth failure")
+            }
             return blocks[blockIndex]
         }
 
-        override fun writeBlock(blockIndex: Int, data: ByteArray?) {
-            blocks[blockIndex] = data as ByteArray
+        override fun writeBlock(blockIndex: Int, data: ByteArray) {
+            if (authSector != blockToSector(blockIndex)) {
+                throw RuntimeException("Auth failure")
+            }
+            if (failWrites > 0) {
+                // Mimic the behaviour of some cheap cards than can lose data
+                Arrays.fill(blocks[blockIndex], 0xff.toByte())
+                --failWrites
+                throw RuntimeException("Timeout")
+            } else {
+                data.copyInto(blocks[blockIndex])
+            }
         }
-
     }
 
     companion object {
@@ -64,7 +92,7 @@ class PunchCardTest {
     fun prepareReset() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
-        punchCard.prepareRunner(12345, 0.toLong(), listOf())
+        punchCard.format(12345, listOf())
         assertEquals(12345, punchCard.readOut().cardNumber)
         punchCard.reset(listOf(TEST_KEY))
     }
@@ -73,7 +101,7 @@ class PunchCardTest {
     fun punch() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
-        punchCard.prepareRunner(42, 0.toLong(), listOf())
+        punchCard.format(42, listOf())
         assertEquals(0, punchCard.readOut().punches.size)
         val punches = listOf(Punch(31, 100), Punch(32, 130), Punch(33, 221))
         for (i in punches.indices) {
@@ -94,13 +122,18 @@ class PunchCardTest {
     fun maxPunches() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
-        punchCard.prepareRunner(42, 0.toLong(), listOf())
+        punchCard.format(42, listOf())
 
-        val testPunch = {i: Int -> Punch(i + 1, 12345.toLong() * (i + 1))}
+        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, 12345.toLong() * (i + 1))}
 
-        val maxPunches: Int = 16 * (16 * 3 - 2) / Punch.STORAGE_SIZE - 1
+        val maxPunches = punchCard.getMaxPunches(mifare)
         for (i in 0 until maxPunches) {
-            punchCard.punch(testPunch(i + 10))
+            punchCard.punch(testPunch(i))
+            val readOut = punchCard.readOut().punches
+            assertEquals(i + 1, readOut.size)
+            for (j in 0 .. i) {
+                assertEquals(testPunch(j), readOut[j])
+            }
         }
         // No more space
         assertThrows(RuntimeException::class.java) {
@@ -109,7 +142,7 @@ class PunchCardTest {
 
         val readOut = punchCard.readOut()
         for (i in 0 until maxPunches) {
-            assertEquals(testPunch(i + 10), readOut.punches[i])
+            assertEquals(testPunch(i), readOut.punches[i])
         }
 
         punchCard.reset(listOf(TEST_KEY))
@@ -119,9 +152,9 @@ class PunchCardTest {
     fun prepareWithPreviousKeys() {
         val mifare = TestMifare()
         val key2 = byteArrayOf(0x11, 0x22, 0x33, 0x44, 0x55, 0x66)
-        PunchCard(mifare, TEST_KEY, context).prepareRunner(42, 0.toLong(), listOf())
+        PunchCard(mifare, TEST_KEY, context).format(42, listOf())
         val punchCard2 = PunchCard(mifare, key2, context)
-        punchCard2.prepareRunner(43, 0.toLong(), listOf(key2, TEST_KEY))
+        punchCard2.format(43, listOf(key2, TEST_KEY))
         assertThrows(RuntimeException::class.java) {
             // Mind the cached authSector in PunchCard
             PunchCard(mifare, TEST_KEY, context).punch(Punch(31, 123.toLong()))
@@ -139,5 +172,45 @@ class PunchCardTest {
             PunchCard(mifare, TEST_KEY, context).reset(listOf())
         }
         punchCard2.reset(listOf(key2, TEST_KEY))
+    }
+
+    @Test
+    fun recoverFromFailedWrite() {
+        // Some cheap cards may lose data when timeout occurs. The puncher should
+        // be resilient and never lose ability to continue punching even after
+        // occasional data loss in one block becaue of unsuccessful write operation.
+        val mifare = TestMifare()
+        val punchCard = PunchCard(mifare, TEST_KEY, context)
+        punchCard.format(42, listOf())
+        assertEquals(0, punchCard.readOut().punches.size)
+
+        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i + PunchCard.START_STATION).toLong())}
+        val success = ArrayList<Int>()
+
+        for (i in 0 until 100) {
+            var exceptionAnticipated = false
+            try {
+                if (Random.nextInt(0, 100) < 10) {
+                    mifare.setFailWrites(Random.nextInt(0, 4))
+                }
+                if (mifare.getFailWrites() > 0) {
+                    exceptionAnticipated = true
+                }
+                punchCard.punch(testPunch(i))
+                success.add(i)
+            } catch (e: Exception) {
+                assertTrue(exceptionAnticipated)
+            }
+        }
+
+        assertFalse(success.isEmpty())
+
+        val readOut = punchCard.readOut()
+        assertEquals(success.size, readOut.punches.size)
+        for (i in 0 until success.size) {
+            assertEquals(testPunch(success[i]), readOut.punches[i])
+        }
+
+        punchCard.reset(listOf(TEST_KEY))
     }
 }
