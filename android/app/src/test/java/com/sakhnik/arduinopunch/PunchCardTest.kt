@@ -205,6 +205,7 @@ class PunchCardTest {
 
         assertFalse(success.isEmpty())
 
+        mifare.setFailWrites(0);
         val readOut = punchCard.readOut()
         assertEquals(success.size, readOut.punches.size)
         for (i in 0 until success.size) {

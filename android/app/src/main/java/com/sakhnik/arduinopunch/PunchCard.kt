@@ -74,10 +74,10 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
 
         // Choose a start sector for punches to even out card wear
-        val chosenStartSector = if (startSector >= 1 && startSector < mifare.sectorCount) {
+        val chosenStartSector = if (startSector >= 2 && startSector < mifare.sectorCount) {
             startSector
         } else {
-            Random.nextInt(1, mifare.sectorCount)
+            Random.nextInt(2, mifare.sectorCount)
         }
 
         // Configure KeyA, access bits and write card ID to KeyB
@@ -229,8 +229,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         val prevStationId = if (count == 0) {
             -1
         } else {
-            val blockOffset = (count - 1) % PUNCHES_PER_BLOCK
-            header[STATION_OFFSET + blockOffset].toInt()
+            Punch.getStation(header, STATION_OFFSET + offsetInBlock - 1)
         }
         if (newPunch.station != START_STATION && prevStationId == newPunch.station) {
             progress(stages, stages)
@@ -318,7 +317,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
                 progress(i, wholeBlocks)
                 authenticate(mifare.blockToSector(block))
                 val punchBlock = mifare.readBlock(block)
-                readPunchesFromBlock(4, punchBlock!!, punches)
+                readPunchesFromBlock(PUNCHES_PER_BLOCK, punchBlock!!, punches)
             }
             readPunchesFromBlock(tail, header, punches)
         }
