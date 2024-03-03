@@ -8,10 +8,10 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     private var authSector = -1
 
     companion object {
-        const val HEADER_SECTOR = 0
+        const val INDEX_SECTOR = 0
         const val HEADER_BLOCK1 = 1
         const val HEADER_BLOCK2 = 2
-        const val HEADER_KEY_BLOCK = 3
+        const val INDEX_KEY_BLOCK = 3
 
         // ID is written into KeyB
         const val ID_OFFSET = 10
@@ -38,7 +38,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     }
 
     fun getMaxPunches(mifare: IMifare): Int {
-        return (mifare.sectorCount - 1) * PUNCHES_PER_SECTOR
+        return (mifare.sectorCount - 2) * PUNCHES_PER_SECTOR
     }
 
     private fun authenticate(sector: Int) {
@@ -52,7 +52,15 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
     // Clear the card before the start without changing the format information
     fun clear(progress: Progress = Procedure.NO_PROGRESS) {
-        clearPunches(progress)
+        // 1. read startSector
+        progress(0, 2)
+        authenticate(INDEX_SECTOR)
+        val headerKey = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
+        val startSector = headerKey[SECTOR_OFFSET].toInt()
+
+        progress(1, 2)
+        clearPunches(startSector, progress)
+
         progress(1, 1)
     }
 
@@ -78,20 +86,22 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
 
         procedure.add(3) { p ->
-            clearPunches(p)
+            clearPunches(startSector, p)
         }
 
         procedure.run(progress)
     }
 
-    private fun clearPunches(progress: Progress) {
+    private fun clearPunches(startSector: Int, progress: Progress) {
         progress(0, 3)
-        authenticate(HEADER_SECTOR)
+        authenticate(startSector)
+        val headerBlock1 = startSector * 4 + HEADER_BLOCK1
+        val headerBlock2 = startSector * 4 + HEADER_BLOCK2
         progress(1, 3)
         val data = ByteArray(16)
-        mifare.writeBlock(HEADER_BLOCK1, data)
+        mifare.writeBlock(headerBlock1, data)
         progress(2, 3)
-        mifare.writeBlock(HEADER_BLOCK2, data)
+        mifare.writeBlock(headerBlock2, data)
     }
 
     private fun writeNewKey(id: Int, keys: List<ByteArray>, progress: Progress, startSector: Int) {
@@ -164,13 +174,17 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         return (header[ID_OFFSET].toInt() and 0xff) or ((header[ID_OFFSET + 1].toInt() and 0xff) shl 8)
     }
 
-    private fun recoverHeader(progressStages: Int, progress: Progress): ByteArray {
+    private fun recoverHeader(startSector: Int, progressStages: Int, progress: Progress): ByteArray {
+        val headerBlock1 = startSector * 4 + HEADER_BLOCK1
+        val headerBlock2 = startSector * 4 + HEADER_BLOCK2
+
         // 2. read header 1
         progress(2, progressStages)
-        val header1 = mifare.readBlock(HEADER_BLOCK1) as ByteArray
+        authenticate(startSector)
+        val header1 = mifare.readBlock(headerBlock1) as ByteArray
         // 3. read header 2
         progress(3, progressStages)
-        val header2 = mifare.readBlock(HEADER_BLOCK2) as ByteArray
+        val header2 = mifare.readBlock(headerBlock2) as ByteArray
 
         // 4. decide the right one
         // 4.1 write the missing one back
@@ -181,10 +195,10 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             throw RuntimeException(context.getString(R.string.data_is_corrupted))
         }
         return if (header1IsOk) {
-            mifare.writeBlock(HEADER_BLOCK2, header1)
+            mifare.writeBlock(headerBlock2, header1)
             header1
         } else {
-            mifare.writeBlock(HEADER_BLOCK1, header2)
+            mifare.writeBlock(headerBlock1, header2)
             header2
         }
     }
@@ -195,12 +209,12 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         // 1. read card id
         progress(1, stages)
-        authenticate(HEADER_SECTOR)
-        val headerKey = mifare.readBlock(HEADER_KEY_BLOCK) as ByteArray
+        authenticate(INDEX_SECTOR)
+        val headerKey = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
         //val cardId = getId(headerKey)
         val startSector = headerKey[SECTOR_OFFSET].toInt()
 
-        val header = recoverHeader(stages, progress)
+        val header = recoverHeader(startSector, stages, progress)
 
         // 5. calculate the offset in the header
         // If this is the start station punching, clear all the previous punches
@@ -251,19 +265,21 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         // 8. write header 2
         progress(7, stages)
-        authenticate(HEADER_SECTOR)
-        mifare.writeBlock(HEADER_BLOCK2, header)
+        val headerBlock2 = startSector * 4 + HEADER_BLOCK2
+        authenticate(startSector)
+        mifare.writeBlock(headerBlock2, header)
 
         // 9. write header 1
         progress(8, stages)
-        authenticate(HEADER_SECTOR)
-        mifare.writeBlock(HEADER_BLOCK1, header)
+        val headerBlock1 = startSector * 4 + HEADER_BLOCK1
+        authenticate(startSector)
+        mifare.writeBlock(headerBlock1, header)
 
         progress(stages, stages)
     }
 
     private fun getPunchBlock(index: Int, startSector: Int): Int {
-        var sector = (index / PUNCHES_PER_SECTOR + startSector)
+        var sector = (index / PUNCHES_PER_SECTOR + startSector + 1)
         if (sector >= mifare.sectorCount) {
             sector -= mifare.sectorCount - 1
         }
@@ -279,13 +295,13 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         // 1. read card id
         progress(1, stages)
-        authenticate(HEADER_SECTOR)
-        val headerKey = mifare.readBlock(HEADER_KEY_BLOCK) as ByteArray
+        authenticate(INDEX_SECTOR)
+        val headerKey = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
         val cardId = getId(headerKey)
         val startSector = headerKey[SECTOR_OFFSET].toInt()
 
         // 2. Recover the header
-        val header = recoverHeader(stages, progress)
+        val header = recoverHeader(startSector, stages, progress)
         val count = header[COUNT_OFFSET].toInt() and 0xff
 
         // 5. loop over the punches
