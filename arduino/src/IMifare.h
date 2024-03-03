@@ -8,6 +8,7 @@ struct IMifare
 {
     static constexpr int BLOCK_SIZE = 16;
     static constexpr int BLOCK_COUNT = 64;
+    static constexpr int SECTOR_COUNT = 16;
 
     virtual ~IMifare() {}
     virtual uint8_t BlockToSector(uint8_t block) const = 0;

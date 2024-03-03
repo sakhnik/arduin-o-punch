@@ -15,7 +15,7 @@ struct ErrorCode
         // But we don't care about actual values
 
         NO_CARD = 0x80,
-        BAD_CHECKSUM,
+        DATA_CORRUPTED,
         NO_SERIAL,
         WRONG_CARD,
         CARD_IS_FULL,

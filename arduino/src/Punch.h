@@ -7,8 +7,6 @@ namespace AOP {
 class Punch
 {
 public:
-    static const int STORAGE_SIZE = 4;
-
     // Keep in sync with Android's Puncher
     //
     // Punch format:
@@ -21,28 +19,34 @@ public:
     {
     }
 
-    Punch(const uint8_t *data, int offset)
-        : _station{data[offset]}
-        , _timestamp{GetTimestamp(data, offset)}
-    {
-    }
-
     int GetStation() const
     {
         return _station;
     }
+
     uint32_t GetTimestamp() const
     {
         return _timestamp;
     }
 
-    void Serialize(uint8_t *data, int offset)
+    void SerializeStation(uint8_t *data, int offset)
     {
         data[offset] = _station & 0xff;
+    }
+
+    void SerializeTimestamp(uint8_t *data, int offset)
+    {
         // Store timestamp & 0xffffff.
-        data[offset + 1] = _timestamp & 0xff;
-        data[offset + 2] = (_timestamp >> 8) & 0xff;
-        data[offset + 3] = (_timestamp >> 16) & 0xff;
+        data[offset] = _timestamp & 0xff;
+        data[offset + 1] = (_timestamp >> 8) & 0xff;
+        data[offset + 2] = (_timestamp >> 16) & 0xff;
+    }
+
+    void SerializeTimestamp(uint8_t *data, int offset, uint32_t timestamp0)
+    {
+        auto dt = _timestamp - timestamp0;
+        data[offset] = dt & 0xff;
+        data[offset + 1] = (dt >> 8) & 0xff;
     }
 
     bool operator==(const Punch &o) const
@@ -50,14 +54,24 @@ public:
         return _station == o._station && _timestamp == o._timestamp;
     }
 
-private:
-    uint8_t _station;
-    uint32_t _timestamp;
+    static uint8_t GetStation(const uint8_t *data, int offset)
+    {
+        return data[offset] & 0xff;
+    }
 
     static uint32_t GetTimestamp(const uint8_t *data, int offset)
     {
-        return  (data[offset + 1] & 0xff) | ((data[offset + 2] & 0xff) << 8) | ((data[offset + 3] & 0xff) << 16);
+        return  (data[offset] & 0xff) | ((data[offset + 1] & 0xff) << 8) | ((data[offset + 2] & 0xff) << 16);
     }
+
+    static uint32_t GetTimestamp(const uint8_t *data, int offset, uint32_t timestamp0)
+    {
+        return timestamp0 + data[offset] + (static_cast<uint32_t>(data[offset + 1]) << 8);
+    }
+
+private:
+    uint8_t _station;
+    uint32_t _timestamp;
 };
 
 } //namespace AOP;
