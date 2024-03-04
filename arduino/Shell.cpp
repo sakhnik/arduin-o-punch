@@ -88,7 +88,7 @@ void Shell::_Process()
         Serial.println(F("recdays           How many days to keep the record"));
         Serial.println(F("recdays 1         Clear record after so many days"));
     } else if (_buffer.startsWith(F("info"))) {
-        Serial.println(F("version=1.1.1"));
+        Serial.println(F("version=2.0.0"));
         Serial.print(F("id="));
         _PrintId();
         Serial.print(F("key="));
