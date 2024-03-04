@@ -1,6 +1,6 @@
 package com.sakhnik.arduinopunch
 
-data class Punch(val station: Int, val timestamp: Long) {
+data class Punch(val station: Int, var timestamp: Long) {
 
     fun serializeStation(data: ByteArray, offset: Int) {
         data[offset] = station.toByte()

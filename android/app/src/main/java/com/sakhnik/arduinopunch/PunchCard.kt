@@ -229,7 +229,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         val prevStationId = if (count == 0) {
             -1
         } else {
-            Punch.getStation(header, STATION_OFFSET + offsetInBlock - 1)
+            Punch.getStation(header, STATION_OFFSET + (count - 1) % PUNCHES_PER_BLOCK)
         }
         if (newPunch.station != START_STATION && prevStationId == newPunch.station) {
             progress(stages, stages)

@@ -33,3 +33,34 @@ struct ErrorCode
     {
     }
 };
+
+#ifdef BUILD_TEST
+
+#include <iostream>
+
+inline std::ostream& operator<<(std::ostream &os, ErrorCode e)
+{
+    switch (e) {
+    case ErrorCode::NO_CARD:
+        os << "No card";
+        break;
+    case ErrorCode::DATA_CORRUPTED:
+        os << "Corrupt";
+        break;
+    case ErrorCode::NO_SERIAL:
+        os << "No serial";
+        break;
+    case ErrorCode::WRONG_CARD:
+        os << "Wrong card";
+        break;
+    case ErrorCode::CARD_IS_FULL:
+        os << "Full";
+        break;
+    default:
+        os << "Error(" << static_cast<int>(e) << ")";
+        break;
+    }
+    return os;
+}
+
+#endif //BUILD_TEST

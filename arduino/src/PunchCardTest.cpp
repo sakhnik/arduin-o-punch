@@ -11,6 +11,14 @@ using namespace AOP;
 
 namespace {
 
+struct GlobalInit
+{
+    GlobalInit()
+    {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    }
+} global_init;
+
 constexpr uint8_t DEF_KEY[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 struct TestMifare : AOP::IMifare
@@ -120,6 +128,47 @@ TEST_CASE("PunchCard max punches")
     }
 }
 
+TEST_CASE("PunchCard max repeated punches")
+{
+    TestMifare mifare(13);
+    PunchCard punchCard(&mifare, DEF_KEY);
+
+    auto testPunch = [](int i) {
+        return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
+    };
+
+    auto maxPunches = PunchCard::GetMaxPunches();
+    for (int i = 0; i < maxPunches; ++i) {
+        CAPTURE(i);
+        // The start station can punch many times, the last timestamp counts
+        if (!i) {
+            auto p = testPunch(i);
+            p.SetTimestamp(p.GetTimestamp() - 100);
+            REQUIRE(0 == punchCard.Punch(p));
+        }
+        REQUIRE(0 == punchCard.Punch(testPunch(i)));
+        // Only the first timestamp counts for the rest of the stations
+        if (i) {
+            auto p = testPunch(i);
+            p.SetTimestamp(p.GetTimestamp() + 100);
+            REQUIRE(0 == punchCard.Punch(p));
+        }
+
+        std::vector<Punch> readOut;
+        REQUIRE(0 == punchCard.ReadOut(readOut));
+        REQUIRE(i + 1 == readOut.size());
+    }
+    // No more space
+    REQUIRE(ErrorCode::CARD_IS_FULL == punchCard.Punch(Punch(51, 65000)));
+
+    std::vector<Punch> readOut;
+    REQUIRE(0 == punchCard.ReadOut(readOut));
+    REQUIRE(maxPunches == readOut.size());
+    for (int i = 0; i < maxPunches; ++i) {
+        CHECK(testPunch(i) == readOut[i]);
+    }
+}
+
 TEST_CASE("PunchCard Clear")
 {
     TestMifare mifare(7);
@@ -154,18 +203,6 @@ TEST_CASE("PunchCard Clear at Start")
     CHECK(1 == readOut.size());
     CHECK(punches[2] == readOut[0]);
 }
-
-namespace {
-
-struct GlobalInit
-{
-    GlobalInit()
-    {
-        std::srand(static_cast<unsigned int>(std::time(nullptr)));
-    }
-} global_init;
-
-} //namespace;
 
 TEST_CASE("PunchCard Recover from failed write")
 {

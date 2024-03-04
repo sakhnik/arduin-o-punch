@@ -46,7 +46,7 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
 
     int prevStationId = !count
                         ? -1
-                        : Punch::GetStation(header, STATION_OFFSET + offsetInBlock - 1);
+                        : Punch::GetStation(header, STATION_OFFSET + (count - 1) % PUNCHES_PER_BLOCK);
 
     if (punch.GetStation() != START_STATION && prevStationId == punch.GetStation()) {
         if (_callback)

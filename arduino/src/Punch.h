@@ -29,6 +29,11 @@ public:
         return _timestamp;
     }
 
+    void SetTimestamp(uint8_t timestamp)
+    {
+        _timestamp = timestamp;
+    }
+
     void SerializeStation(uint8_t *data, int offset)
     {
         data[offset] = _station & 0xff;

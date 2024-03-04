@@ -127,7 +127,7 @@ class PunchCardTest {
             // Test repetitive formatting doesn't corrupt the card
             punchCard.format(42, listOf(TEST_KEY))
 
-            val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, 12345.toLong() * (i + 1))}
+            val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong())}
 
             val maxPunches = punchCard.getMaxPunches(mifare)
             for (i in 0 until maxPunches) {
@@ -147,6 +147,47 @@ class PunchCardTest {
             for (i in 0 until maxPunches) {
                 assertEquals(testPunch(i), readOut.punches[i])
             }
+        }
+
+        punchCard.reset(listOf(TEST_KEY))
+    }
+
+    @Test
+    fun maxRepeatedPunches() {
+        val mifare = TestMifare()
+        val punchCard = PunchCard(mifare, TEST_KEY, context)
+
+        // Test repetitive formatting doesn't corrupt the card
+        punchCard.format(42, listOf(TEST_KEY))
+
+        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong())}
+
+        val maxPunches = punchCard.getMaxPunches(mifare)
+        for (i in 0 until maxPunches) {
+            // The start station can punch many times, the last timestamp counts
+            if (i == 0) {
+                val p = testPunch(i);
+                p.timestamp -= 100;
+                punchCard.punch(p);
+            }
+            punchCard.punch(testPunch(i))
+            // Only the first timestamp counts for the rest of the stations
+            if (i > 0) {
+                val p = testPunch(i);
+                p.timestamp += 100;
+                punchCard.punch(p);
+            }
+            val readOut = punchCard.readOut().punches
+            assertEquals(i + 1, readOut.size)
+        }
+        // No more space
+        assertThrows(RuntimeException::class.java) {
+            punchCard.punch(Punch(31, 65000))
+        }
+
+        val readOut = punchCard.readOut()
+        for (i in 0 until maxPunches) {
+            assertEquals(testPunch(i), readOut.punches[i])
         }
 
         punchCard.reset(listOf(TEST_KEY))
@@ -188,7 +229,7 @@ class PunchCardTest {
         punchCard.format(42, listOf())
         assertEquals(0, punchCard.readOut().punches.size)
 
-        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i + PunchCard.START_STATION).toLong())}
+        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong())}
         val success = ArrayList<Int>()
 
         for (i in 0 until 100) {
