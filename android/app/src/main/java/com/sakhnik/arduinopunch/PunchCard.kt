@@ -194,13 +194,17 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         if (!header1IsOk && !header2IsOk) {
             throw RuntimeException(context.getString(R.string.data_is_corrupted))
         }
-        return if (header1IsOk) {
-            mifare.writeBlock(headerBlock2, header1)
-            header1
-        } else {
-            mifare.writeBlock(headerBlock1, header2)
-            header2
+        if (header1IsOk) {
+            // Store the chosen copy to the other header block if required
+            if (header1[0] != header2[0]) {
+                mifare.writeBlock(headerBlock2, header1)
+            }
+            return header1
         }
+        if (header1[0] != header2[0]) {
+            mifare.writeBlock(headerBlock1, header2)
+        }
+        return header2
     }
 
     fun punch(newPunch: Punch, progress: Progress = Procedure.NO_PROGRESS) {

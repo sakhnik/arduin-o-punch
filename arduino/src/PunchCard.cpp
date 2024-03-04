@@ -232,12 +232,18 @@ uint8_t PunchCard::_RecoverHeader(uint8_t startSector, uint8_t *header)
         return ErrorCode::DATA_CORRUPTED;
     }
     if (header1IsOk) {
-        if (auto res = _mifare->WriteBlock(headerBlock2, header1, IMifare::BLOCK_SIZE))
-            return res;
+        // Store the chosen copy to the other header block if required
+        if (header1[0] != header2[0]) {
+            if (auto res = _mifare->WriteBlock(headerBlock2, header1, IMifare::BLOCK_SIZE))
+                return res;
+        }
         memcpy(header, header1, IMifare::BLOCK_SIZE);
     } else {
-        if (auto res = _mifare->WriteBlock(headerBlock1, header2, IMifare::BLOCK_SIZE))
-            return res;
+        // Store the chosen copy to the other header block if required
+        if (header1[0] != header2[0]) {
+            if (auto res = _mifare->WriteBlock(headerBlock1, header2, IMifare::BLOCK_SIZE))
+                return res;
+        }
         memcpy(header, header2, IMifare::BLOCK_SIZE);
     }
     return 0;

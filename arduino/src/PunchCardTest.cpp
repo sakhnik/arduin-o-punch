@@ -27,6 +27,7 @@ struct TestMifare : AOP::IMifare
     std::array<BlockT, IMifare::BLOCK_COUNT> blocks;
     uint8_t authSector = -1;
     int failWrites = 0;
+    int failDelay = 0;
 
     TestMifare(uint8_t startSector)
     {
@@ -42,9 +43,10 @@ struct TestMifare : AOP::IMifare
         return failWrites;
     }
 
-    void SetFailWrites(int v)
+    void SetFailWrites(int delay, int fails)
     {
-        failWrites = v;
+        failDelay = delay;
+        failWrites = fails;
     }
 
     uint8_t BlockToSector(uint8_t block) const override
@@ -71,9 +73,12 @@ struct TestMifare : AOP::IMifare
         if (BlockToSector(block) != authSector)
             return 1;
         if (failWrites) {
-            --failWrites;
-            memset(blocks[block].data(), 0, IMifare::BLOCK_SIZE);
-            return 3;
+            if (!failDelay) {
+                --failWrites;
+                memset(blocks[block].data(), 0xFF, IMifare::BLOCK_SIZE);
+                return 3;
+            }
+            --failDelay;
         }
         memcpy(blocks[block].data(), data, blockSize);
         return 0;
@@ -271,31 +276,31 @@ TEST_CASE("PunchCard Recover from failed write")
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
     };
 
-    std::vector<int> success;
-
     for (int i = 0; i < 100; ++i) {
         bool exceptionAnticipated = false;
         if (std::rand() % 100 < 10) {
-            mifare.SetFailWrites(std::rand() % 4);
+            mifare.SetFailWrites(std::rand() % 4, std::rand() % 4);
         }
-        if (mifare.GetFailWrites() > 0) {
-            exceptionAnticipated = true;
-        }
-        if (auto res = punchCard.Punch(testPunch(i))) {
-            CHECK(exceptionAnticipated);
-        } else {
-            success.push_back(i);
+        while (true) {
+            if (mifare.GetFailWrites() > 0) {
+                exceptionAnticipated = true;
+            }
+            if (auto res = punchCard.Punch(testPunch(i))) {
+                REQUIRE(exceptionAnticipated);
+            } else {
+                std::vector<Punch> readOut;
+                REQUIRE(0 == punchCard.ReadOut(readOut));
+                REQUIRE(i + 1 == readOut.size());
+                break;
+            }
         }
     }
 
-    CHECK(!success.empty());
-
-    mifare.SetFailWrites(0);
     std::vector<Punch> readOut;
-    CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(success.size() == readOut.size());
-    for (int i = 0; i < success.size(); ++i) {
-        CHECK(testPunch(success[i]) == readOut[i]);
+    REQUIRE(0 == punchCard.ReadOut(readOut));
+    REQUIRE(100 == readOut.size());
+    for (int i = 0; i < 100; ++i) {
+        REQUIRE(testPunch(i) == readOut[i]);
     }
 }
 
