@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keep current view when the screen is rotated
 - Fix the capacity number
 - Fix crash when garbage in the timestamp
+- Allow entering key with lower case hex digits too
 
 ### Removed
 
