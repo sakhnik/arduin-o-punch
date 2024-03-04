@@ -49,7 +49,7 @@ public:
 
     void SerializeTimestamp(uint8_t *data, int offset, uint32_t timestamp0)
     {
-        auto dt = _timestamp - timestamp0;
+        int16_t dt = static_cast<int16_t>(_timestamp - timestamp0);
         data[offset] = dt & 0xff;
         data[offset + 1] = (dt >> 8) & 0xff;
     }
@@ -71,7 +71,9 @@ public:
 
     static uint32_t GetTimestamp(const uint8_t *data, int offset, uint32_t timestamp0)
     {
-        return timestamp0 + data[offset] + (static_cast<uint32_t>(data[offset + 1]) << 8);
+        int16_t dt = data[offset];
+        dt |= static_cast<int16_t>(static_cast<int8_t>(data[offset + 1])) << 8;
+        return timestamp0 + dt;
     }
 
 private:

@@ -82,6 +82,38 @@ struct TestMifare : AOP::IMifare
 
 }  //namespace;
 
+namespace doctest {
+
+template<> struct StringMaker<AOP::Punch> {
+    static String convert(const AOP::Punch &punch) {
+        doctest::String out;
+        out += "(";
+        out += std::to_string(static_cast<unsigned>(punch.GetStation())).c_str();
+        out += ", ";
+        out += std::to_string(punch.GetTimestamp()).c_str();
+        out += ")";
+        return out;
+    }
+};
+
+template<> struct StringMaker<std::vector<AOP::Punch>> {
+    static String convert(const std::vector<AOP::Punch> &punches) {
+        doctest::String out;
+        out += std::to_string(punches.size()).c_str();
+        out += " punches: [";
+        const char *comma = "";
+        for (const auto &punch : punches) {
+            out += comma;
+            comma = ", ";
+            out += StringMaker<AOP::Punch>::convert(punch);
+        }
+        out += "]";
+        return out;
+    }
+};
+
+} //namespace;
+
 TEST_CASE("PunchCard Punch")
 {
     TestMifare mifare(2);
@@ -100,6 +132,29 @@ TEST_CASE("PunchCard Punch")
     }
 
     CHECK(0 == punchCard.ReadOut(readOut));
+    //CHECK(punches.size() == readOut.size());
+    CHECK(punches == readOut);
+}
+
+TEST_CASE("PunchCard Punch asynchronous")
+{
+    TestMifare mifare(3);
+    PunchCard punchCard(&mifare, DEF_KEY);
+
+    std::vector<Punch> readOut;
+    CHECK(0 == punchCard.ReadOut(readOut));
+    CHECK(readOut.empty());
+
+    // Stations could potentially be not synchronized, the timestamps can go down occasionally.
+    std::vector<Punch> punches = {Punch(31, 200), Punch(32, 130), Punch(33, 100)};
+    for (int i = 0; i != punches.size(); ++i) {
+        REQUIRE(0 == punchCard.Punch(punches[i]));
+        REQUIRE(0 == punchCard.ReadOut(readOut));
+        REQUIRE(i + 1 == readOut.size());
+        CHECK(punches[i] == readOut[i]);
+    }
+
+    REQUIRE(0 == punchCard.ReadOut(readOut));
     //CHECK(punches.size() == readOut.size());
     CHECK(punches == readOut);
 }
@@ -208,7 +263,7 @@ TEST_CASE("PunchCard Recover from failed write")
 {
     // Some cheap cards may lose data when timeout occurs. The puncher should
     // be resilient and never lose ability to continue punching even after
-    // occasional data loss in one block becaue of unsuccessful write operation.
+    // occasional data loss in one block because of unsuccessful write operation.
     TestMifare mifare(7);
     PunchCard punchCard(&mifare, DEF_KEY);
 

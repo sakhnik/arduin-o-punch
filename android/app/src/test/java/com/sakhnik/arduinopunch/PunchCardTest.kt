@@ -119,6 +119,28 @@ class PunchCardTest {
     }
 
     @Test
+    fun punchAsynchronous() {
+        val mifare = TestMifare()
+        val punchCard = PunchCard(mifare, TEST_KEY, context)
+        punchCard.format(42, listOf())
+        assertEquals(0, punchCard.readOut().punches.size)
+        // Stations could potentially be not synchronized, the timestamps can go down occasionally.
+        val punches = listOf(Punch(31, 200), Punch(32, 130), Punch(33, 100))
+        for (i in punches.indices) {
+            punchCard.punch(punches[i])
+            val readOut = punchCard.readOut().punches
+            assertEquals(i + 1, readOut.size)
+            assertEquals(punches[i], readOut[i])
+        }
+
+        val readOut = punchCard.readOut()
+        assertEquals(punches.size, readOut.punches.size)
+        assertEquals(punches, readOut.punches)
+
+        punchCard.reset(listOf(TEST_KEY))
+    }
+
+    @Test
     fun maxPunches() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
@@ -166,16 +188,16 @@ class PunchCardTest {
         for (i in 0 until maxPunches) {
             // The start station can punch many times, the last timestamp counts
             if (i == 0) {
-                val p = testPunch(i);
-                p.timestamp -= 100;
-                punchCard.punch(p);
+                val p = testPunch(i)
+                p.timestamp -= 100
+                punchCard.punch(p)
             }
             punchCard.punch(testPunch(i))
             // Only the first timestamp counts for the rest of the stations
             if (i > 0) {
-                val p = testPunch(i);
-                p.timestamp += 100;
-                punchCard.punch(p);
+                val p = testPunch(i)
+                p.timestamp += 100
+                punchCard.punch(p)
             }
             val readOut = punchCard.readOut().punches
             assertEquals(i + 1, readOut.size)
@@ -223,7 +245,7 @@ class PunchCardTest {
     fun recoverFromFailedWrite() {
         // Some cheap cards may lose data when timeout occurs. The puncher should
         // be resilient and never lose ability to continue punching even after
-        // occasional data loss in one block becaue of unsuccessful write operation.
+        // occasional data loss in one block because of unsuccessful write operation.
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
         punchCard.format(42, listOf())
@@ -250,7 +272,7 @@ class PunchCardTest {
 
         assertFalse(success.isEmpty())
 
-        mifare.setFailWrites(0);
+        mifare.setFailWrites(0)
         val readOut = punchCard.readOut()
         assertEquals(success.size, readOut.punches.size)
         for (i in 0 until success.size) {

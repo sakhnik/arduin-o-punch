@@ -33,7 +33,7 @@ data class Punch(val station: Int, var timestamp: Long) {
         fun getTimestamp(data: ByteArray, offset: Int, timestamp0: Long): Long {
             return timestamp0 +
                 ((data[offset].toLong() and 0xff) or
-                (data[offset + 1].toLong() and 0xff shl 8))
+                (data[offset + 1].toLong() shl 8))
         }
     }
 }

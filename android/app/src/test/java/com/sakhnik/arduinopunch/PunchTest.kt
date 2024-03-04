@@ -27,11 +27,23 @@ class PunchTest {
 
     @Test
     fun deserialize() {
-        val data = byteArrayOf(0xde.toByte(), 0xad.toByte(), 0xbe.toByte(), 0xef.toByte(), 0x12.toByte())
+        val data = byteArrayOf(0xde.toByte(), 0xad.toByte(), 0xbe.toByte(), 0x7f.toByte(), 0x12.toByte())
         assertEquals(0xde, Punch.getStation(data, 0))
-        assertEquals(0xefbead, Punch.getTimestamp(data, 1))
+        assertEquals(0x7fbead, Punch.getTimestamp(data, 1))
 
         assertEquals(0xad, Punch.getStation(data, 1))
-        assertEquals(0xefbe + 12345, Punch.getTimestamp(data, 2, 12345))
+        assertEquals(0x7fbe + 12345, Punch.getTimestamp(data, 2, 12345))
+    }
+
+    @Test
+    fun punchDecreasingTimestamp() {
+        val data = ByteArray(8)
+        val p1 = Punch(31, 12345)
+        p1.serializeTimestamp(data, 0)
+        assertEquals(12345, Punch.getTimestamp(data, 0))
+        p1.serializeTimestamp(data, 0, 12340)
+        assertEquals(12345, Punch.getTimestamp(data, 0, 12340))
+        p1.serializeTimestamp(data, 0, 12350)
+        assertEquals(12345, Punch.getTimestamp(data, 0, 12350))
     }
 }
