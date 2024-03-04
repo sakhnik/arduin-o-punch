@@ -122,27 +122,31 @@ class PunchCardTest {
     fun maxPunches() {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
-        punchCard.format(42, listOf())
 
-        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, 12345.toLong() * (i + 1))}
+        for (k in 0 until 16) {
+            // Test repetitive formatting doesn't corrupt the card
+            punchCard.format(42, listOf(TEST_KEY))
 
-        val maxPunches = punchCard.getMaxPunches(mifare)
-        for (i in 0 until maxPunches) {
-            punchCard.punch(testPunch(i))
-            val readOut = punchCard.readOut().punches
-            assertEquals(i + 1, readOut.size)
-            for (j in 0 .. i) {
-                assertEquals(testPunch(j), readOut[j])
+            val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, 12345.toLong() * (i + 1))}
+
+            val maxPunches = punchCard.getMaxPunches(mifare)
+            for (i in 0 until maxPunches) {
+                punchCard.punch(testPunch(i))
+                val readOut = punchCard.readOut().punches
+                assertEquals(i + 1, readOut.size)
+                for (j in 0 .. i) {
+                    assertEquals(testPunch(j), readOut[j])
+                }
             }
-        }
-        // No more space
-        assertThrows(RuntimeException::class.java) {
-            punchCard.punch(Punch(31, 65000))
-        }
+            // No more space
+            assertThrows(RuntimeException::class.java) {
+                punchCard.punch(Punch(31, 65000))
+            }
 
-        val readOut = punchCard.readOut()
-        for (i in 0 until maxPunches) {
-            assertEquals(testPunch(i), readOut.punches[i])
+            val readOut = punchCard.readOut()
+            for (i in 0 until maxPunches) {
+                assertEquals(testPunch(i), readOut.punches[i])
+            }
         }
 
         punchCard.reset(listOf(TEST_KEY))
