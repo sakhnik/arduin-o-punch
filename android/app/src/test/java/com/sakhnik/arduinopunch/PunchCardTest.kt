@@ -225,7 +225,7 @@ class PunchCardTest {
         val key2 = byteArrayOf(0x11, 0x22, 0x33, 0x44, 0x55, 0x66)
         PunchCard(mifare, TEST_KEY, context).format(42, listOf())
         val punchCard2 = PunchCard(mifare, key2, context)
-        punchCard2.format(43, listOf(key2, TEST_KEY))
+        punchCard2.format(1234, listOf(key2, TEST_KEY))
         assertThrows(RuntimeException::class.java) {
             // Mind the cached authSector in PunchCard
             PunchCard(mifare, TEST_KEY, context).punch(Punch(31, 123.toLong()))
@@ -235,7 +235,7 @@ class PunchCardTest {
         }
         punchCard2.punch(Punch(32, 123.toLong()))
         val readOut = punchCard2.readOut()
-        assertEquals(43, readOut.cardNumber)
+        assertEquals(1234, readOut.cardNumber)
         assertEquals(1, readOut.punches.size)
         assertEquals(Punch(32, 123.toLong()), readOut.punches[0])
 
@@ -250,40 +250,50 @@ class PunchCardTest {
         // Some cheap cards may lose data when timeout occurs. The puncher should
         // be resilient and never lose ability to continue punching even after
         // occasional data loss in one block because of unsuccessful write operation.
-        val mifare = TestMifare()
-        val punchCard = PunchCard(mifare, TEST_KEY, context)
-        punchCard.format(42, listOf())
-        assertEquals(0, punchCard.readOut().punches.size)
+        repeat(10) {
+            val mifare = TestMifare()
+            val punchCard = PunchCard(mifare, TEST_KEY, context)
+            punchCard.format(42, listOf())
+            assertEquals(0, punchCard.readOut().punches.size)
 
-        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong())}
+            val testPunch =
+                { i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong()) }
 
-        for (i in 0 until 100) {
+            val punchCount = Random.nextInt(punchCard.getMaxPunches(mifare))
+            for (i in 0 until punchCount) {
+                while (true) {
+                    var exceptionAnticipated = false
+                    try {
+                        if (Random.nextInt(0, 100) < 10) {
+                            mifare.setFailWrites(Random.nextInt(0, 4), Random.nextInt(0, 4))
+                        }
+                        if (mifare.getFailWrites() > 0) {
+                            exceptionAnticipated = true
+                        }
+                        punchCard.punch(testPunch(i))
+
+                        val readOut = punchCard.readOut()
+                        assertEquals(i + 1, readOut.punches.size)
+                        break
+                    } catch (e: Exception) {
+                        assertTrue(exceptionAnticipated)
+                    }
+                }
+            }
+
             while (true) {
-                var exceptionAnticipated = false
                 try {
-                    if (Random.nextInt(0, 100) < 10) {
-                        mifare.setFailWrites(Random.nextInt(0, 4), Random.nextInt(0, 4))
-                    }
-                    if (mifare.getFailWrites() > 0) {
-                        exceptionAnticipated = true
-                    }
-                    punchCard.punch(testPunch(i))
-
                     val readOut = punchCard.readOut()
-                    assertEquals(i + 1, readOut.punches.size)
+                    assertEquals(punchCount, readOut.punches.size)
+                    for (i in 0 until punchCount) {
+                        assertEquals(testPunch(i), readOut.punches[i])
+                    }
+                    punchCard.reset(listOf(TEST_KEY))
                     break
                 } catch (e: Exception) {
-                    assertTrue(exceptionAnticipated)
+                    // There may be scheduled outstanding failures when recovering the header
                 }
             }
         }
-
-        val readOut = punchCard.readOut()
-        assertEquals(100, readOut.punches.size)
-        for (i in 0 until 100) {
-            assertEquals(testPunch(i), readOut.punches[i])
-        }
-
-        punchCard.reset(listOf(TEST_KEY))
     }
 }
