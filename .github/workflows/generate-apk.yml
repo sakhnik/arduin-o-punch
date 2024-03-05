@@ -37,7 +37,7 @@ jobs:
 
       - name: Run gradle tests
         working-directory: ./android
-        run: ./gradlew test
+        run: ./gradlew test -i
 
       - name: Build gradle project
         working-directory: ./android
