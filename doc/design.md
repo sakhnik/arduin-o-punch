@@ -12,7 +12,7 @@
 
 ### Arduino station configuration
 
-A high precision RTC clock DS323a is used backed with CR2032 battery. A station
+A high precision RTC clock DS3231 is used backed with CR2032 battery. A station
 must be configured with the number, actual crypto key using built in CLI via UART.
 Clock is also synchronized with CLI using a scripted application taking into account
 communication latency.
@@ -25,6 +25,7 @@ are to be synchronized too.
 Morse code is used by the base station for signaling. See `Buzzer.cpp` for the actual
 list of messages. Most notable are the following ones:
 
+- `OK` upon successful startup
 - `RTC` upon startup if communication with RTC fails
 - `KEY` upon startup if the default encryption key is used (needs changing)
 - `.-` successful punch
@@ -36,7 +37,7 @@ list of messages. Most notable are the following ones:
 
 * Authorize with the default key
 * Update the key with the actual value for all the blocks
-* Write the initial directory index (1 start punch)
+* Write the initial directory index
 * Confirm operation successful (beep, flash)
 
 ### Card punching
@@ -46,24 +47,35 @@ Allocating 4 bytes per punch (1 byte station number + 3 bytes for timestamp in
 seconds) allows storing at most 180 punches. The actual limit is lower because
 one block should be used for directory information.
 
+It turned out that writing to some cards isn't atomic, the block may be left reset
+to all `F`, and the information lost. This prompted for a development of a more
+resilient data structure.
+
 The Arduino station records a punch with the following procedure:
 
-* Read the directory to get the block and offset to write to
-* Read the previous punch (station, time)
-* If station corresponds to the actual station, just confirm, nothing to write
-    (beep, flash)
-* Punch the card (station number, timestamp)
-* Update the directory (index + 1)
-* Confirm the successful punching (beep, flash)
+- One sector is allocated for a write-ahead log (WAL)
+- The log doubles information of the most recent punches (two blocks are used)
+- Before punching, the WAL blocks are compared with each other to figure out
+  the actual state
+- If one of the WAL blocks is missing, it gets restored and written back from
+  the healthy one
+- When the WAL gets full with 4 punches, the next one triggers copying the punches
+  to free storage block (1 copy).
+- Add a new punch to the WAL
+- Write WAL to the two WAL blocks
+- Confirm successful punch
+
+If punching is interrupted at any stage, the data remains consistent. Either
+the punching succeeded and the runner got a confirmation, or no confirmation
+for her to retry.
 
 The same way Android punching should function for the data consistency.
 
 ### Card readout
 
-* Read the directory to find out the number of punches
+* Read WAL to find out the actual number of punches
 * Read all the punches
-* Calculate timestamps taking the map from timestamp calibration (see Arduino
-    configuration)
+* Append the most recent punches from the WAL
 * Prepare JSON in the qr-o-punch format, upload to Quick Event
 * Confirm successful upload (beep, flash)
 

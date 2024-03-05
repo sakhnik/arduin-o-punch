@@ -18,12 +18,21 @@ public:
 
     // Keep in sync with Android's Puncher
     //
-    // Header format: 4 most recent punches in a block
-    // The count field is only applicable to the header blocks, it's ignored when the full record
-    // is archived.
+    // WAL sector is chosen randomly during card formatting.
+    // It's written to the KEY_B together with the card number.
+    //
+    // 0     | 1     | 2     | 3     | 4     | 5     |
+    // ID_LO | ID_HI | WAL_S | --    | --    | --    |
+    //
+    // WAL format: 4 most recent punches in a block
+    // The count field is only applicable to the WAL blocks, it's ignored when the record
+    // is archived to the storage area.
     //
     // 0     | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9     | A     | B     | C     | D     | E     | F     |
     // CNT   | ID1   | ID2   | ID3   | ID4   | TIMESTAMP1 (LE)       | DT2 (LE)      | DT3 (LE)      | DT4 (LE)      | --    | --    |
+    //
+    // The storage area follows WAL (subsequent sectors) and contains copies of WAL
+    // records when they became full.
 
     static constexpr auto INDEX_SECTOR = 0;
     static constexpr auto HEADER_BLOCK1 = 1;
