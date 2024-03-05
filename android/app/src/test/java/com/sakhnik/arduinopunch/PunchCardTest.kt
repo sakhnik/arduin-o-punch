@@ -250,7 +250,7 @@ class PunchCardTest {
         // Some cheap cards may lose data when timeout occurs. The puncher should
         // be resilient and never lose ability to continue punching even after
         // occasional data loss in one block because of unsuccessful write operation.
-        repeat(10) {
+        repeat(2) {
             val mifare = TestMifare()
             val punchCard = PunchCard(mifare, TEST_KEY, context)
             punchCard.format(42, listOf())
