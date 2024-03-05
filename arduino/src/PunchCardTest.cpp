@@ -3,6 +3,7 @@
 #include "doctest/doctest.h"
 #include "PunchCard.h"
 #include <array>
+#include <string>  // std::to_string()
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
