@@ -39,4 +39,5 @@
     <string name="scan_qr">Скан QR</string>
     <string name="uploaded">Вивантажено</string>
     <string name="failed_to_upload">Не вдалося вивантажити: %1$s</string>
+    <string name="data_is_corrupted">Дані пошкоджено</string>
 </resources>

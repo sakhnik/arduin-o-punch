@@ -41,4 +41,5 @@
     <string name="scan_qr">Scan QR</string>
     <string name="uploaded">Uploaded</string>
     <string name="failed_to_upload">Failed to upload: %1$s</string>
+    <string name="data_is_corrupted">Data is corrupted</string>
 </resources>

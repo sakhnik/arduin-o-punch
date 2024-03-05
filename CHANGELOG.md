@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **New data structure** resilient to information loss because of failed writes on some cards
 - Fix latency calculation in sync_clock.py, wait for the prompt explicitly
 - Fix layout in Android app for smaller screens
 - Keep current view when the screen is rotated
 - Fix the capacity number
 - Fix crash when garbage in the timestamp
+- Allow entering key with lower case hex digits too
 
 ### Removed
 
