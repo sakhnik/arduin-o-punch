@@ -55,12 +55,12 @@ ErrorCode PunchCard::Punch(AOP::Punch punch, ProgressT progress)
     AOP::Punch prevPunch{punchBlock, addr.offset};
     //   a. check the station is different unless it's the start station.
     //   allow punching the start station many times because the index is reset.
-    //if (punch.GetStation() != START_STATION && prevPunch.GetStation() == punch.GetStation()) {
-    //    progress(stages, stages);
-    //    if (_callback)
-    //        _callback->OnCardId(card_id);
-    //    return ErrorCode::OK;
-    //}
+    if (punch.GetStation() != START_STATION && prevPunch.GetStation() == punch.GetStation()) {
+        progress(stages, stages);
+        if (_callback)
+            _callback->OnCardId(card_id);
+        return ErrorCode::OK;
+    }
 
     // 3. write the next record
     auto newAddr = _GetPunchAddr(index);
