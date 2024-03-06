@@ -3,7 +3,7 @@
 #include "IMifare.h"
 #include "ErrorCode.h"
 
-#ifdef BUILD_TEST
+#if defined(BUILD_TEST) || defined(BUILD_WA)
 # include <vector>
 #endif
 
@@ -78,7 +78,7 @@ public:
     // Clear previous punches from a card without changing the format information
     ErrorCode Clear();
 
-#ifdef BUILD_TEST
+#if defined(BUILD_TEST) || defined(BUILD_WA)
     using PunchesT = std::vector<AOP::Punch>;
     uint8_t ReadOut(PunchesT &);
     void _ReadPunchesFromBlock(uint8_t count, const uint8_t *data, PunchesT &);

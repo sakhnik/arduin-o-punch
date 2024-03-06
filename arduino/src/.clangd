@@ -1,8 +1,5 @@
 CompileFlags:
-    Add:
-        - -xc++
-        - -std=c++11
-        - -DBUILD_TEST
+    Remove:
         - -DUBRRH
         - -DARDUINO=10607
         - -DARDUINO_AVR_PRO
@@ -20,7 +17,8 @@ CompileFlags:
         - -I/home/sakhnik/Arduino/libraries/arduino-timer/src
         - -I/home/sakhnik/Arduino/libraries/Adafruit_BusIO/
         - -I/home/sakhnik/Arduino/libraries/RTClib/src
-        - -I/home/sakhnik/Arduino/libraries/Low-Power
         - -I/home/sakhnik/Arduino/libraries/CircularBuffer
+    Add:
+        - -DBUILD_TEST
         - -I/tmp/aop-build/_deps/doctest-src
         - -I/run/media/sakhnik/Android/emsdk/upstream/emscripten/system/include

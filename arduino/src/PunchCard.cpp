@@ -1,8 +1,7 @@
 #include "PunchCard.h"
 #include "ErrorCode.h"
 
-#ifdef BUILD_TEST
-# include <cassert>
+#if defined(BUILD_TEST) || defined(BUILD_WA)
 # include <cstring>
 #else
 # include <Arduino.h>
@@ -133,7 +132,7 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
     return 0;
 }
 
-#ifdef BUILD_TEST
+#if defined(BUILD_TEST) || defined(BUILD_WA)
 
 uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
 {

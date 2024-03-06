@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef BUILD_TEST
+#if defined(BUILD_TEST) || defined(BUILD_WA)
 # include <cstdint>
 #else
 # include <Arduino.h>
@@ -34,7 +34,7 @@ struct ErrorCode
     }
 };
 
-#ifdef BUILD_TEST
+#if defined(BUILD_TEST) || defined(BUILD_WA)
 
 #include <iostream>
 

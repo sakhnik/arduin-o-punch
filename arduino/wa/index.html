@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduin-O-Punch test</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-family: Arial, sans-serif;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            width: 6%;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .keyA {
+            background-color: #ff0000;
+        }
+        .accessBits {
+            background-color: #777777;
+        }
+        .keyB {
+            background-color: #ff9999;
+        }
+    </style>
+</head>
+<body>
+    <h2>Mifare Classic 1k Card Layout</h2>
+    <div id="table-container"></div>
+
+    <script src="aop.js"></script>
+    <script>
+        // Function to create the HTML table
+        function createMifareLayout() {
+            const numRows = 64; // Total number of blocks in a Mifare Classic 1k card
+            const numCols = 16; // Number of bytes in each block
+
+            const table = document.createElement('table');
+
+            // Add a header row for sector titles
+            const headerRow = table.insertRow();
+            const headerCell = headerRow.insertCell();
+            headerCell.colSpan = numCols + 1;
+            headerCell.textContent = 'Block 0 (Reserved)';
+
+            // Loop through each block and add rows to the table
+            for (let i = 1; i < numRows; i++) {
+                const row = table.insertRow();
+
+                const headerCell = row.insertCell();
+                headerCell.textContent = 'Block ' + i;
+
+                const isControlBlock = i % 4 === 3;
+                for (let j = 0; j < numCols; j++) {
+                    const cell = row.insertCell();
+                    cell.textContent = '00';
+                    if (isControlBlock) {
+                        if (j < 6) {
+                            cell.classList.add('keyA');
+                        } else if (j < 9) {
+                            cell.classList.add('accessBits');
+                        } else if (j >= 10) {
+                            cell.classList.add('keyB');
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('table-container').appendChild(table);
+        }
+
+        createMifareLayout();
+    </script>
+</body>
+</html>
