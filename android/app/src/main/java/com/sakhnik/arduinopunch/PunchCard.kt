@@ -98,7 +98,8 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         val headerBlock1 = startSector * 4 + HEADER_BLOCK1
         val headerBlock2 = startSector * 4 + HEADER_BLOCK2
         progress(1, 3)
-        val data = ByteArray(16)
+        val data = ByteArray(16) { 0xff.toByte() }
+        data[0] = 0
         mifare.writeBlock(headerBlock1, data)
         progress(2, 3)
         mifare.writeBlock(headerBlock2, data)
@@ -223,7 +224,8 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         // 5. calculate the offset in the header
         // If this is the start station punching, clear all the previous punches
         if (newPunch.station == START_STATION) {
-            Arrays.fill(header, 0)
+            Arrays.fill(header, 0xff.toByte())
+            header[0] = 0
         }
         val count = header[0].toInt() and 0xff
         val offsetInBlock = count % PUNCHES_PER_BLOCK
@@ -250,7 +252,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             val block = getPunchBlock(count - PUNCHES_PER_BLOCK, startSector)
             authenticate(mifare.blockToSector(block))
             mifare.writeBlock(block, header)
-            Arrays.fill(header, STATION_OFFSET, header.size, 0)
+            Arrays.fill(header, STATION_OFFSET, header.size, 0xff.toByte())
         }
         header[COUNT_OFFSET] = (count + 1).toByte()
 

@@ -35,7 +35,8 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     // 5. calculate the offset in the header
     // If this is the start station punching, clear all the previous punches
     if (punch.GetStation() == START_STATION) {
-        memset(header, 0, IMifare::BLOCK_SIZE);
+        memset(header, 0xff, IMifare::BLOCK_SIZE);
+        header[0] = 0;
     }
     uint8_t count = header[0];
     uint8_t offsetInBlock = count % PUNCHES_PER_BLOCK;
@@ -64,7 +65,7 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
             return res;
         if (auto res = _mifare->WriteBlock(block, header, IMifare::BLOCK_SIZE))
             return res;
-        memset(header + STATION_OFFSET, 0, IMifare::BLOCK_SIZE - STATION_OFFSET);
+        memset(header + STATION_OFFSET, 0xff, IMifare::BLOCK_SIZE - STATION_OFFSET);
     }
     ++header[COUNT_OFFSET];
 
@@ -124,7 +125,9 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
         return res;
     uint8_t headerBlock1 = startSector * 4 + HEADER_BLOCK1;
     uint8_t headerBlock2 = startSector * 4 + HEADER_BLOCK2;
-    uint8_t header[IMifare::BLOCK_SIZE + 2] = {};
+    uint8_t header[IMifare::BLOCK_SIZE + 2];
+    memset(header, 0xff, IMifare::BLOCK_SIZE);
+    header[0] = 0;
     if (auto res = _mifare->WriteBlock(headerBlock2, header, IMifare::BLOCK_SIZE))
         return res;
     if (auto res = _mifare->WriteBlock(headerBlock1, header, IMifare::BLOCK_SIZE))
