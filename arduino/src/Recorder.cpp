@@ -20,8 +20,8 @@ struct Header
 
 Recorder::Recorder(int begin, int size, IEeprom &eeprom)
     : _begin(begin + sizeof(Header))
-    , _eeprom{eeprom}
     , _size(size - sizeof(Header))
+    , _eeprom{eeprom}
 {
 }
 
