@@ -17,18 +17,23 @@ add_definitions(-DBUILD_TEST)
 add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 
-add_executable(test-aop
+add_library(aop
+    IMifare.cpp
     IMifare.h
     Punch.h
     PunchCard.cpp
     PunchCard.h
-    PunchCardTest.cpp
-    PunchTest.cpp
     Recorder.cpp
     Recorder.h
+)
+
+add_executable(test-aop
+    PunchCardTest.cpp
+    PunchTest.cpp
     RecorderTest.cpp
     test.cpp
     )
+target_link_libraries(test-aop aop)
 
 enable_testing()
 

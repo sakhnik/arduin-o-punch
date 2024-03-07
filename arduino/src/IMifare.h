@@ -10,6 +10,12 @@ struct IMifare
     static constexpr int BLOCK_COUNT = 64;
     static constexpr int SECTOR_COUNT = 16;
 
+    static constexpr uint8_t KEY_SIZE = 6;
+    static const uint8_t KEY_DEFAULT[KEY_SIZE];
+    // Default access bits that allow using KeyB for data
+    static constexpr uint8_t ACCESS_BITS_SIZE = 3;
+    static const uint8_t ACCESS_BITS[ACCESS_BITS_SIZE];
+
     virtual ~IMifare() {}
     virtual uint8_t BlockToSector(uint8_t block) const = 0;
     virtual uint8_t AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) = 0;

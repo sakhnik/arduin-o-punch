@@ -20,8 +20,6 @@ struct GlobalInit
     }
 } global_init;
 
-constexpr uint8_t DEF_KEY[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-
 struct TestMifare : AOP::IMifare
 {
     using BlockT = std::array<uint8_t, IMifare::BLOCK_SIZE>;
@@ -35,7 +33,7 @@ struct TestMifare : AOP::IMifare
         for (auto &block : blocks)
             block.fill(0);
         for (int sector = 0; sector < 16; ++sector)
-            memcpy(blocks[sector * 4 + 3].data(), DEF_KEY, sizeof(DEF_KEY));
+            memcpy(blocks[sector * 4 + 3].data(), IMifare::KEY_DEFAULT, IMifare::KEY_SIZE);
         blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::SECTOR_OFFSET] = startSector;
     }
 
@@ -58,7 +56,7 @@ struct TestMifare : AOP::IMifare
     uint8_t AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) override
     {
         authSector = sector;
-        return memcmp(key, blocks[4 * sector + 3].data(), sizeof(DEF_KEY));
+        return memcmp(key, blocks[4 * sector + 3].data(), IMifare::KEY_SIZE);
     }
 
     uint8_t ReadBlock(uint8_t block, uint8_t *data, uint8_t &) override
@@ -90,8 +88,10 @@ struct TestMifare : AOP::IMifare
 
 namespace doctest {
 
-template<> struct StringMaker<AOP::Punch> {
-    static String convert(const AOP::Punch &punch) {
+template<> struct StringMaker<AOP::Punch>
+{
+    static String convert(const AOP::Punch &punch)
+    {
         doctest::String out;
         out += "(";
         out += std::to_string(static_cast<unsigned>(punch.GetStation())).c_str();
@@ -102,8 +102,10 @@ template<> struct StringMaker<AOP::Punch> {
     }
 };
 
-template<> struct StringMaker<std::vector<AOP::Punch>> {
-    static String convert(const std::vector<AOP::Punch> &punches) {
+template<> struct StringMaker<std::vector<AOP::Punch>>
+{
+    static String convert(const std::vector<AOP::Punch> &punches)
+    {
         doctest::String out;
         out += std::to_string(punches.size()).c_str();
         out += " punches: [";
@@ -123,7 +125,7 @@ template<> struct StringMaker<std::vector<AOP::Punch>> {
 TEST_CASE("PunchCard Punch")
 {
     TestMifare mifare(2);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
@@ -145,7 +147,7 @@ TEST_CASE("PunchCard Punch")
 TEST_CASE("PunchCard Punch asynchronous")
 {
     TestMifare mifare(3);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
@@ -168,7 +170,7 @@ TEST_CASE("PunchCard Punch asynchronous")
 TEST_CASE("PunchCard max punches")
 {
     TestMifare mifare(14);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     auto testPunch = [](int i) {
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
@@ -192,7 +194,7 @@ TEST_CASE("PunchCard max punches")
 TEST_CASE("PunchCard max repeated punches")
 {
     TestMifare mifare(13);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     auto testPunch = [](int i) {
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
@@ -233,7 +235,7 @@ TEST_CASE("PunchCard max repeated punches")
 TEST_CASE("PunchCard Clear")
 {
     TestMifare mifare(7);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130)};
     for (int i = 0; i != punches.size(); ++i) {
@@ -252,7 +254,7 @@ TEST_CASE("PunchCard Clear")
 TEST_CASE("PunchCard Clear at Start")
 {
     TestMifare mifare(12);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::START_STATION, 150)};
     for (int i = 0; i != punches.size(); ++i) {
@@ -271,7 +273,7 @@ TEST_CASE("PunchCard Recover from failed write")
     // be resilient and never lose ability to continue punching even after
     // occasional data loss in one block because of unsuccessful write operation.
     TestMifare mifare(7);
-    PunchCard punchCard(&mifare, DEF_KEY);
+    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     auto testPunch = [](int i) {
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);

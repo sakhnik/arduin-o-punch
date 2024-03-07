@@ -55,9 +55,6 @@ public:
     static constexpr const auto XOR_OFFSET = 7;
     static constexpr const auto INDEX_OFFSET = 8;
 
-    // Default access bits that allow using KeyB for data
-    static constexpr const uint8_t ACCESS_BITS[] = {0xff, 0x07, 0x80};
-
 public:
     struct ICallback
     {
