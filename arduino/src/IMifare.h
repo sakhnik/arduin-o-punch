@@ -6,9 +6,10 @@ namespace AOP {
 
 struct IMifare
 {
-    static constexpr int BLOCK_SIZE = 16;
-    static constexpr int BLOCK_COUNT = 64;
-    static constexpr int SECTOR_COUNT = 16;
+    static constexpr uint8_t BLOCK_SIZE = 16;
+    static constexpr uint8_t BLOCKS_PER_SECTOR = 4;
+    static constexpr uint8_t SECTOR_COUNT = 16;
+    static constexpr uint8_t BLOCK_COUNT = SECTOR_COUNT * BLOCKS_PER_SECTOR;
 
     static constexpr uint8_t KEY_SIZE = 6;
     static const uint8_t KEY_DEFAULT[KEY_SIZE];

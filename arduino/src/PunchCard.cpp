@@ -82,14 +82,14 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     }
 
     // 8. write header 2
-    auto headerBlock2 = startSector * 4 + HEADER_BLOCK2;
+    auto headerBlock2 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK2;
     if (auto res = _Authenticate(startSector))
         return res;
     if (auto res = _mifare->WriteBlock(headerBlock2, header, IMifare::BLOCK_SIZE))
         return res;
 
     // 9. write header 1
-    auto headerBlock1 = startSector * 4 + HEADER_BLOCK1;
+    auto headerBlock1 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK1;
     if (auto res = _Authenticate(startSector))
         return res;
     if (auto res = _mifare->WriteBlock(headerBlock1, header, IMifare::BLOCK_SIZE))
@@ -123,8 +123,8 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
 {
     if (auto res = _Authenticate(startSector))
         return res;
-    uint8_t headerBlock1 = startSector * 4 + HEADER_BLOCK1;
-    uint8_t headerBlock2 = startSector * 4 + HEADER_BLOCK2;
+    uint8_t headerBlock1 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK1;
+    uint8_t headerBlock2 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK2;
     uint8_t header[IMifare::BLOCK_SIZE + 2];
     memset(header, 0xff, IMifare::BLOCK_SIZE);
     header[0] = 0;
@@ -147,7 +147,7 @@ ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
         if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT)) {
             return res;
         }
-        uint8_t blockIndex = 3 + 4 * sector;
+        uint8_t blockIndex = IMifare::BLOCKS_PER_SECTOR * (sector + 1) - 1;
         uint8_t trailer[IMifare::BLOCK_SIZE + 2];
         uint8_t dataSize = sizeof(trailer);
         if (auto res = _mifare->ReadBlock(blockIndex, trailer, dataSize)) {
@@ -243,8 +243,8 @@ uint8_t PunchCard::_Authenticate(uint8_t sector)
 
 uint8_t PunchCard::_RecoverHeader(uint8_t startSector, uint8_t *header)
 {
-    uint8_t headerBlock1 = startSector * 4 + HEADER_BLOCK1;
-    uint8_t headerBlock2 = startSector * 4 + HEADER_BLOCK2;
+    uint8_t headerBlock1 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK1;
+    uint8_t headerBlock2 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK2;
 
     // 2. read header 1
     if (auto res = _Authenticate(startSector))
@@ -289,11 +289,16 @@ uint8_t PunchCard::_RecoverHeader(uint8_t startSector, uint8_t *header)
 uint8_t PunchCard::_GetPunchBlock(uint8_t index, uint8_t startSector)
 {
     uint8_t sector = (index / PUNCHES_PER_SECTOR + startSector + 1);
-    if (sector >= IMifare::SECTOR_COUNT) {
-        sector -= IMifare::SECTOR_COUNT - 1;
-    }
     auto sectorOffset = index % PUNCHES_PER_SECTOR / PUNCHES_PER_BLOCK;
-    return sector * 4 + sectorOffset;
+    if (sector >= IMifare::SECTOR_COUNT) {
+        sector -= IMifare::SECTOR_COUNT;
+        // Block 0 isn't writable, shift everything down.
+        if (++sectorOffset == IMifare::BLOCKS_PER_SECTOR - 1) {
+            sectorOffset = 0;
+            ++sector;
+        }
+    }
+    return sector * IMifare::BLOCKS_PER_SECTOR + sectorOffset;
 }
 
 }  // namespace AOP;

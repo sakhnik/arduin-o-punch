@@ -38,7 +38,8 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     }
 
     fun getMaxPunches(mifare: IMifare): Int {
-        return (mifare.sectorCount - 2) * PUNCHES_PER_SECTOR
+        // Beyond control blocks, the block 0 isn't usable (manufacturer data) and one is used for WAL duplication
+        return (mifare.blockCount / 4 * 3 - 2) * PUNCHES_PER_BLOCK
     }
 
     private fun authenticate(sector: Int) {
@@ -285,10 +286,15 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
     private fun getPunchBlock(index: Int, startSector: Int): Int {
         var sector = (index / PUNCHES_PER_SECTOR + startSector + 1)
+        var sectorOffset = index % PUNCHES_PER_SECTOR / PUNCHES_PER_BLOCK
         if (sector >= mifare.sectorCount) {
-            sector -= mifare.sectorCount - 1
+            sector -= mifare.sectorCount
+            // Block 0 isn't writable, shift everything down.
+            if (++sectorOffset == 3) {
+                sectorOffset = 0
+                ++sector
+            }
         }
-        val sectorOffset = index % PUNCHES_PER_SECTOR / PUNCHES_PER_BLOCK
         return sector * 4 + sectorOffset
     }
 

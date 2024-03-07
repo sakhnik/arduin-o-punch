@@ -64,7 +64,8 @@ public:
 
     static int GetMaxPunches()
     {
-        return (IMifare::SECTOR_COUNT - 2) * PUNCHES_PER_SECTOR;
+        // Beyond control blocks, the block 0 isn't usable (manufacturer data) and one is used for WAL duplication
+        return (IMifare::BLOCK_COUNT / 4 * 3 - 2) * PUNCHES_PER_BLOCK;
     }
 
     PunchCard(IMifare *, const uint8_t *key, ICallback *callback = nullptr);

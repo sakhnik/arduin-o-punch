@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
+#include <cassert>
 
 using namespace AOP;
 
@@ -55,6 +56,7 @@ struct TestMifare : AOP::IMifare
 
     uint8_t AuthenticateSectorWithKeyA(uint8_t sector, const uint8_t *key) override
     {
+        assert(sector < IMifare::SECTOR_COUNT);
         authSector = sector;
         return memcmp(key, blocks[4 * sector + 3].data(), IMifare::KEY_SIZE);
     }
