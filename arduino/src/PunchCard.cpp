@@ -78,7 +78,7 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     } else {
         // Store two-byte difference from the first punch timestamp in the block
         auto timestamp0 = Punch::GetTimestamp(header, TIME1_OFFSET);
-        punch.SerializeTimestamp(header, TIME2_OFFSET + blockOffset * 2, timestamp0);
+        punch.SerializeTimestamp(header, TIME2_OFFSET + (blockOffset - 1) * 2, timestamp0);
     }
 
     // 8. write header 2
@@ -223,7 +223,7 @@ void PunchCard::_ReadPunchesFromBlock(uint8_t count, const uint8_t *data, Punche
             timestamp0 = Punch::GetTimestamp(data, TIME1_OFFSET);
             punches.emplace_back(stationId, timestamp0);
         } else {
-            auto timestamp = Punch::GetTimestamp(data, TIME2_OFFSET + 2 * offset, timestamp0);
+            auto timestamp = Punch::GetTimestamp(data, TIME2_OFFSET + 2 * (offset - 1), timestamp0);
             punches.emplace_back(stationId, timestamp);
         }
     }

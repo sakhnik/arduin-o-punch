@@ -265,7 +265,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         } else {
             // Store two-byte difference from the first punch timestamp in the block
             val timestamp0 = Punch.getTimestamp(header, TIME1_OFFSET)
-            newPunch.serializeTimestamp(header, TIME2_OFFSET + blockOffset * 2, timestamp0)
+            newPunch.serializeTimestamp(header, TIME2_OFFSET + (blockOffset - 1) * 2, timestamp0)
         }
 
         // 8. write header 2
@@ -340,7 +340,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
                 timestamp0 = Punch.getTimestamp(data, TIME1_OFFSET)
                 Punch(stationId, timestamp0)
             } else {
-                val timestamp = Punch.getTimestamp(data, TIME2_OFFSET + 2 * offset, timestamp0)
+                val timestamp = Punch.getTimestamp(data, TIME2_OFFSET + 2 * (offset - 1), timestamp0)
                 Punch(stationId, timestamp)
             }
             punches.add(punch)
