@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Continuous integration in GitHub workflow
+- Web app to test the card layout (built from the actual code with emsdk)
 
 ### Changed
 

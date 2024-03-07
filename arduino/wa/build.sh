@@ -1,3 +1,9 @@
 #!/bin/bash -e
 
-em++ aop.cpp ../src/*.cpp -o aop.js -DBUILD_WA=1 -s WASM=1 -s "EXPORTED_RUNTIME_METHODS=['ccall', 'cwrap']"
+em++ \
+    -lembind \
+    aop.cpp ../src/*.cpp \
+    -o aop.js \
+    -DBUILD_WA=1
+
+    #-s SINGLE_FILE=1

@@ -134,6 +134,41 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
 
 #if defined(BUILD_TEST) || defined(BUILD_WA)
 
+ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
+{
+    if (startSector < 1 || startSector >= _mifare->SECTOR_COUNT) {
+        startSector = (rand() % (_mifare->SECTOR_COUNT - 1)) + 1;
+    }
+
+    for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
+        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT)) {
+            return res;
+        }
+        uint8_t blockIndex = 3 + 4 * sector;
+        uint8_t trailer[IMifare::BLOCK_SIZE + 2];
+        uint8_t dataSize = sizeof(trailer);
+        if (auto res = _mifare->ReadBlock(blockIndex, trailer, dataSize)) {
+            return res;
+        }
+        memcpy(trailer, _key, IMifare::KEY_SIZE);
+        // Restore default access bits to use KeyB for data
+        memcpy(trailer + 6, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE);
+        // Write card ID to KeyB
+        trailer[ID_OFFSET] = id & 0xff;
+        trailer[ID_OFFSET + 1] = (id >> 8) & 0xff;
+        trailer[SECTOR_OFFSET] = startSector;
+        if (auto res = _mifare->WriteBlock(blockIndex, trailer, IMifare::BLOCK_SIZE)) {
+            return res;
+        }
+    }
+
+    if (auto res = _ClearPunches(startSector)) {
+        return res;
+    }
+
+    return ErrorCode::OK;
+}
+
 uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
 {
     // 1. read card id
@@ -144,7 +179,7 @@ uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
     uint8_t headerSize = sizeof(header);
     if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize))
         return res;
-    uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
+    //uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     uint8_t startSector = header[SECTOR_OFFSET];
 
     // 2. Recover the header

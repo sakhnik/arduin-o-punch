@@ -20,6 +20,9 @@
         th {
             background-color: #f2f2f2;
         }
+        .cellContent {
+            font-family: "Courier New", Courier, monospace;
+        }
         .keyA {
             background-color: #ff0000;
         }
@@ -29,13 +32,30 @@
         .keyB {
             background-color: #ff9999;
         }
+        .valueChanged {
+            color: green;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h2>Mifare Classic 1k Card Layout</h2>
+    <div id="prepareCard">
+        <label for="cardId">Card ID (0-65535):</label>
+        <input type="text" id="cardId" placeholder="Card ID" value="1234">
+        <label for="key">Key:</label>
+        <input type="text" id="hexKey" placeholder="Hex Key" value="112233445566">
+        <button id="prepareButton">Prepare</button>
+    </div>
+
+    <div id="punchCard">
+        <label for="stationId">Station ID (0-255):</label>
+        <input type="text" id="stationId" placeholder="Station ID" value="10">
+        <button id="punchButton">Punch</button>
+    </div>
+
     <div id="table-container"></div>
 
-    <script src="aop.js"></script>
     <script>
         // Function to create the HTML table
         function createMifareLayout() {
@@ -60,7 +80,9 @@
                 const isControlBlock = i % 4 === 3;
                 for (let j = 0; j < numCols; j++) {
                     const cell = row.insertCell();
+                    cell.setAttribute('id', `cell_${i}_${j}`)
                     cell.textContent = '00';
+                    cell.classList.add('cellContent');
                     if (isControlBlock) {
                         if (j < 6) {
                             cell.classList.add('keyA');
@@ -77,6 +99,67 @@
         }
 
         createMifareLayout();
+
+    </script>
+    <script>
+        var mifare;
+        var punchCard;
+
+        var Module = {
+            onRuntimeInitialized: function() {
+                mifare = new Module.WebMifare();
+            }
+        };
+    </script>
+    <script src="aop.js"></script>
+    <script>
+        document.getElementById('prepareButton').addEventListener('click', function() {
+            var cardId = parseInt(document.getElementById('cardId').value);
+            var hexKey = document.getElementById('hexKey').value;
+
+            // Check if the number is valid
+            if (isNaN(cardId) || cardId < 0 || cardId >= 65536) {
+                alert('Please enter a valid cardId in the range 0-65535.');
+                return;
+            }
+
+            if (!/^[0-9A-Fa-f]{12}$/.test(hexKey)) {
+                alert('Please enter a valid hex key of 6 bytes (12 characters).');
+                return;
+            }
+
+            if (typeof punchCard !== 'undefined' && punchCard !== null) {
+                punchCard.delete();
+            }
+            if (typeof mifare !== 'undefined' && mifare !== null) {
+                mifare.delete();
+            }
+            mifare = new Module.WebMifare();
+            const key = new Uint8Array(hexKey.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            punchCard = new Module.PunchCard(mifare, key);
+            const res = punchCard.Format(cardId, 1);
+            if (res != 0) {
+                alert("Failed to format");
+            }
+        });
+        document.getElementById('punchButton').addEventListener('click', function() {
+            let stationEntry = document.getElementById('stationId');
+            var stationId = parseInt(stationEntry.value);
+
+            if (isNaN(stationId) || stationId < 0 || stationId >= 256) {
+                alert('Please enter a valid stationId in the range 0-255.');
+                return;
+            }
+
+            var now = new Date();
+            var secondsSinceMidnight = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+            const res = punchCard.Punch(stationId, secondsSinceMidnight);
+            if (res != 0) {
+                alert("Failed to punch");
+            }
+            stationEntry.value = stationId + 1;
+        });
     </script>
 </body>
 </html>

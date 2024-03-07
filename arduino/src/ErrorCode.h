@@ -34,7 +34,7 @@ struct ErrorCode
     }
 };
 
-#if defined(BUILD_TEST) || defined(BUILD_WA)
+#if defined(BUILD_TEST)
 
 #include <iostream>
 
