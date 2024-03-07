@@ -74,10 +74,10 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
 
         // Choose a start sector for punches to even out card wear
-        val chosenStartSector = if (startSector >= 2 && startSector < mifare.sectorCount) {
+        val chosenStartSector = if (startSector >= 1 && startSector < mifare.sectorCount) {
             startSector
         } else {
-            Random.nextInt(2, mifare.sectorCount)
+            Random.nextInt(1, mifare.sectorCount)
         }
 
         // Configure KeyA, access bits and write card ID to KeyB
