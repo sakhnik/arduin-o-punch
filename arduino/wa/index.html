@@ -33,6 +33,25 @@
             color: green;
             font-weight: bold;
         }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+        .popup-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -49,6 +68,16 @@
         <label for="stationId">Station ID (0-255):</label>
         <input type="text" id="stationId" placeholder="Station ID" value="10">
         <button id="punchButton">Punch</button>
+    </div>
+
+    <div id="readOut">
+        <button id="readoutButton">ReadOut</button>
+    </div>
+
+    <div id="popup" class="popup" onclick="hidePopup()">
+        <div id="popup-content" class="popup-content">
+            Click anywhere to dismiss.
+        </div>
     </div>
 
     <div id="table-container"></div>
@@ -159,6 +188,43 @@
             }
             stationEntry.value = stationId + 1;
         });
+        document.getElementById('readoutButton').addEventListener('click', function() {
+            const res = punchCard.ReadOut();
+            if (res != 0) {
+                alert("Failed to readout");
+            }
+            const punches = punchCard.GetLastReadout();
+            var report = [];
+            for (var i = 0; i < punches.size(); i++) {
+                const punch = punches.get(i);
+                report.push(`${i+1}. ${punch.stationId} ${secondsToHMS(punch.timestamp)}`);
+            }
+            var popup = document.getElementById('popup-content');
+            popup.innerHTML = '<pre>' + report.join("\n") + '</pre>';
+            showPopup();
+        });
+
+        function secondsToHMS(totalSeconds) {
+            var hours = Math.floor(totalSeconds / 3600);
+            var minutes = Math.floor((totalSeconds % 3600) / 60);
+            var seconds = totalSeconds % 60;
+
+            hours = String(hours).padStart(2, '0');
+            minutes = String(minutes).padStart(2, '0');
+            seconds = String(seconds).padStart(2, '0');
+
+            return hours + ":" + minutes + ":" + seconds;
+        }
+
+        function showPopup() {
+            var popup = document.getElementById('popup');
+            popup.style.display = 'block';
+        }
+
+        function hidePopup() {
+            var popup = document.getElementById('popup');
+            popup.style.display = 'none';
+        }
     </script>
 </body>
 </html>

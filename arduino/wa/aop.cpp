@@ -138,6 +138,38 @@ public:
         _mifare->ResetHighlights();
         return AOP::PunchCard::Punch(AOP::Punch{stationId, timestamp});
     }
+
+    struct PunchData
+    {
+        uint8_t stationId;
+        uint32_t timestamp;
+
+        PunchData(uint8_t stationId = 0, uint32_t timestamp = 0)
+            : stationId{stationId}
+            , timestamp{timestamp}
+        {
+        }
+    };
+
+    std::vector<PunchData> lastReadout;
+
+    const std::vector<PunchData>& GetLastReadout()
+    {
+        return lastReadout;
+    }
+
+    uint8_t ReadOut()
+    {
+        AOP::PunchCard::PunchesT punches;
+        if (auto res = AOP::PunchCard::ReadOut(punches)) {
+            return res;
+        }
+        lastReadout.clear();
+        for (const auto &p : punches) {
+            lastReadout.emplace_back(p.GetStation(), p.GetTimestamp());
+        }
+        return 0;
+    }
 };
 
 EMSCRIPTEN_BINDINGS(AOP)
@@ -145,11 +177,18 @@ EMSCRIPTEN_BINDINGS(AOP)
     class_<WebMifare>("WebMifare")
     .constructor<>();
 
+    value_object<PunchCard::PunchData>("Punch")
+        .field("stationId", &PunchCard::PunchData::stationId)
+        .field("timestamp", &PunchCard::PunchData::timestamp);
+
+    register_vector<PunchCard::PunchData>("VectorPunch");
+
     class_<PunchCard>("PunchCard")
     .constructor<WebMifare *, std::string>()
     .function("Format", &PunchCard::Format)
-    .function("Punch", &PunchCard::Punch);
-    //.function("ReadOut", &PunchCard::ReadOut)
+    .function("Punch", &PunchCard::Punch)
+    .function("ReadOut", &PunchCard::ReadOut)
+    .function("GetLastReadout", &PunchCard::GetLastReadout);
     //.function("Clear", &PunchCard::Clear);
 }
 
