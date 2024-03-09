@@ -1,0 +1,38 @@
+name: Build Web App
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: mymindstorm/setup-emsdk@v14
+
+      - uses: actions/checkout@v3
+
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: Set repository name as env variable
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Verify
+        run: emcc -v
+
+      - name: Build
+        run: ./arduino/wa/build.sh
+
+      - name: Upload build - ${{ env.repository_name }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.date_today }} - ${{ env.repository_name }} - WebApp build
+          path: |
+            arduino/wa/*.html
+            arduino/wa/*.js
+            arduino/wa/*.wasm

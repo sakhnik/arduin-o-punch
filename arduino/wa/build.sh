@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+cd $(dirname "${BASH_SOURCE[0]}")
+
 em++ \
     -lembind \
     aop.cpp ../src/*.cpp \
