@@ -6,6 +6,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.util.Arrays
 import kotlin.random.Random
 
@@ -295,5 +299,116 @@ class PunchCardTest {
                 }
             }
         }
+    }
+
+    private fun fromHex(hex: String): ByteArray {
+        return hex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
+    }
+
+    private fun toHex(bytes: ByteArray): String {
+        return bytes.joinToString("") { "%02X".format(it) }
+    }
+
+    @Test
+    fun testArduinoPuncher() {
+        val aopCliPath = "/tmp/aop-build/aop-cli"
+        val aopCli = File(aopCliPath)
+        if (!aopCli.exists() || !aopCli.canExecute()) {
+            val rootDir = System.getProperty("user.dir")
+            val process = ProcessBuilder(listOf(File(rootDir, "../../arduino/src/test.sh").path))
+                .redirectErrorStream(true)
+                .start()
+
+            val inputReader = BufferedReader(InputStreamReader(process.inputStream))
+            var line: String?
+            while (inputReader.readLine().also { line = it } != null) {
+                println(line)
+            }
+
+            val exitCode = process.waitFor()
+            assertEquals(0, exitCode)
+        }
+
+        val mifare = TestMifare()
+        val punchCard0 = PunchCard(mifare, TEST_KEY, context)
+        punchCard0.format(42, listOf())
+        assertEquals(0, punchCard0.readOut().punches.size)
+
+        val process = ProcessBuilder(listOf("/tmp/aop-build/aop-cli"))
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .start()
+
+        OutputStreamWriter(process.outputStream).use { writer ->
+            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+
+                val authRequest = """^A (\d+) (.*)""".toRegex()
+                val readRequest = """^R (\d+)""".toRegex()
+                val writeRequest = """^W (\d+) (.*)""".toRegex()
+
+                val getResponse: () -> String = {
+                    var line: String
+                    while (reader.readLine().also { line = it } != null) {
+                        if (line.startsWith("OK") || line.startsWith("ERR")) {
+                            break
+                        }
+                        val authMatchResult = authRequest.matchAt(line, 0)
+                        if (authMatchResult != null) {
+                            val (sector, keyHex) = authMatchResult.destructured
+                            mifare.authenticateSectorWithKeyA(sector.toInt(), fromHex(keyHex))
+                            writer.write("OK\n")
+                            writer.flush()
+                            continue
+                        }
+                        val readMatchResult = readRequest.matchAt(line, 0)
+                        if (readMatchResult != null) {
+                            val (blockIndex) = readMatchResult.destructured
+                            val data = mifare.readBlock(blockIndex.toInt())
+                            writer.write("OK ${toHex(data)}\n")
+                            writer.flush()
+                            continue
+                        }
+                        val writeMatchResult = writeRequest.matchAt(line, 0)
+                        if (writeMatchResult != null) {
+                            val (blockIndex, bytesHex) = writeMatchResult.destructured
+                            mifare.writeBlock(blockIndex.toInt(), fromHex(bytesHex))
+                            writer.write("OK\n")
+                            writer.flush()
+                            continue
+                        }
+                        break
+                    }
+                    line
+                }
+
+                writer.write("KEY ${toHex(TEST_KEY)}\n")
+                writer.flush()
+                assertEquals("OK", getResponse())
+
+                val testPunch =
+                    { i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong()) }
+
+                val maxPunches = punchCard0.getMaxPunches(mifare)
+                for (i in 0 until maxPunches) {
+                    val punch = testPunch(i)
+                    writer.write("PUNCH ${punch.station} ${punch.timestamp}\n")
+                    writer.flush()
+                    assertEquals("OK", getResponse())
+                    val readOut = PunchCard(mifare, TEST_KEY, context).readOut()
+                    assertEquals(i + 1, readOut.punches.size)
+                    assertEquals(punch, readOut.punches[i])
+                }
+
+                val readOut = PunchCard(mifare, TEST_KEY, context).readOut()
+                for (i in 0 until maxPunches) {
+                    assertEquals(testPunch(i), readOut.punches[i])
+                }
+
+                writer.write("QUIT\n")
+                writer.flush()
+            }
+        }
+
+        process.waitFor()
     }
 }

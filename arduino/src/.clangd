@@ -20,5 +20,6 @@ CompileFlags:
         - -I/home/sakhnik/Arduino/libraries/CircularBuffer
     Add:
         - -DBUILD_TEST
+        - -DBUILD_CLI
         - -I/tmp/aop-build/_deps/doctest-src
         - -I/run/media/sakhnik/Android/emsdk/upstream/emscripten/system/include

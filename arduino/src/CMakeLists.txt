@@ -32,8 +32,14 @@ add_executable(test-aop
     PunchTest.cpp
     RecorderTest.cpp
     test.cpp
-    )
+)
 target_link_libraries(test-aop aop)
+
+add_executable(aop-cli
+    cli.cpp
+)
+target_compile_definitions(aop-cli PRIVATE BUILD_CLI)
+target_link_libraries(aop-cli aop)
 
 enable_testing()
 
