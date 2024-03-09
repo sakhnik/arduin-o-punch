@@ -178,8 +178,8 @@ EMSCRIPTEN_BINDINGS(AOP)
     .constructor<>();
 
     value_object<PunchCard::PunchData>("Punch")
-        .field("stationId", &PunchCard::PunchData::stationId)
-        .field("timestamp", &PunchCard::PunchData::timestamp);
+    .field("stationId", &PunchCard::PunchData::stationId)
+    .field("timestamp", &PunchCard::PunchData::timestamp);
 
     register_vector<PunchCard::PunchData>("VectorPunch");
 
