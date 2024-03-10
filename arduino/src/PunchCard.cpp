@@ -139,14 +139,15 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
 
 ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
 {
-    if (startSector < 1 || startSector >= _mifare->SECTOR_COUNT) {
-        startSector = (rand() % (_mifare->SECTOR_COUNT - 1)) + 1;
+    if (startSector >= _mifare->SECTOR_COUNT) {
+        startSector = rand() % _mifare->SECTOR_COUNT;
     }
 
     for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
         if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT)) {
             return res;
         }
+        _auth_sector = sector;
         uint8_t blockIndex = IMifare::BLOCKS_PER_SECTOR * (sector + 1) - 1;
         uint8_t trailer[IMifare::BLOCK_SIZE + 2];
         uint8_t dataSize = sizeof(trailer);

@@ -77,7 +77,7 @@ public:
     ErrorCode Clear();
 
 #if defined(BUILD_TEST) || defined(BUILD_WA)
-    ErrorCode Format(uint16_t id, uint8_t startSector = 0);
+    ErrorCode Format(uint16_t id, uint8_t startSector = 255);
 
     using PunchesT = std::vector<AOP::Punch>;
     uint8_t ReadOut(PunchesT &);
