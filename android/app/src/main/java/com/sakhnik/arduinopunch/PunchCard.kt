@@ -87,7 +87,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
 
         procedure.add(3) { p ->
-            clearPunches(startSector, p)
+            clearPunches(chosenStartSector, p)
         }
 
         procedure.run(progress)
@@ -112,6 +112,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             if (!mifare.authenticateSectorWithKeyA(sector, keys[sector])) {
                 throw RuntimeException(context.getString(R.string.no_known_key_for_sector, sector))
             }
+            authSector = sector
             val blockIndex = 3 + 4 * sector
             val trailer = mifare.readBlock(blockIndex) as ByteArray
             key.copyInto(trailer)
