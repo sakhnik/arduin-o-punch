@@ -2,11 +2,15 @@
 #include "Buzzer.h"
 #include <EEPROM.h>
 #include <RTClib.h>
+#include <flex_DST.h>
 #include <stddef.h>
 
 namespace {
 
+// Should always keep non-DST time
 RTC_DS3231 rtc;
+// EEST DST rules: last Sunday of March to last Sunday of October
+flex_DST dst{5, 3, 5, 10};
 
 struct EepromImpl : AOP::Recorder::IEeprom
 {
@@ -86,13 +90,13 @@ void Context::OnNewKey(const uint8_t *key)
 
 DateTime Context::GetDateTime() const
 {
-    return rtc.now();
+    return dst.calculateTime(rtc.now());
 }
 
 uint32_t Context::GetClock(const DateTime *date_time) const
 {
     if (!date_time) {
-        auto now = rtc.now();
+        auto now = dst.calculateTime(rtc.now());
         return GetClock(&now);
     }
     // TODO: subsecond resolution
@@ -106,19 +110,27 @@ uint32_t Context::GetClock(const DateTime *date_time) const
 
 void Context::SetClock(uint32_t clock)
 {
-    auto now = rtc.now();
+    auto now = dst.calculateTime(rtc.now());
     auto ms = clock % 1000;
     clock /= 1000;
     auto sec = clock % 60;
     clock /= 60;
     auto min = clock % 60;
     clock /= 60;
-    rtc.adjust(DateTime(now.year(), now.month(), now.day(), clock, min, sec));
+    DateTime adjusted(now.year(), now.month(), now.day(), clock, min, sec);
+    if (dst.checkDST(adjusted)) {
+        adjusted = adjusted.unixtime() - 3600;
+    }
+    rtc.adjust(adjusted);
 }
 
 void Context::SetDateTime(uint32_t timestamp)
 {
-    rtc.adjust(DateTime(timestamp));
+    DateTime adjusted{timestamp};
+    if (dst.checkDST(adjusted)) {
+        adjusted = adjusted.unixtime() - 3600;
+    }
+    rtc.adjust(adjusted);
 }
 
 void Context::SetId(uint8_t id)
