@@ -306,6 +306,8 @@ account Expenses:Tools
     Expenses:Production
     Expenses:Prototype                   152.00 ₴
     Assets:Privat                      -1701.00 ₴
+    Assets:Privat                        -59.00 ₴
+    Expenses:Post                         59.00 ₴
     ; Кабель 22AWG із посиленою силіконовою ізоляцією 50 см (червоний)  2   UAH 22.00
     ; Кабель 22AWG із посиленою силіконовою ізоляцією 50 см (чорний)    2   UAH 22.00
     ; Модуль автономного живлення 2А на 18650 з USB-виходом             5   UAH 570.00
