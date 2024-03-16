@@ -198,6 +198,19 @@ Used platform Version Path
 arduino:avr   1.8.6   /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6
 ```
 
+У операційній системі Windows `arduino-cli` можна встановити з допомогою
+[chocolatey](https://chocolatey.org/):
+
+```
+PS> choco install arduino-cli
+```
+
+Для завантаження програми на станцію потрібно вказати послідовний порт `COM5`:
+
+```
+PS> arduino-cli -m pro upload -p COM5
+```
+
 ### Командна оболонка
 
 До запрограмованої станції при під’єднаному акумуляторі можна під’єднатися через
@@ -344,6 +357,19 @@ Before: clock=37103085 time=10:18:23
 After: 2024-02-26 10:18:24
 
 venv $
+```
+
+Для роботи у операційній системі Windows, потрібно вказати порт `COM5`:
+
+```
+PS> python ./sync-clock.py -p COM5
+>> b''
+>> b'\r\n'
+>> b'Arduin-o-punch> '
+>> b'37103085\r\n'
+Before: clock=37103085 time=10:18:23
+>> b'1708942704\r\n'
+After: 2024-02-26 10:18:24
 ```
 
 ### Журнал відмітки

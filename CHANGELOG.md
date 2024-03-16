@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continuous integration in GitHub workflow
 - Web app to test the card layout (built from the actual code with emsdk)
 - Automatic DST adjustment for EEST rules
+- Tested programming and configuration in Windows, added instructions
 
 ### Changed
 
