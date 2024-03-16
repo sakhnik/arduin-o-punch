@@ -4,9 +4,19 @@
 
 import serial
 from datetime import datetime, timedelta, timezone
+import argparse
 
 serial_port = '/dev/ttyUSB0'
 baud_rate = 9600
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--port", help=f"serial port {serial_port}",
+                    type=str)
+parser.add_argument("-s", "--script", help="file with additional commands",
+                    type=str)
+args = parser.parse_args()
+if args.port:
+    serial_port = args.port
 
 
 def get_current_time():
@@ -75,3 +85,11 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     timestamp = int(line.decode().strip())
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     print(f"After: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    if args.script:
+        with open(args.script, 'r') as f:
+            for line in f.readlines():
+                print(line.strip())
+                ser.write(f'{line.strip()}\r'.encode())
+                resp = ser.readline()
+                echo_output(resp)
