@@ -313,3 +313,8 @@ account Expenses:Tools
     ; Модуль автономного живлення 2А на 18650 з USB-виходом             5   UAH 570.00
     ; Акумулятор Videx 18650 Li-Ion 2800мАг (без захисту)               5   UAH 935.00
     ; ESP32-C3 Type-C (WiFi 2.4 ГГц, 802.11b/g/n + Bluetooth 5)         1   UAH 152.00
+
+2024-03-19 * Jysk
+    Expenses:Production                  200.00 ₴
+    Assets:Privat
+    ; Containers
