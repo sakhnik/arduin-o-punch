@@ -1,6 +1,6 @@
 #include "Context.h"
 #include "Buzzer.h"
-#include <EEPROM.h>
+#include <extEEPROM.h>
 #include <RTClib.h>
 #include <flex_DST.h>
 #include <stddef.h>
@@ -12,16 +12,19 @@ RTC_DS3231 rtc;
 // EEST DST rules: last Sunday of March to last Sunday of October
 flex_DST dst{5, 3, 5, 10};
 
+// AT24C32 onboard DS3231 with default address
+extEEPROM eeprom{eeprom_size_t::kbits_32, 1, 32, 0x57};
+
 struct EepromImpl : AOP::Recorder::IEeprom
 {
-    uint8_t Read(int addr) override
+    uint8_t Read(uint16_t addr) override
     {
-        return EEPROM.read(addr);
+        return eeprom.read(addr);
     }
 
-    void Write(int addr, uint8_t val) override
+    void Write(uint16_t addr, uint8_t val) override
     {
-        EEPROM.write(addr, val);
+        eeprom.write(addr, val);
     }
 } eeprom_impl;
 
@@ -39,7 +42,7 @@ struct RecorderAccess
 
 Context::Context(Buzzer &buzzer)
     : _buzzer{buzzer}
-    , _recorder{RecorderAccess::RECORD_ADJUSTED_START, static_cast<int>(EEPROM.length()) - RecorderAccess::RECORD_ADJUSTED_START, eeprom_impl}
+    , _recorder{eeprom_impl}
 {
 }
 
@@ -52,14 +55,18 @@ int8_t Context::Setup()
         return -1;
     }
 
-    EEPROM.get(ADDROF(_id), _id);
-    EEPROM.get(ADDROF(_key), _key);
-    EEPROM.get(ADDROF(_record_retain_days), _record_retain_days);
+    // Initialize external EEPROM with default speed, default I2C bus
+    eeprom.begin();
+
+    eeprom.read(ADDROF(_id), &_id, sizeof(_id));
+    eeprom.read(ADDROF(_key), _key, sizeof(_key));
+    eeprom.read(ADDROF(_record_retain_days), &_record_retain_days, sizeof(_record_retain_days));
     if (_record_retain_days == 0xff)
         _record_retain_days = 1;
 
     // Restore current record
-    _recorder.Setup();
+    _recorder.Setup(RecorderAccess::RECORD_ADJUSTED_START,
+                    static_cast<uint16_t>(static_cast<uint16_t>(eeprom.length() / 8) - RecorderAccess::RECORD_ADJUSTED_START));
 
     if (_record_retain_days > 0) {
         // If record is older than the retain period, reformat.
@@ -85,7 +92,7 @@ bool Context::IsKeyDefault() const
 void Context::OnNewKey(const uint8_t *key)
 {
     memcpy(_key, key, sizeof(_key));
-    EEPROM.put(ADDROF(_key), _key);
+    eeprom.write(ADDROF(_key), _key, sizeof(_key));
 }
 
 DateTime Context::GetDateTime() const
@@ -136,11 +143,11 @@ void Context::SetDateTime(uint32_t timestamp)
 void Context::SetId(uint8_t id)
 {
     _id = id;
-    EEPROM.put(ADDROF(_id), _id);
+    eeprom.write(ADDROF(_id), &_id, sizeof(_id));
 }
 
 void Context::SetRecordRetainDays(uint8_t days)
 {
     _record_retain_days = days;
-    EEPROM.put(ADDROF(_record_retain_days), days);
+    eeprom.write(ADDROF(_record_retain_days), &_record_retain_days, sizeof(_record_retain_days));
 }

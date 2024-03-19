@@ -10,6 +10,7 @@ profiles:
       - RTClib (2.1.1)
       - CircularBuffer (1.3.3)
       - flex_DST (1.0.1)
+      - extEEPROM (3.4.1)
   pro16:
     fqbn: arduino:avr:pro
     platforms:
@@ -21,6 +22,7 @@ profiles:
       - RTClib (2.1.1)
       - CircularBuffer (1.3.3)
       - flex_DST (1.0.1)
+      - extEEPROM (3.4.1)
 
 default_fqbn: arduino:avr:pro:cpu=8MHzatmega328
 default_port: /dev/ttyUSB0

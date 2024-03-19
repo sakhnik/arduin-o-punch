@@ -18,15 +18,17 @@ struct Header
 
 #define ADDROF(begin, field) (begin - sizeof(Header) + offsetof(Header, field))
 
-Recorder::Recorder(int begin, int size, IEeprom &eeprom)
-    : _begin(begin + sizeof(Header))
-    , _size(size - sizeof(Header))
+Recorder::Recorder(IEeprom &eeprom)
+    : _begin(0)
+    , _size(0)
     , _eeprom{eeprom}
 {
 }
 
-void Recorder::Setup()
+void Recorder::Setup(uint16_t begin, uint16_t size)
 {
+    _begin = begin + sizeof(Header);
+    _size = size - sizeof(Header);
     Restore();
 }
 
@@ -34,13 +36,13 @@ void Recorder::Restore()
 {
     uint8_t start_lo = _eeprom.Read(ADDROF(_begin, start_lo));
     uint8_t start_hi = _eeprom.Read(ADDROF(_begin, start_hi));
-    _offset = start_hi == 0xff ? 0 : static_cast<int>(start_hi) << 8 | start_lo;
+    _offset = start_hi == 0xff ? 0 : static_cast<uint16_t>(start_hi) << 8 | start_lo;
     _offset += _begin;
 
     uint8_t length_val = _eeprom.Read(ADDROF(_begin, length));
     if (length_val == 0xff)
         length_val = 0;
-    _length = static_cast<int>(length_val) << LENGTH_SHIFT;
+    _length = static_cast<uint16_t>(length_val) << LENGTH_SHIFT;
 
     uint8_t bits_per_card_val = _eeprom.Read(ADDROF(_begin, bits_per_card));
     if (bits_per_card_val == 0 || bits_per_card_val == 0xff)
@@ -54,7 +56,7 @@ void Recorder::Restore()
 
 void Recorder::StoreOffset()
 {
-    int start = _offset - _begin;
+    uint16_t start = _offset - _begin;
     uint8_t start_lo = start & 0xff;
     uint8_t start_hi = start >> 8;
     if (_eeprom.Read(ADDROF(_begin, start_lo)) != start_lo)
@@ -99,14 +101,14 @@ int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card, uint32_t timestam
         bits_per_card = 8;
 
     // How many bytes are required to accomodate the runners?
-    int bit_count = count * bits_per_card;
+    uint16_t bit_count = count * bits_per_card;
     uint8_t bit_tail = bit_count & 7;
     if (bit_tail)
         bit_count += 8 - bit_tail;
-    int byte_count = bit_count >> 3;
+    uint16_t byte_count = bit_count >> 3;
 
     // Round to the length precision
-    int mask = (1 << LENGTH_SHIFT) - 1;
+    uint16_t mask = (1 << LENGTH_SHIFT) - 1;
     if ((byte_count & mask) != 0)
         byte_count = ((byte_count >> LENGTH_SHIFT) + 1) << LENGTH_SHIFT;
 
@@ -127,23 +129,24 @@ int8_t Recorder::Format(uint16_t count, uint8_t bits_per_card, uint32_t timestam
     StoreFormatDay();
 
     // Clear the memory span
-    int addr_end = _begin + _size;
-    for (int i = 0, addr = _offset; i < _length; ++i, ++addr) {
+    uint16_t addr_end = _begin + _size;
+    for (uint16_t i = 0, addr = _offset; i < _length; ++i, ++addr) {
         if (addr >= addr_end)
             addr -= _size;
-        if (_eeprom.Read(addr) != 0)
+        if (_eeprom.Read(addr) != 0) {
             _eeprom.Write(addr, 0);
+        }
     }
     return 0;
 }
 
 int8_t Recorder::Record(uint16_t card, int8_t increment)
 {
-    int offset = (card * _bits_per_card) >> 3;
-    int bit_offset = (card * _bits_per_card) & 7;
+    uint16_t offset = (card * _bits_per_card) >> 3;
+    uint16_t bit_offset = (card * _bits_per_card) & 7;
     if (offset >= _length)
         return -1;  // The card beyond the range
-    int addr = _offset + offset;
+    uint16_t addr = _offset + offset;
     if (addr >= _begin + _size)
         addr -= _size;
     uint8_t byte_val = _eeprom.Read(addr);
@@ -155,7 +158,7 @@ int8_t Recorder::Record(uint16_t card, int8_t increment)
         val = 0;
     if (val >= val_mask)
         val = val_mask;
-    int new_byte_val = byte_val & ~(val_mask << bit_offset);
+    uint8_t new_byte_val = byte_val & ~(val_mask << bit_offset);
     new_byte_val |= val << bit_offset;
     if (byte_val != new_byte_val)
         _eeprom.Write(addr, new_byte_val);
@@ -164,11 +167,11 @@ int8_t Recorder::Record(uint16_t card, int8_t increment)
 
 uint8_t Recorder::GetRecordCount(uint16_t card)
 {
-    int offset = (card * _bits_per_card) >> 3;
-    int bit_offset = (card * _bits_per_card) & 7;
+    uint16_t offset = (card * _bits_per_card) >> 3;
+    uint16_t bit_offset = (card * _bits_per_card) & 7;
     if (offset >= _length)
         return false;  // The card beyond the range
-    int addr = _offset + offset;
+    uint16_t addr = _offset + offset;
     if (addr >= _begin + _size)
         addr -= _size;
     uint8_t byte_val = _eeprom.Read(addr);
@@ -178,7 +181,7 @@ uint8_t Recorder::GetRecordCount(uint16_t card)
 
 void Recorder::List(IVisitor &visitor, void *ctx)
 {
-    for (int i = 0, n = _length * 8 / _bits_per_card; i < n; ++i) {
+    for (uint16_t i = 0, n = _length * 8 / _bits_per_card; i < n; ++i) {
         auto count = GetRecordCount(i);
         if (count)
             visitor.OnCard(i, count, ctx);

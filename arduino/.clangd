@@ -22,5 +22,6 @@ CompileFlags:
         - -I/home/sakhnik/Arduino/libraries/RTClib/src
         - -I/home/sakhnik/Arduino/libraries/CircularBuffer
         - -I/home/sakhnik/Arduino/libraries/flex_DST/src
+        - -I/home/sakhnik/Arduino/libraries/extEEPROM
         - -I/tmp/aop-build/_deps/doctest-src
         - -I/run/media/sakhnik/Android/emsdk/upstream/emscripten/system/include

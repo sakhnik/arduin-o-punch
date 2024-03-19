@@ -7,17 +7,19 @@ namespace AOP {
 class Recorder
 {
 public:
-    static constexpr const int LENGTH_SHIFT = 3;  // 64 runners : 8 runners/byte = 8 bytes
+    static constexpr const uint8_t LENGTH_SHIFT = 3;  // 64 runners : 8 runners/byte = 8 bytes
     static constexpr const uint32_t SECONDS_IN_DAY = 60ul * 60ul * 24ul;
 
     struct IEeprom
     {
-        virtual uint8_t Read(int addr) = 0;
-        virtual void Write(int addr, uint8_t data) = 0;
+        virtual uint8_t Read(uint16_t addr) = 0;
+        virtual void Write(uint16_t addr, uint8_t data) = 0;
     };
 
-    Recorder(int begin, int size, IEeprom &);
-    void Setup();
+    Recorder(IEeprom &);
+
+    // Setup EEPROM limits after the external EEPROM has been initialized
+    void Setup(uint16_t begin, uint16_t size);
 
     int16_t GetSize() const
     {
@@ -46,9 +48,9 @@ public:
     void List(IVisitor &, void *ctx);
 
 private:
-    int _begin, _size;
+    uint16_t _begin, _size;
     IEeprom &_eeprom;
-    int _offset{}, _length{};
+    uint16_t _offset{}, _length{};
     uint8_t _bits_per_card{1};
     uint16_t _format_day{0};
 
