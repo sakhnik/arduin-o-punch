@@ -92,7 +92,24 @@ private:
 
     uint8_t _Authenticate(uint8_t sector);
     uint8_t _ClearPunches(uint8_t startSector);
-    uint8_t _RecoverHeader(uint8_t startSector, uint8_t *header);
+
+    struct HeaderStatus
+    {
+        uint8_t error;
+        enum EStatus: uint8_t
+        {
+            UNK = 0,        // Unknown
+            CONFIRMED,      // The last punch was confirmed
+            UNCONFIRMED,    // The last punch wasn't confirmed (only header2, header1 failed)
+        } status = UNK;
+
+        HeaderStatus(uint8_t error, EStatus status = UNK)
+            : error{error}
+            , status{status}
+        {
+        }
+    };
+    HeaderStatus _RecoverHeader(uint8_t startSector, uint8_t *header);
 
     struct _Address
     {

@@ -29,8 +29,9 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     uint8_t startSector = header[SECTOR_OFFSET];
 
-    if (auto res = _RecoverHeader(startSector, header))
-        return res;
+    auto headerStatus = _RecoverHeader(startSector, header);
+    if (headerStatus.error)
+        return headerStatus.error;
 
     // 5. calculate the offset in the header
     // If this is the start station punching, clear all the previous punches
@@ -51,7 +52,9 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     if (punch.GetStation() != START_STATION && prevStationId == punch.GetStation()) {
         if (_callback)
             _callback->OnCardId(card_id);
-        return ErrorCode::DUPLICATE_PUNCH;
+        // If the previous punch hasn't been confirmed (header2 succeeded, header1 failed), it can
+        // still be recovered from the header2. Confirm it now, it isn't a duplicate.
+        return headerStatus.status == HeaderStatus::UNCONFIRMED ? ErrorCode::OK : ErrorCode::DUPLICATE_PUNCH;
     }
 
     if (count == GetMaxPunches()) {
@@ -187,8 +190,9 @@ uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
     uint8_t startSector = header[SECTOR_OFFSET];
 
     // 2. Recover the header
-    if (auto res = _RecoverHeader(startSector, header))
-        return res;
+    auto headerStatus = _RecoverHeader(startSector, header);
+    if (headerStatus.error)
+        return headerStatus.error;
     uint8_t count = header[COUNT_OFFSET];
 
     // 5. loop over the punches
@@ -242,49 +246,53 @@ uint8_t PunchCard::_Authenticate(uint8_t sector)
     return 0;
 }
 
-uint8_t PunchCard::_RecoverHeader(uint8_t startSector, uint8_t *header)
+PunchCard::HeaderStatus PunchCard::_RecoverHeader(uint8_t startSector, uint8_t *header)
 {
     uint8_t headerBlock1 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK1;
     uint8_t headerBlock2 = startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK2;
 
     // 2. read header 1
     if (auto res = _Authenticate(startSector))
-        return res;
+        return {res};
 
     uint8_t header1[IMifare::BLOCK_SIZE + 2];
     uint8_t header1Size = sizeof(header1);
     if (uint8_t res = _mifare->ReadBlock(headerBlock1, header1, header1Size))
-        return res;
+        return {res};
 
     // 3. read header 2
     uint8_t header2[IMifare::BLOCK_SIZE + 2];
     uint8_t header2Size = sizeof(header2);
     if (uint8_t res = _mifare->ReadBlock(headerBlock2, header2, header2Size))
-        return res;
+        return {res};
 
     // 4. decide the right one
     // 4.1 write the missing one back
     uint8_t header1IsOk = header1[0] != 0xff;
     uint8_t header2IsOk = header2[0] != 0xff;
     if (!header1IsOk && !header2IsOk) {
-        return ErrorCode::DATA_CORRUPTED;
+        return {ErrorCode::DATA_CORRUPTED};
     }
+    // Header2 is written first, header1 is written second.
+    // If there's just header2, it contains an unconfirmed punch.
+    // If there's header1, there should also be header2 because it was written first.
     if (header1IsOk) {
+        memcpy(header, header1, IMifare::BLOCK_SIZE);
         // Store the chosen copy to the other header block if required
         if (header1[0] != header2[0]) {
             if (auto res = _mifare->WriteBlock(headerBlock2, header1, IMifare::BLOCK_SIZE))
-                return res;
+                return {res};
         }
-        memcpy(header, header1, IMifare::BLOCK_SIZE);
     } else {
+        memcpy(header, header2, IMifare::BLOCK_SIZE);
         // Store the chosen copy to the other header block if required
         if (header1[0] != header2[0]) {
             if (auto res = _mifare->WriteBlock(headerBlock1, header2, IMifare::BLOCK_SIZE))
-                return res;
+                return {res};
+            return {ErrorCode::OK, HeaderStatus::UNCONFIRMED};
         }
-        memcpy(header, header2, IMifare::BLOCK_SIZE);
     }
-    return 0;
+    return {ErrorCode::OK, HeaderStatus::CONFIRMED};
 }
 
 uint8_t PunchCard::_GetPunchBlock(uint8_t index, uint8_t startSector)
