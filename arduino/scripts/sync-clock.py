@@ -14,6 +14,7 @@ parser.add_argument("-p", "--port", help=f"serial port {serial_port}",
                     type=str)
 parser.add_argument("-s", "--script", help="file with additional commands",
                     type=str)
+parser.add_argument("--id", help="set station id", type=int)
 args = parser.parse_args()
 if args.port:
     serial_port = args.port
@@ -85,6 +86,11 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     timestamp = int(line.decode().strip())
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     print(f"After: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    if args.id is not None:
+        ser.write(f'id {args.id}\r'.encode())
+        resp = ser.readline()
+        echo_output(resp)
 
     if args.script:
         with open(args.script, 'r') as f:
