@@ -1,6 +1,8 @@
 #include "Logger.h"
 
-static const char *const DIGITS = "0123456789ABCDEF";
+namespace {
+constexpr const char *const DIGITS = "0123456789ABCDEF";
+} //namespace;
 
 Logger::Logger()
 {

@@ -51,7 +51,7 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     if (punch.GetStation() != START_STATION && prevStationId == punch.GetStation()) {
         if (_callback)
             _callback->OnCardId(card_id);
-        return ErrorCode::OK;
+        return ErrorCode::DUPLICATE_PUNCH;
     }
 
     if (count == GetMaxPunches()) {

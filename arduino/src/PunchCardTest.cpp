@@ -216,7 +216,7 @@ TEST_CASE("PunchCard max repeated punches")
         if (i) {
             auto p = testPunch(i);
             p.SetTimestamp(p.GetTimestamp() + 100);
-            REQUIRE(0 == punchCard.Punch(p));
+            REQUIRE(ErrorCode::DUPLICATE_PUNCH == punchCard.Punch(p));
         }
 
         std::vector<Punch> readOut;
@@ -290,7 +290,8 @@ TEST_CASE("PunchCard Recover from failed write")
             if (mifare.GetFailWrites() > 0) {
                 exceptionAnticipated = true;
             }
-            if (auto res = punchCard.Punch(testPunch(i))) {
+            auto res = punchCard.Punch(testPunch(i));
+            if (res != ErrorCode::OK && res != ErrorCode::DUPLICATE_PUNCH) {
                 REQUIRE(exceptionAnticipated);
             } else {
                 std::vector<Punch> readOut;

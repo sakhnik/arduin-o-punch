@@ -19,6 +19,7 @@ struct ErrorCode
         NO_SERIAL,
         WRONG_CARD,
         CARD_IS_FULL,
+        DUPLICATE_PUNCH,
     };
 
     uint8_t code;
@@ -32,6 +33,8 @@ struct ErrorCode
         : code{code}
     {
     }
+
+    const char* ToStr() const;
 };
 
 #if defined(BUILD_TEST)
@@ -40,27 +43,7 @@ struct ErrorCode
 
 inline std::ostream& operator<<(std::ostream &os, ErrorCode e)
 {
-    switch (e) {
-    case ErrorCode::NO_CARD:
-        os << "No card";
-        break;
-    case ErrorCode::DATA_CORRUPTED:
-        os << "Corrupt";
-        break;
-    case ErrorCode::NO_SERIAL:
-        os << "No serial";
-        break;
-    case ErrorCode::WRONG_CARD:
-        os << "Wrong card";
-        break;
-    case ErrorCode::CARD_IS_FULL:
-        os << "Full";
-        break;
-    default:
-        os << "Error(" << static_cast<int>(e) << ")";
-        break;
-    }
-    return os;
+    return os << e.ToStr();
 }
 
 #endif //BUILD_TEST

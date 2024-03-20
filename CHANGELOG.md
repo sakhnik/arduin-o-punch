@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **New data structure** resilient to information loss because of failed writes on some cards
+- **New data structure** resilient to information loss due to failed writes on some cards
 - Use external EEPROM AT24C32 onboard DS3231 RTC
 - Fix latency calculation in sync_clock.py, wait for the prompt explicitly
 - Fix layout in Android app for smaller screens
@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix the capacity number
 - Fix crash when garbage in the timestamp
 - Allow entering key with lower case hex digits too
+- Don't record a duplicate punch on the station
 
 ### Removed
 

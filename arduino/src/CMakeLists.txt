@@ -18,6 +18,8 @@ add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 
 add_library(aop
+    ErrorCode.cpp
+    ErrorCode.h
     IMifare.cpp
     IMifare.h
     Punch.h

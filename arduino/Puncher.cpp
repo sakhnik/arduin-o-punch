@@ -120,8 +120,8 @@ ErrorCode Puncher::Punch()
 
 #ifdef LOGGER
     logger.Clear();
-#endif
     Serial.println(F("----"));
+#endif
     struct Callback : AOP::PunchCard::ICallback
     {
         uint16_t card_id{};
@@ -143,8 +143,13 @@ ErrorCode Puncher::Punch()
     }
     // The station could be configured to clear a card
     //auto res = punchCard.Clear();
-    Serial.print(F("Punch result: "));
-    Serial.println(static_cast<int>(res));
+    Serial.print(F("Punch"));
+    if (res == ErrorCode::OK || res == ErrorCode::DUPLICATE_PUNCH) {
+        Serial.print(F(" card="));
+        Serial.print(callback.card_id);
+    }
+    Serial.print(F(": "));
+    Serial.println(res.ToStr());
 #ifdef LOGGER
     logger.Print();
 #endif
@@ -152,6 +157,8 @@ ErrorCode Puncher::Punch()
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
 
+    if (res == ErrorCode::DUPLICATE_PUNCH)
+        res = ErrorCode::OK;
     return res;
 }
 
