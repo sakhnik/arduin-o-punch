@@ -143,13 +143,13 @@ ErrorCode Puncher::Punch()
     }
     // The station could be configured to clear a card
     //auto res = punchCard.Clear();
-    Serial.print(F("Punch"));
+    Serial.print(F("Punch: "));
+    Serial.print(res.ToStr());
     if (res == ErrorCode::OK || res == ErrorCode::DUPLICATE_PUNCH) {
         Serial.print(F(" card="));
         Serial.print(callback.card_id);
     }
-    Serial.print(F(": "));
-    Serial.println(res.ToStr());
+    Serial.println();
 #ifdef LOGGER
     logger.Print();
 #endif
