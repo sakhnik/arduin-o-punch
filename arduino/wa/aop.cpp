@@ -136,7 +136,11 @@ public:
     uint8_t Punch(uint8_t stationId, uint32_t timestamp)
     {
         _mifare->ResetHighlights();
-        return AOP::PunchCard::Punch(AOP::Punch{stationId, timestamp});
+        auto res = AOP::PunchCard::Punch(AOP::Punch{stationId, timestamp});
+        if (res == ErrorCode::OK || res == ErrorCode::DUPLICATE_PUNCH) {
+            return ErrorCode::OK;
+        }
+        return res;
     }
 
     struct PunchData
