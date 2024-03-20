@@ -72,7 +72,7 @@ int8_t Context::Setup()
         // If record is older than the retain period, reformat.
         uint32_t timestamp = rtc.now().unixtime();
         uint16_t cur_day = timestamp / _recorder.SECONDS_IN_DAY;
-        if (cur_day - _recorder.GetFormatDay() > _record_retain_days) {
+        if (cur_day - _recorder.GetFormatDay() >= _record_retain_days) {
             _recorder.Format(_recorder.GetSize(), _recorder.GetBitsPerRecord(), timestamp);
         }
     }
