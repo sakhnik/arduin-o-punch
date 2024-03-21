@@ -56,9 +56,14 @@ void loop()
 
     buzzer.Tick();
     shell.Tick();
+#ifdef ESP32
+    shell.OnSerial();
+#endif
 }
 
+#ifdef ARDUINO_AVR_PRO
 void serialEvent()
 {
     shell.OnSerial();
 }
+#endif //ARDUINO_AVR_PRO

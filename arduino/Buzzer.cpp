@@ -57,7 +57,7 @@ bool Buzzer::Player::OnTimeout(void *ctx)
     return false;
 }
 
-namespace {
+namespace Morse {
 
 // Short pause for distinction from previous or interrupted signals
 constexpr uint8_t START = 1;
@@ -89,29 +89,29 @@ const Buzzer::Melody CARD_FULL{CARD_FULL_SEQUENCE, 255};
 const uint8_t OK_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P_L,    DAH, P, DIT, P, DAH, P, 0};
 const Buzzer::Melody OK{OK_SEQUENCE, 255};
 
-} //namespace;
+} //namespace Morse;
 
 void Buzzer::SignalRTCFail()
 {
-    _player.Play(RTC_FAIL);
+    _player.Play(Morse::RTC_FAIL);
 }
 
 void Buzzer::SignalDefaultKey()
 {
-    _player.Play(KEY_DEF);
+    _player.Play(Morse::KEY_DEF);
 }
 
 void Buzzer::ConfirmPunch()
 {
-    _player.Play(CONFIRM);
+    _player.Play(Morse::CONFIRM);
 }
 
 void Buzzer::SignalCardFull()
 {
-    _player.Play(CARD_FULL);
+    _player.Play(Morse::CARD_FULL);
 }
 
 void Buzzer::SignalOk()
 {
-    _player.Play(OK);
+    _player.Play(Morse::OK);
 }
