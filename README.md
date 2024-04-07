@@ -4,6 +4,8 @@
 
 Arduino-based punching for orienteering with Mifare NFC cards.
 
+<img alt="OpenSCAD rendering" src="doc/openscad/station.png" width="512"/>
+
 <a href="https://www.facebook.com/ZELESTAclub"><img alt="Зелеста" src="doc/zelesta.jpg" width="512"/></a>
 
 [Facebook: ZELESTAclub](https://www.facebook.com/ZELESTAclub)
