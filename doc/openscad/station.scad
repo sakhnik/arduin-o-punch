@@ -99,7 +99,21 @@ module programmator_connector() {
     }
 }
 
+module battery_indicator() {
+    translate([-2.5, 0, 0]) {
+        color("Black")
+            cube([2.5, 40, 15]);
+        color("Red")
+            translate([0.45, 8, 7.5]) rotate([0, 90, 0]) circle(4);
+        color("Green")
+            translate([0.45, 15, 2.5])
+            rotate([90, 0, 90])
+            polygon(points=[[0, 0], [20, 0], [20, 10]]);
+    }
+}
+
 front_slope = 0.5 * (bottom_length - top_length) / height;
+side_slope = 0.5 * (bottom_width - top_width) / height;
 
 module station() {
     // Elevate slightly to align with z=0
@@ -124,6 +138,11 @@ module station() {
             rotate([90 - atan(front_slope), 0, 0])
                 plug();
         }
+
+        translate([-bottom_width / 2 + 0.75, -top_length / 2 + 2 * corner_radius, 17])
+            mirror([0, 0, 1])
+            rotate([0, -atan(side_slope), 0])
+            battery_indicator();
 
         // Position the led
         color("Red") {
