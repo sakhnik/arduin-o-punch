@@ -46,7 +46,7 @@ module box_z77() {
     }
 }
 
-module button() {
+module switch_button() {
     color("DimGrey") {
         // Base
         cylinder(h=1, r=7);
@@ -130,7 +130,7 @@ module station() {
         // Position the button
         translate([0, -(top_length + bottom_length) / 4 + height * 0.25 * front_slope, height / 2]) {
             rotate([90 - atan(front_slope), 0, 0])
-                button();
+                switch_button();
         }
 
         // Position the plug
@@ -139,7 +139,7 @@ module station() {
                 plug();
         }
 
-        translate([-bottom_width / 2 + 0.75, -top_length / 2 + 2 * corner_radius, 17])
+        translate([-bottom_width / 2 + 0.75, -top_length / 2 + 3 * corner_radius, 17])
             mirror([0, 0, 1])
             rotate([0, -atan(side_slope), 0])
             battery_indicator();
