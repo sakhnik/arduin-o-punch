@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic DST adjustment for EEST rules
 - Tested programming and configuration in Windows, added instructions
 - Added arguments to sync-clock.py to change serial port and to execute command script
+- OpenSCAD model of the station and suggested a mount
 
 ### Changed
 
