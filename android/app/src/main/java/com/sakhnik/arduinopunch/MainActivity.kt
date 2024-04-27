@@ -398,10 +398,8 @@ class MainActivity : AppCompatActivity() {
 
         val etId = findViewById<EditText>(R.id.editCardId)
         val id = etId.text.toString().toInt()
-        if (id != 0) {
-            val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-            card.format(id, getKnownKeys(), this::setProgress)
-        }
+        val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
+        card.format(id, getKnownKeys(), this::setProgress)
     }
 
     private fun getKnownKeys(): List<ByteArray> {
