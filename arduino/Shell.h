@@ -22,6 +22,7 @@ private:
     uint8_t _echo_idx = 0;
     uint32_t _echo_timeout = 0;
 
+    void _PrintPrompt();
     void _Process();
     void _PrintId();
     void _SetId(const char *param);
