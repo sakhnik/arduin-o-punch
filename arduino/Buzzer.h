@@ -16,6 +16,7 @@ public:
     void SignalRTCFail();
     void SignalCardFull();
     void SignalOk();
+    void SignalService();
 
     struct Melody
     {

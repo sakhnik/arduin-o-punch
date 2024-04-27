@@ -4,11 +4,13 @@
 #include "Context.h"
 #include "Puncher.h"
 #include "Shell.h"
+#include "Bluetooth.h"
 
 Buzzer buzzer;
 Context context{buzzer};
 Puncher puncher{context};
 Shell shell{context, buzzer};
+Bluetooth bluetooth{context, shell};
 
 void setup()
 {
@@ -34,6 +36,7 @@ void setup()
 
     puncher.Setup();
     shell.Setup();
+    bluetooth.Setup();
 
     if (initialization_ok) {
         buzzer.SignalOk();
@@ -54,10 +57,16 @@ void loop()
         buzzer.SignalCardFull();
     }
 
+    if (res == ErrorCode::SERVICE_CARD) {
+        buzzer.SignalService();
+        bluetooth.Toggle();
+    }
+
     buzzer.Tick();
     shell.Tick();
 #ifdef ESP32
     shell.OnSerial();
+    bluetooth.Tick();
 #endif
 }
 
