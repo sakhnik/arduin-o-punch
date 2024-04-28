@@ -28,7 +28,7 @@ profiles:
       - flex_DST (1.0.1)
       - extEEPROM (3.4.1)
   c3:
-    fqbn: esp32:esp32:dfrobot_beetle_esp32c3:CDCOnBoot=cdc,CPUFreq=40
+    fqbn: esp32:esp32:dfrobot_beetle_esp32c3:CDCOnBoot=cdc,CPUFreq=80
     platforms:
       - platform: esp32:esp32 (2.0.11)
     libraries:

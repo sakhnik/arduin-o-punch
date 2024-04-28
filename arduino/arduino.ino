@@ -20,6 +20,14 @@ void setup()
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
 
+#ifdef ESP32
+    // Set the CPU frequency to 40 MHz for power optimization
+    setCpuFrequencyMhz(40);
+    Serial.print(F("CPU Frequency: "));
+    Serial.print(getCpuFrequencyMhz());
+    Serial.println(F(" MHz"));
+#endif //ESP32
+
     buzzer.Setup();
 
     if (context.Setup()) {

@@ -69,12 +69,18 @@ void Bluetooth::Tick()
 
 bool Bluetooth::_Start()
 {
+    setCpuFrequencyMhz(80);
+    Serial.print(F("CPU Frequency: "));
+    Serial.print(getCpuFrequencyMhz());
+    Serial.println(F(" MHz"));
+
     if (!BLE.begin()) {
         Serial.println("Starting BLE failed");
         return false;
     }
 
     *PrintNum(_context.GetId(), localName + 4) = 0;
+    Serial.println(localName);
     BLE.setLocalName(localName);
     BLE.setAdvertisedService(serialService);
     serialService.addCharacteristic(stdinCharacteristic);
@@ -91,6 +97,10 @@ bool Bluetooth::_Stop()
 {
     BLE.end();
     Serial.println("BLE stopped");
+    setCpuFrequencyMhz(40);
+    Serial.print(F("CPU Frequency: "));
+    Serial.print(getCpuFrequencyMhz());
+    Serial.println(F(" MHz"));
     return false;
 }
 
