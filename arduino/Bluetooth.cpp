@@ -5,8 +5,9 @@
 #  include <ArduinoBLE.h>
 #endif //ESP32
 
-Bluetooth::Bluetooth(Context &context, Shell &shell)
-    : _context{context}
+Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
+    : _outMux{outMux}
+    , _context{context}
     , _shell{shell}
 {
 }
@@ -25,6 +26,10 @@ void Bluetooth::Tick()
 {
 }
 
+void Bluetooth::Write(const uint8_t *buffer, size_t size)
+{
+}
+
 #else //ESP32
 
 namespace {
@@ -40,7 +45,7 @@ char* PrintNum(uint8_t num, char *buf)
 
 BLEService serialService("16404bac-eab0-422c-955f-fb13799c00fa");
 BLEStringCharacteristic stdinCharacteristic("16404bac-eab1-422c-955f-fb13799c00fa", BLERead | BLEWrite, 31);
-BLEStringCharacteristic stdoutCharacteristic("16404bac-eab2-422c-955f-fb13799c00fa", BLERead | BLENotify, 31);
+BLECharacteristic stdoutCharacteristic("16404bac-eab2-422c-955f-fb13799c00fa", BLERead | BLENotify, 31);
 char localName[16] = "AOP ";
 
 } // namespace;
@@ -64,7 +69,6 @@ void Bluetooth::Tick()
     BLE.poll();
     //stdinCharacteristic.written();
     //stdinCharacteristic.value();
-    //stdoutCharacteristic.writeValue("asdf");
 }
 
 bool Bluetooth::_Start()
@@ -89,12 +93,14 @@ bool Bluetooth::_Start()
     BLE.addService(serialService);
 
     BLE.advertise();
+    _outMux.SetClient(this);
     Serial.println("BLE started");
     return true;
 }
 
 bool Bluetooth::_Stop()
 {
+    _outMux.SetClient(nullptr);
     BLE.end();
     Serial.println("BLE stopped");
     setCpuFrequencyMhz(40);
@@ -102,6 +108,11 @@ bool Bluetooth::_Stop()
     Serial.print(getCpuFrequencyMhz());
     Serial.println(F(" MHz"));
     return false;
+}
+
+void Bluetooth::Write(const uint8_t *buffer, size_t size)
+{
+    stdoutCharacteristic.writeValue(buffer, size);
 }
 
 #endif

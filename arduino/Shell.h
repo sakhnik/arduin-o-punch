@@ -5,17 +5,19 @@
 class Context;
 class Buzzer;
 class DateTime;
+class OutMux;
 
 class Shell
 {
 public:
-    Shell(Context &, Buzzer &);
+    Shell(OutMux &, Context &, Buzzer &);
 
     void Setup();
     void OnSerial();
     boolean Tick();
 
 private:
+    OutMux &_outMux;
     Context &_context;
     Buzzer &_buzzer;
     String _buffer;
@@ -40,4 +42,5 @@ private:
     void _RecorderList();
     void _PrintRecordRetainDays();
     void _SetRecordRetainDays(const char *str);
+    void _PrintDD(uint8_t d);
 };

@@ -5,12 +5,14 @@
 #include "Puncher.h"
 #include "Shell.h"
 #include "Bluetooth.h"
+#include "OutMux.h"
 
 Buzzer buzzer;
 Context context{buzzer};
 Puncher puncher{context};
-Shell shell{context, buzzer};
-Bluetooth bluetooth{context, shell};
+OutMux outMux;
+Shell shell{outMux, context, buzzer};
+Bluetooth bluetooth{outMux, context, shell};
 
 void setup()
 {

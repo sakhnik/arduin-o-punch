@@ -7,5 +7,9 @@ OutMux::OutMux()
 
 size_t OutMux::write(const uint8_t *buffer, size_t size)
 {
-    return Serial.write(buffer, size);
+    auto written = Serial.write(buffer, size);
+    // Duplicate the output to the client (bluetooth) if connected.
+    if (_client)
+        _client->Write(buffer, written);
+    return written;
 }
