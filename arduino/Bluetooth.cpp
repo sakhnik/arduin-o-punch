@@ -44,7 +44,7 @@ char* PrintNum(uint8_t num, char *buf)
 }
 
 BLEService serialService("16404bac-eab0-422c-955f-fb13799c00fa");
-BLEStringCharacteristic stdinCharacteristic("16404bac-eab1-422c-955f-fb13799c00fa", BLERead | BLEWrite, 31);
+BLECharacteristic stdinCharacteristic("16404bac-eab1-422c-955f-fb13799c00fa", BLERead | BLEWrite, 31);
 BLECharacteristic stdoutCharacteristic("16404bac-eab2-422c-955f-fb13799c00fa", BLERead | BLENotify, 31);
 char localName[16] = "AOP ";
 
@@ -67,8 +67,13 @@ void Bluetooth::Tick()
 
     // Poll for BLE events
     BLE.poll();
-    //stdinCharacteristic.written();
-    //stdinCharacteristic.value();
+    if (stdinCharacteristic.written()) {
+        uint8_t data[31];
+        int bytesRead = stdinCharacteristic.readValue(data, sizeof(data));
+        if (bytesRead > 0) {
+            _shell.ProcessInput(data, bytesRead);
+        }
+    }
 }
 
 bool Bluetooth::_Start()
