@@ -107,7 +107,7 @@ void Shell::_Process()
         _outMux.println(F("recdays           How many days to keep the record"));
         _outMux.println(F("recdays 1         Clear record after so many days"));
     } else if (_buffer.startsWith(F("info"))) {
-        _outMux.println(F("version=2.0.0"));
+        _outMux.println(F("version=2.1.0"));
         _outMux.print(F("id="));
         _PrintId();
         _outMux.print(F("key="));

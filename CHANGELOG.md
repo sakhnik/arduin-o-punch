@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- TBD
+
+### Changed
+
+- TBD
+
+### Removed
+
+- TBD
+
+## [2.0.0] - 2024.04.29
+
+### Added
+
 - Continuous integration in GitHub workflow
 - Web app to test the card layout (built from the actual code with emsdk)
 - Automatic DST adjustment for EEST rules
@@ -27,10 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash when garbage in the timestamp
 - Allow entering key with lower case hex digits too
 - Don't record a duplicate punch on the station
-
-### Removed
-
-- TBD
 
 ## [1.1.0]
 
@@ -62,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First 10 prototypes with open casing
 
-[Unreleased]: https://github.com/sakhnik/arduin-o-punch/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/sakhnik/arduin-o-punch/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/sakhnik/arduin-o-punch/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/sakhnik/arduin-o-punch/compare/v1.0...v1.1.0
 [1.0]: https://github.com/sakhnik/arduin-o-punch/releases/tag/v1.0
