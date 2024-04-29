@@ -5,6 +5,11 @@ OutMux::OutMux()
 {
 }
 
+size_t OutMux::write(uint8_t ch)
+{
+    return write(&ch, 1);
+}
+
 size_t OutMux::write(const uint8_t *buffer, size_t size)
 {
     auto written = Serial.write(buffer, size);
