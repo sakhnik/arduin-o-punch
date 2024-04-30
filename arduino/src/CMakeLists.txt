@@ -27,12 +27,14 @@ add_library(aop
     PunchCard.h
     Recorder.cpp
     Recorder.h
+    RingBuffer.h
 )
 
 add_executable(test-aop
     PunchCardTest.cpp
     PunchTest.cpp
     RecorderTest.cpp
+    RingBufferTest.cpp
     test.cpp
 )
 target_link_libraries(test-aop aop)
