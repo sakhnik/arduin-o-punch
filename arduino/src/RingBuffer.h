@@ -33,7 +33,9 @@ public:
     {
         if (!_size)
             return {0, nullptr};
-        int end = _head + _size;
+        if (size > _size)
+            size = _size;
+        int end = _head + size;
         if (end > capacity)
             end = capacity;
         int retSize = end - _head;

@@ -1,9 +1,9 @@
+#ifdef ESP32
+
 #include "Bluetooth.h"
 #include "Context.h"
 #include "Shell.h"
-#ifdef ESP32
-#  include <ArduinoBLE.h>
-#endif //ESP32
+#include <ArduinoBLE.h>
 
 Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
     : _outMux{outMux}
@@ -11,26 +11,6 @@ Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
     , _shell{shell}
 {
 }
-
-#ifndef ESP32
-
-void Bluetooth::Setup()
-{
-}
-
-void Bluetooth::Toggle()
-{
-}
-
-void Bluetooth::Tick()
-{
-}
-
-void Bluetooth::Write(const uint8_t *buffer, size_t size)
-{
-}
-
-#else //ESP32
 
 namespace {
 
@@ -44,14 +24,16 @@ char* PrintNum(uint8_t num, char *buf)
 }
 
 BLEService serialService("16404bac-eab0-422c-955f-fb13799c00fa");
-BLECharacteristic stdinCharacteristic("16404bac-eab1-422c-955f-fb13799c00fa", BLERead | BLEWrite, 31);
-BLECharacteristic stdoutCharacteristic("16404bac-eab2-422c-955f-fb13799c00fa", BLERead | BLENotify, 31);
+constexpr const int CHARACTERISTIC_SIZE = 32;
+BLECharacteristic stdinCharacteristic("16404bac-eab1-422c-955f-fb13799c00fa", BLERead | BLEWrite, CHARACTERISTIC_SIZE);
+BLECharacteristic stdoutCharacteristic("16404bac-eab2-422c-955f-fb13799c00fa", BLERead | BLENotify, CHARACTERISTIC_SIZE);
 char localName[16] = "AOP ";
 
 } // namespace;
 
 void Bluetooth::Setup()
 {
+    _last_write_time = millis();
 }
 
 void Bluetooth::Toggle()
@@ -68,10 +50,21 @@ void Bluetooth::Tick()
     // Poll for BLE events
     BLE.poll();
     if (stdinCharacteristic.written()) {
-        uint8_t data[31];
+        uint8_t data[CHARACTERISTIC_SIZE];
         int bytesRead = stdinCharacteristic.readValue(data, sizeof(data));
         if (bytesRead > 0) {
             _shell.ProcessInput(data, bytesRead);
+        }
+    }
+
+    // The characteristic value should be updated gradually to give
+    // the transmitter time to process everything.
+    auto now = millis();
+    if (now - _last_write_time > 1) {
+        _last_write_time = now;
+        auto chunk = _outBuffer.Get(CHARACTERISTIC_SIZE);
+        if (chunk.size) {
+            stdoutCharacteristic.writeValue(chunk.data, chunk.size);
         }
     }
 }
@@ -117,7 +110,8 @@ bool Bluetooth::_Stop()
 
 void Bluetooth::Write(const uint8_t *buffer, size_t size)
 {
-    stdoutCharacteristic.writeValue(buffer, size);
+    // Schedule the data for writing at appropriate pace
+    _outBuffer.Add(buffer, size);
 }
 
 #endif

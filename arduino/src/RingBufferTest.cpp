@@ -55,4 +55,14 @@ TEST_CASE("RingBuf too large")
     REQUIRE(buf.Size() == 0);
 }
 
+TEST_CASE("RingBuf abundant data")
+{
+    RingBuffer<16> buf;
+    buf.Add(reinterpret_cast<const uint8_t *>("asdfqwer"), 8);
+    REQUIRE(buf.Size() == 8);
+    auto chunk = buf.Get(2);
+    REQUIRE(chunk.size == 2);
+    REQUIRE(0 == memcmp("as", chunk.data, chunk.size));
+}
+
 #endif //BUILD_TEST

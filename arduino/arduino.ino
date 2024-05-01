@@ -4,7 +4,9 @@
 #include "Context.h"
 #include "Puncher.h"
 #include "Shell.h"
-#include "Bluetooth.h"
+#ifdef ESP32
+#  include "Bluetooth.h"
+#endif //ESP32
 #include "OutMux.h"
 
 Buzzer buzzer;
@@ -12,7 +14,9 @@ Context context{buzzer};
 Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
-Bluetooth bluetooth{outMux, context, shell};
+#ifdef ESP32
+Bluetooth bluetooth {outMux, context, shell};
+#endif //ESP32
 
 void setup()
 {
@@ -46,7 +50,9 @@ void setup()
 
     puncher.Setup();
     shell.Setup();
+#ifdef ESP32
     bluetooth.Setup();
+#endif
 
     if (initialization_ok) {
         buzzer.SignalOk();
@@ -67,10 +73,12 @@ void loop()
         buzzer.SignalCardFull();
     }
 
+#ifdef ESP32
     if (res == ErrorCode::SERVICE_CARD) {
         buzzer.SignalService();
         bluetooth.Toggle();
     }
+#endif //ESP32
 
     buzzer.Tick();
     shell.Tick();
