@@ -20,6 +20,7 @@ struct ErrorCode
         WRONG_CARD,
         CARD_IS_FULL,
         DUPLICATE_PUNCH,
+        SERVICE_CARD,
     };
 
     uint8_t code;

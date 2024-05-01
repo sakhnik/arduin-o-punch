@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- TBD
+- Bluetooth server for configuration activated with a service card
 
 ### Changed
 

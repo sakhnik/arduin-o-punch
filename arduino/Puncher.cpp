@@ -159,6 +159,8 @@ ErrorCode Puncher::Punch()
 
     if (res == ErrorCode::DUPLICATE_PUNCH)
         res = ErrorCode::OK;
+    if (res == ErrorCode::OK && callback.card_id == 0)
+        res = ErrorCode::SERVICE_CARD;
     return res;
 }
 

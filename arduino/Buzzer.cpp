@@ -89,6 +89,10 @@ const Buzzer::Melody CARD_FULL{CARD_FULL_SEQUENCE, 255};
 const uint8_t OK_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P_L,    DAH, P, DIT, P, DAH, P, 0};
 const Buzzer::Melody OK{OK_SEQUENCE, 255};
 
+// SVC = ... ...- -.-.
+const uint8_t SVC_SEQUENCE[] = {START, DIT, P, DIT, P, DIT, P_L,   DIT, P, DIT, P, DIT, P, DAH, P_L,   DAH, P, DIT, P, DAH, P, DIT, P, 0};
+const Buzzer::Melody SVC{SVC_SEQUENCE, 255};
+
 } //namespace Morse;
 
 void Buzzer::SignalRTCFail()
@@ -114,4 +118,9 @@ void Buzzer::SignalCardFull()
 void Buzzer::SignalOk()
 {
     _player.Play(Morse::OK);
+}
+
+void Buzzer::SignalService()
+{
+    _player.Play(Morse::SVC);
 }

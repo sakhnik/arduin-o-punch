@@ -5,23 +5,31 @@
 class Context;
 class Buzzer;
 class DateTime;
+class OutMux;
 
 class Shell
 {
 public:
-    Shell(Context &, Buzzer &);
+    Shell(OutMux &, Context &, Buzzer &);
 
     void Setup();
     void OnSerial();
     boolean Tick();
 
+#ifdef ESP32
+    void ProcessInput(const uint8_t *data, int size);
+#endif
+
 private:
+    OutMux &_outMux;
     Context &_context;
     Buzzer &_buzzer;
     String _buffer;
     uint8_t _echo_idx = 0;
     uint32_t _echo_timeout = 0;
 
+    void _ProcessChar(char ch);
+    void _PrintPrompt();
     void _Process();
     void _PrintId();
     void _SetId(const char *param);
@@ -39,4 +47,5 @@ private:
     void _RecorderList();
     void _PrintRecordRetainDays();
     void _SetRecordRetainDays(const char *str);
+    void _PrintDD(uint8_t d);
 };
