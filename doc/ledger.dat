@@ -318,3 +318,8 @@ account Expenses:Tools
     Expenses:Production                  200.00 ₴
     Assets:Privat
     ; Containers
+
+2024-05-02 * AliExpress
+    Expenses:Production                   96.25 $
+    Assets:Privat                      -3876.00 ₴
+    ; 51x ESP32-C3 https://www.aliexpress.com/item/1005006635007487.html
