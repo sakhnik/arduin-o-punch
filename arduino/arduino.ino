@@ -14,8 +14,21 @@ Context context{buzzer};
 Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
+
 #ifdef ESP32
+
+enum OperationMode
+{
+    OM_NORMAL = 0,
+    OM_BLUETOOTH,
+    OM_WIFI,
+
+    OM_MODE_COUNT
+};
+OperationMode operation_mode = OM_NORMAL;
+
 Bluetooth bluetooth {outMux, context, shell};
+
 #endif //ESP32
 
 void setup()
@@ -75,8 +88,7 @@ void loop()
 
 #ifdef ESP32
     if (res == ErrorCode::SERVICE_CARD) {
-        buzzer.SignalService();
-        bluetooth.Toggle();
+        AdvanceOperationMode();
     }
 #endif //ESP32
 
@@ -87,6 +99,30 @@ void loop()
     bluetooth.Tick();
 #endif
 }
+
+#ifdef ESP32
+void AdvanceOperationMode()
+{
+    switch (operation_mode) {
+    case OM_BLUETOOTH:
+        bluetooth.SwitchOff();
+        break;
+    }
+    operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
+    switch (operation_mode) {
+    case OM_NORMAL:
+        buzzer.SignalOk();
+        break;
+    case OM_BLUETOOTH:
+        buzzer.SignalBluetooth();
+        bluetooth.SwitchOn();
+        break;
+    case OM_WIFI:
+        buzzer.SignalWifi();
+        break;
+    }
+}
+#endif //ESP32
 
 #ifdef ARDUINO_AVR_PRO
 void serialEvent()

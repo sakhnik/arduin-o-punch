@@ -15,7 +15,8 @@ public:
     Bluetooth(OutMux &, Context &, Shell &);
 
     void Setup();
-    void Toggle();
+    void SwitchOn();
+    void SwitchOff();
     void Tick();
 
 private:

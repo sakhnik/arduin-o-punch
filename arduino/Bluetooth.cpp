@@ -36,9 +36,20 @@ void Bluetooth::Setup()
     _last_write_time = millis();
 }
 
-void Bluetooth::Toggle()
+void Bluetooth::SwitchOn()
 {
-    _is_active = _is_active ? _Stop() : _Start();
+    if (!_is_active) {
+        _Start();
+        _is_active = true;
+    }
+}
+
+void Bluetooth::SwitchOff()
+{
+    if (_is_active) {
+        _Stop();
+        _is_active = false;
+    }
 }
 
 void Bluetooth::Tick()
