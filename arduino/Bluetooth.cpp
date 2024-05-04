@@ -3,6 +3,8 @@
 #include "Bluetooth.h"
 #include "Context.h"
 #include "Shell.h"
+#include "CpuFreq.h"
+#include "src/Utils.h"
 #include <ArduinoBLE.h>
 
 Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
@@ -13,15 +15,6 @@ Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
 }
 
 namespace {
-
-char* PrintNum(uint8_t num, char *buf)
-{
-    if (!num)
-        return buf;
-    buf = PrintNum(num / 10, buf);
-    *buf = '0' + num % 10;
-    return ++buf;
-}
 
 BLEService serialService("16404bac-eab0-422c-955f-fb13799c00fa");
 constexpr const int CHARACTERISTIC_SIZE = 32;
@@ -82,17 +75,14 @@ void Bluetooth::Tick()
 
 bool Bluetooth::_Start()
 {
-    setCpuFrequencyMhz(80);
-    Serial.print(F("CPU Frequency: "));
-    Serial.print(getCpuFrequencyMhz());
-    Serial.println(F(" MHz"));
+    SetCpuFreq(80);
 
     if (!BLE.begin()) {
         Serial.println("Starting BLE failed");
         return false;
     }
 
-    *PrintNum(_context.GetId(), localName + 4) = 0;
+    *AOP::PrintNum(_context.GetId(), localName + 4) = 0;
     Serial.println(localName);
     BLE.setLocalName(localName);
     BLE.setAdvertisedService(serialService);
@@ -112,10 +102,7 @@ bool Bluetooth::_Stop()
     _outMux.SetClient(nullptr);
     BLE.end();
     Serial.println("BLE stopped");
-    setCpuFrequencyMhz(40);
-    Serial.print(F("CPU Frequency: "));
-    Serial.print(getCpuFrequencyMhz());
-    Serial.println(F(" MHz"));
+    SetCpuFreq(40);
     return false;
 }
 

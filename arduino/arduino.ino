@@ -6,6 +6,7 @@
 #include "Shell.h"
 #ifdef ESP32
 #  include "Bluetooth.h"
+#  include "Network.h"
 #endif //ESP32
 #include "OutMux.h"
 
@@ -28,6 +29,7 @@ enum OperationMode
 OperationMode operation_mode = OM_NORMAL;
 
 Bluetooth bluetooth {outMux, context, shell};
+Network network {outMux, context, shell, buzzer};
 
 #endif //ESP32
 
@@ -65,6 +67,7 @@ void setup()
     shell.Setup();
 #ifdef ESP32
     bluetooth.Setup();
+    network.Setup();
 #endif
 
     if (initialization_ok) {
@@ -97,6 +100,7 @@ void loop()
 #ifdef ESP32
     shell.OnSerial();
     bluetooth.Tick();
+    network.Tick();
 #endif
 }
 
@@ -106,6 +110,9 @@ void AdvanceOperationMode()
     switch (operation_mode) {
     case OM_BLUETOOTH:
         bluetooth.SwitchOff();
+        break;
+    case OM_WIFI:
+        network.SwitchOff();
         break;
     }
     operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
@@ -119,6 +126,7 @@ void AdvanceOperationMode()
         break;
     case OM_WIFI:
         buzzer.SignalWifi();
+        network.SwitchOn();
         break;
     }
 }

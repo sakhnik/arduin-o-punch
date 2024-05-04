@@ -97,6 +97,14 @@ const Buzzer::Melody BT{BT_SEQUENCE, 255};
 const uint8_t WF_SEQUENCE[] = {START, DIT, P, DAH, P, DAH, P_L,     DIT, P, DIT, P, DAH, P, DIT, P, 0};
 const Buzzer::Melody WF{WF_SEQUENCE, 255};
 
+// .
+const uint8_t DIT_SEQUENCE[] = {START, DIT, P, 0};
+const Buzzer::Melody Dit{DIT_SEQUENCE, 255};
+
+// -
+const uint8_t DAH_SEQUENCE[] = {START, DAH, P, 0};
+const Buzzer::Melody Dah{DAH_SEQUENCE, 255};
+
 } //namespace Morse;
 
 void Buzzer::SignalRTCFail()
@@ -132,4 +140,14 @@ void Buzzer::SignalBluetooth()
 void Buzzer::SignalWifi()
 {
     _player.Play(Morse::WF);
+}
+
+void Buzzer::SignalDit()
+{
+    _player.Play(Morse::Dit);
+}
+
+void Buzzer::SignalDah()
+{
+    _player.Play(Morse::Dah);
 }

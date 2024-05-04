@@ -5,7 +5,7 @@
 
 void SetCpuFreq(int mhz)
 {
-    setCpuFrequencyMhz(40);
+    setCpuFrequencyMhz(mhz);
     Serial.print(F("CPU Frequency: "));
     Serial.print(getCpuFrequencyMhz());
     Serial.println(F(" MHz"));

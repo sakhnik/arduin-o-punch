@@ -18,6 +18,8 @@ public:
     void SignalOk();
     void SignalBluetooth();
     void SignalWifi();
+    void SignalDit();
+    void SignalDah();
 
     struct Melody
     {

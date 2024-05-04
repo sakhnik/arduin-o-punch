@@ -3,29 +3,22 @@
 #include "Network.h"
 #include "Context.h"
 #include "Shell.h"
+#include "Buzzer.h"
+#include "CpuFreq.h"
+#include <WiFi.h>
 
-Network::Network(OutMux &outMux, Context &context, Shell &shell)
+Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
     : _outMux{outMux}
     , _context{context}
     , _shell{shell}
+    , _buzzer{buzzer}
 {
 }
-
-namespace {
-
-char* PrintNum(uint8_t num, char *buf)
-{
-    if (!num)
-        return buf;
-    buf = PrintNum(num / 10, buf);
-    *buf = '0' + num % 10;
-    return ++buf;
-}
-
-} // namespace;
 
 void Network::Setup()
 {
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
 }
 
 void Network::SwitchOn()
@@ -49,25 +42,44 @@ void Network::Tick()
     if (!_is_active) {
         return;
     }
+
+    // Signal with dit every second until connected to the network
+    if (WiFi.status() != WL_CONNECTED) {
+        _connection_signalled = false;
+        auto now = millis();
+        if (now - _last_connecting_dit > 1000) {
+            _last_connecting_dit = now;
+            _buzzer.SignalDit();
+        }
+        return;
+    }
+
+    // Confirm connection with dah
+    if (!_connection_signalled) {
+        _connection_signalled = true;
+        _buzzer.SignalDah();
+        Serial.println("Connected");
+        Serial.print("Local IP: ");
+        Serial.println(WiFi.localIP());
+    }
 }
 
 bool Network::_Start()
 {
-    setCpuFrequencyMhz(80);
-    Serial.print(F("CPU Frequency: "));
-    Serial.print(getCpuFrequencyMhz());
-    Serial.println(F(" MHz"));
-
+    SetCpuFreq(80);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(_context.GetWifiSsid(), _context.GetWifiPass());
+    _last_connecting_dit = millis();
+    _connection_signalled = false;
     return true;
 }
 
 bool Network::_Stop()
 {
     _outMux.SetClient(nullptr);
-    setCpuFrequencyMhz(40);
-    Serial.print(F("CPU Frequency: "));
-    Serial.print(getCpuFrequencyMhz());
-    Serial.println(F(" MHz"));
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+    SetCpuFreq(40);
     return false;
 }
 

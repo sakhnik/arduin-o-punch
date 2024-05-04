@@ -46,12 +46,32 @@ public:
 
     void SetRecordRetainDays(uint8_t days);
 
+#ifdef ESP32
+    const char *GetWifiSsid() const
+    {
+        return _wifi_ssid;
+    }
+
+    void SetWifiSsid(const char *ssid);
+
+    const char *GetWifiPass() const
+    {
+        return _wifi_pass;
+    }
+
+    void SetWifiPass(const char *pass);
+#endif //ESP32
+
 private:
     Buzzer &_buzzer;
     uint8_t _id = 1;
     uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     uint8_t _reserved0 = 0xff;
     uint8_t _record_retain_days = 1;
+#ifdef ESP32
+    char _wifi_ssid[16] = {};
+    char _wifi_pass[16] = {};
+#endif //ESP32
     uint8_t _reserved[7];
     AOP::Recorder _recorder;
 

@@ -106,6 +106,12 @@ void Shell::_Process()
         _outMux.println(F("recclr 123        Clear card from the record"));
         _outMux.println(F("recdays           How many days to keep the record"));
         _outMux.println(F("recdays 1         Clear record after so many days"));
+#ifdef ESP32
+        _outMux.println(F("wifissid          Print current WiFi SSID"));
+        _outMux.println(F("wifissid ssid     Set WiFi SSID to connect to"));
+        _outMux.println(F("wifipass          Print WiFi password"));
+        _outMux.println(F("wifipass pass     Set WiFi password"));
+#endif //ESP32
     } else if (_buffer.startsWith(F("info"))) {
         _outMux.println(F("version=2.1.0"));
         _outMux.print(F("id="));
@@ -122,6 +128,10 @@ void Shell::_Process()
         _outMux.println(F(" bpr"));
         _outMux.print(F("recdays="));
         _PrintRecordRetainDays();
+#ifdef ESP32
+        _outMux.print(F("wifissid="));
+        _PrintWifiSsid();
+#endif //ESP32
     } else if (_buffer.startsWith(F("id "))) {
         _SetId(_buffer.c_str() + 3);
         _PrintId();
@@ -158,6 +168,16 @@ void Shell::_Process()
         _RecorderCheck(_buffer.c_str() + 4);
     } else if (_buffer.startsWith(F("rec"))) {
         _RecorderList();
+#ifdef ESP32
+    } else if (_buffer.startsWith("wifissid ")) {
+        _SetWifiSsid(_buffer.c_str() + 9);
+    } else if (_buffer.startsWith("wifissid")) {
+        _PrintWifiSsid();
+    } else if (_buffer.startsWith("wifipass ")) {
+        _SetWifiPass(_buffer.c_str() + 9);
+    } else if (_buffer.startsWith("wifipass")) {
+        _PrintWifiPass();
+#endif //ESP32
     } else {
         _outMux.print(F("Unknown command: "));
         _outMux.println(_buffer);
@@ -341,3 +361,29 @@ void Shell::_SetRecordRetainDays(const char *str)
 {
     _context.SetRecordRetainDays(ParseNum<uint8_t>(str));
 }
+
+#ifdef ESP32
+
+void Shell::_SetWifiSsid(const char *str)
+{
+    _context.SetWifiSsid(str);
+    _PrintWifiSsid();
+}
+
+void Shell::_PrintWifiSsid()
+{
+    _outMux.println(_context.GetWifiSsid());
+}
+
+void Shell::_SetWifiPass(const char *str)
+{
+    _context.SetWifiPass(str);
+    _PrintWifiPass();
+}
+
+void Shell::_PrintWifiPass()
+{
+    _outMux.println(_context.GetWifiPass());
+}
+
+#endif //ESP32

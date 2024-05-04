@@ -48,4 +48,10 @@ private:
     void _PrintRecordRetainDays();
     void _SetRecordRetainDays(const char *str);
     void _PrintDD(uint8_t d);
+#ifdef ESP32
+    void _SetWifiSsid(const char *str);
+    void _PrintWifiSsid();
+    void _SetWifiPass(const char *str);
+    void _PrintWifiPass();
+#endif //ESP32
 };
