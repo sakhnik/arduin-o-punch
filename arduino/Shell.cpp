@@ -110,8 +110,6 @@ void Shell::_Process()
         _outMux.println(F("version=2.1.0"));
         _outMux.print(F("id="));
         _PrintId();
-        _outMux.print(F("key="));
-        _PrintKey();
         auto now = _context.GetDateTime();
         _outMux.print(F("date="));
         _PrintDate(now);
