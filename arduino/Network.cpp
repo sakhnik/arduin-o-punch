@@ -71,17 +71,21 @@ void Network::Tick()
 
     if (!shellClient) {
         shellClient = shellServer.available();
-        _outMux.SetClient(this);
+        if (shellClient) {
+            _outMux.SetClient(this);
+        }
     }
     if (shellClient) {
         if (!shellClient.connected()) {
             shellClient.stop();
             _outMux.SetClient(nullptr);
         } else {
-            uint8_t buf[32];
-            int bytesRead = shellClient.read(buf, sizeof(buf));
-            if (bytesRead > 0) {
-                _shell.ProcessInput(buf, bytesRead);
+            if (shellClient.available()) {
+                uint8_t buf[32];
+                int bytesRead = shellClient.read(buf, sizeof(buf));
+                if (bytesRead > 0) {
+                    _shell.ProcessInput(buf, bytesRead);
+                }
             }
         }
     }
