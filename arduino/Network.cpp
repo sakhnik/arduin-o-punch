@@ -9,6 +9,9 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 
+WiFiServer shellServer(23);
+WiFiClient shellClient;
+
 Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
     : _outMux{outMux}
     , _context{context}
@@ -63,6 +66,24 @@ void Network::Tick()
         Serial.println("Connected");
         Serial.print("Local IP: ");
         Serial.println(WiFi.localIP());
+        shellServer.begin();
+    }
+
+    if (!shellClient) {
+        shellClient = shellServer.available();
+        _outMux.SetClient(this);
+    }
+    if (shellClient) {
+        if (!shellClient.connected()) {
+            shellClient.stop();
+            _outMux.SetClient(nullptr);
+        } else {
+            uint8_t buf[32];
+            int bytesRead = shellClient.read(buf, sizeof(buf));
+            if (bytesRead > 0) {
+                _shell.ProcessInput(buf, bytesRead);
+            }
+        }
     }
 }
 
@@ -85,6 +106,8 @@ bool Network::_Start()
 bool Network::_Stop()
 {
     _outMux.SetClient(nullptr);
+    shellClient.stop();
+    shellServer.end();
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     SetCpuFreq(40);
@@ -93,6 +116,9 @@ bool Network::_Stop()
 
 void Network::Write(const uint8_t *buffer, size_t size)
 {
+    if (shellClient && shellClient.connected()) {
+        shellClient.write(buffer, size);
+    }
 }
 
 #endif

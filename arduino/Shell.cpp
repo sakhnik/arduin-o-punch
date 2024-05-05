@@ -39,7 +39,7 @@ void Shell::_ProcessChar(char ch)
         _echo_idx = 0;
     }
     _buffer += ch;
-    if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r")) {
+    if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r") || _buffer.endsWith("\n")) {
         // Echo the rest of the command if necessary
         if (Tick())
             _outMux.println();
