@@ -5,7 +5,9 @@
 #include "Shell.h"
 #include "Buzzer.h"
 #include "CpuFreq.h"
+#include "src/Utils.h"
 #include <WiFi.h>
+#include <ESPmDNS.h>
 
 Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
     : _outMux{outMux}
@@ -67,6 +69,12 @@ void Network::Tick()
 bool Network::_Start()
 {
     SetCpuFreq(80);
+    char hostname[64] = "aop";
+    *AOP::PrintNum(_context.GetId(), hostname + 3) = 0;
+    Serial.print("hostname: ");
+    Serial.println(hostname);
+    MDNS.begin(hostname);
+    WiFi.setHostname(hostname);
     WiFi.mode(WIFI_STA);
     WiFi.begin(_context.GetWifiSsid(), _context.GetWifiPass());
     _last_connecting_dit = millis();
