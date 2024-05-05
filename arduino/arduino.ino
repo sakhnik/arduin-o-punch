@@ -125,8 +125,10 @@ void AdvanceOperationMode()
         bluetooth.SwitchOn();
         break;
     case OM_WIFI:
-        buzzer.SignalWifi();
+        // It takes a second or so to initialize WiFi. The CPU will be busy.
+        // Play a confirmation melody only after that to avoid distortion.
         network.SwitchOn();
+        buzzer.SignalWifi();
         break;
     }
 }
