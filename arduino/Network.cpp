@@ -100,8 +100,9 @@ bool Network::_Start()
     Serial.println(hostname);
     MDNS.begin(hostname);
     WiFi.setHostname(hostname);
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_AP_STA);
     WiFi.begin(_context.GetWifiSsid(), _context.GetWifiPass());
+    WiFi.softAP(hostname);
     _last_connecting_dit = millis();
     _connection_signalled = false;
     return true;
