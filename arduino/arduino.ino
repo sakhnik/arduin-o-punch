@@ -6,6 +6,7 @@
 #include "Shell.h"
 #ifdef ESP32
 #  include "Bluetooth.h"
+#  include "Network.h"
 #endif //ESP32
 #include "OutMux.h"
 
@@ -14,8 +15,22 @@ Context context{buzzer};
 Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
+
 #ifdef ESP32
+
+enum OperationMode
+{
+    OM_NORMAL = 0,
+    OM_BLUETOOTH,
+    OM_WIFI,
+
+    OM_MODE_COUNT
+};
+OperationMode operation_mode = OM_NORMAL;
+
 Bluetooth bluetooth {outMux, context, shell};
+Network network {outMux, context, shell, buzzer};
+
 #endif //ESP32
 
 void setup()
@@ -52,6 +67,7 @@ void setup()
     shell.Setup();
 #ifdef ESP32
     bluetooth.Setup();
+    network.Setup();
 #endif
 
     if (initialization_ok) {
@@ -75,8 +91,7 @@ void loop()
 
 #ifdef ESP32
     if (res == ErrorCode::SERVICE_CARD) {
-        buzzer.SignalService();
-        bluetooth.Toggle();
+        AdvanceOperationMode();
     }
 #endif //ESP32
 
@@ -85,8 +100,39 @@ void loop()
 #ifdef ESP32
     shell.OnSerial();
     bluetooth.Tick();
+    network.Tick();
 #endif
 }
+
+#ifdef ESP32
+void AdvanceOperationMode()
+{
+    switch (operation_mode) {
+    case OM_BLUETOOTH:
+        bluetooth.SwitchOff();
+        break;
+    case OM_WIFI:
+        network.SwitchOff();
+        break;
+    }
+    operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
+    switch (operation_mode) {
+    case OM_NORMAL:
+        buzzer.SignalOk();
+        break;
+    case OM_BLUETOOTH:
+        buzzer.SignalBluetooth();
+        bluetooth.SwitchOn();
+        break;
+    case OM_WIFI:
+        // It takes a second or so to initialize WiFi. The CPU will be busy.
+        // Play a confirmation melody only after that to avoid distortion.
+        network.SwitchOn();
+        buzzer.SignalWifi();
+        break;
+    }
+}
+#endif //ESP32
 
 #ifdef ARDUINO_AVR_PRO
 void serialEvent()

@@ -28,6 +28,8 @@ add_library(aop
     Recorder.cpp
     Recorder.h
     RingBuffer.h
+    Utils.cpp
+    Utils.h
 )
 
 add_executable(test-aop

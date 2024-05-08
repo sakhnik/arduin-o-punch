@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Bluetooth server for configuration activated with a service card
+- Service card to cycle through operation, Bluetooth and WiFi modes
+- Bluetooth server for configuration
+- TCP server on port 23 over WiFi for configuration
 
 ### Changed
 
@@ -17,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- TBD
+- Key display in `info`
 
 ## [2.0.0] - 2024.04.29
 

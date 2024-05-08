@@ -16,7 +16,10 @@ public:
     void SignalRTCFail();
     void SignalCardFull();
     void SignalOk();
-    void SignalService();
+    void SignalBluetooth();
+    void SignalWifi();
+    void SignalDit();
+    void SignalDah();
 
     struct Melody
     {

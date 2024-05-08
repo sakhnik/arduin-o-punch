@@ -3,16 +3,16 @@
 #ifdef ESP32
 
 #include "OutMux.h"
-#include "src/RingBuffer.h"
 
 class Context;
 class Shell;
+class Buzzer;
 
-class Bluetooth
+class Network
     : private OutMux::IClient
 {
 public:
-    Bluetooth(OutMux &, Context &, Shell &);
+    Network(OutMux &, Context &, Shell &, Buzzer &);
 
     void Setup();
     void SwitchOn();
@@ -23,9 +23,10 @@ private:
     OutMux &_outMux;
     Context &_context;
     Shell &_shell;
+    Buzzer &_buzzer;
     bool _is_active = false;
-    AOP::RingBuffer<1024> _outBuffer;
-    unsigned long _last_write_time = 0;
+    unsigned long _last_connecting_dit = 0;
+    bool _connection_signalled = false;
 
     bool _Start();
     bool _Stop();
