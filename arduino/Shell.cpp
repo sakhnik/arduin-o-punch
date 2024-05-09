@@ -32,21 +32,19 @@ void Shell::_PrintPrompt()
 
 void Shell::_ProcessChar(char ch)
 {
-    if (!_buffer.length()) {
-        // In the automated communication we don't need the echo, neither the prompt.
-        // If timeout elapses since the first character, revert to interactive move.
-        _echo_timeout = millis() + 100;
-        _echo_idx = 0;
-    }
     _buffer += ch;
     if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r") || _buffer.endsWith("\n")) {
         // Echo the rest of the command if necessary
         if (Tick())
-            _outMux.println();
+            Serial.println();
         _Process();
         _buffer.remove(0, _buffer.length());
         if (Tick())
             _PrintPrompt();
+        // In the automated communication we don't need the echo, neither the prompt.
+        // If timeout elapses since the first character, revert to interactive move.
+        _echo_timeout = millis() + 100;
+        _echo_idx = 0;
     }
 }
 
@@ -75,8 +73,9 @@ boolean Shell::Tick()
 {
     if (_echo_timeout > millis())
         return false;
+    // Only need to echo to the serial terminal, TCP and BLE show what's being typed by themselves
     while (_echo_idx < _buffer.length())
-        _outMux.print(_buffer[_echo_idx++]);
+        Serial.print(_buffer[_echo_idx++]);
     return true;
 }
 

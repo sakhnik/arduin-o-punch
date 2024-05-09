@@ -2,7 +2,7 @@
 
 namespace AOP {
 
-char* PrintNum(uint8_t num, char *buf)
+char* PrintNum(unsigned num, char *buf)
 {
     if (!num)
         return buf;
