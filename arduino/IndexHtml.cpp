@@ -12,11 +12,6 @@ const char *index_html PROGMEM = R"html(
     body {
       font-family: sans-serif;
     }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
   </style>
 </head>
 <body>
@@ -28,13 +23,16 @@ const char *index_html PROGMEM = R"html(
     <br>
     <br>
     <h3>Поновлення</h3>
-    <input type="range" id="trackbar" min="0" max="255" step="1" value="0" oninput="setBrightness()">
+    <form method='POST' enctype='multipart/form-data' id='upload-form'>
+      <input type='file' id='file' name='update'>
+      <input type='submit' value='Update'>
+    </form>
+    <br>
+    <div id='prg' style='width:0;color:white;text-align:center'>0%</div>
   </div>
   <script>
     var ledState = false;
-    var ledBrightness = 0;
     var button = document.getElementById('button');
-    var trackbar = document.getElementById('trackbar');
     function toggleLED() {
       ledState = !ledState;
       var xhr = new XMLHttpRequest();
@@ -43,12 +41,26 @@ const char *index_html PROGMEM = R"html(
       button.innerHTML = 'LED: ' + (ledState ? 'ON' : 'OFF');
       button.classList.toggle('on', ledState); // Add or remove the 'on' class based on the LED state
     }
-    function setBrightness() {
-      ledBrightness = trackbar.value;
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', '/brightness?value=' + ledBrightness, true);
-      xhr.send();
-    }
+
+    var prg = document.getElementById('prg');
+    var uploadForm = document.getElementById('upload-form');
+    uploadForm.addEventListener('submit', el=>{
+      prg.style.backgroundColor = 'blue';
+      el.preventDefault();
+      var data = new FormData(uploadForm);
+      var req = new XMLHttpRequest();
+      var fsize = document.getElementById('file').files[0].size;
+      req.open('POST', '/update?size=' + fsize);
+      req.upload.addEventListener('progress', p=>{
+        let w = Math.round(p.loaded/p.total*100) + '%';
+          if(p.lengthComputable){
+             prg.innerHTML = w;
+             prg.style.width = w;
+          }
+          if(w == '100%') prg.style.backgroundColor = 'black';
+      });
+      req.send(data);
+     });
   </script>
 </body>
 </html>

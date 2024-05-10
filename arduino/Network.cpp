@@ -9,6 +9,7 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WebServer.h>
+#include <Update.h>
 
 WiFiServer shellServer{23};
 WiFiClient shellClient;
@@ -24,6 +25,52 @@ Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
 {
 }
 
+namespace {
+
+void handleUpdateEnd()
+{
+    webServer.sendHeader("Connection", "close");
+    if (Update.hasError()) {
+        webServer.send(502, "text/plain", Update.errorString());
+    } else {
+        webServer.sendHeader("Refresh", "10");
+        webServer.sendHeader("Location", "/");
+        webServer.send(307);
+        ESP.restart();
+    }
+}
+
+void handleUpdate()
+{
+    size_t fsize = UPDATE_SIZE_UNKNOWN;
+    if (webServer.hasArg("size")) {
+        fsize = webServer.arg("size").toInt();
+    }
+    HTTPUpload &upload = webServer.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+        Serial.printf("Receiving Update: %s, Size: %d\n", upload.filename.c_str(), fsize);
+        if (!Update.begin(fsize)) {
+            //otaDone = 0;
+            Update.printError(Serial);
+        }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+        if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+            Update.printError(Serial);
+        } else {
+            //otaDone = 100 * Update.progress() / Update.size();
+        }
+    } else if (upload.status == UPLOAD_FILE_END) {
+        if (Update.end(true)) {
+            Serial.printf("Update Success: %u bytes\nRebooting...\n", upload.totalSize);
+        } else {
+            Serial.printf("%s\n", Update.errorString());
+            //otaDone = 0;
+        }
+    }
+}
+
+} //namespace;
+
 void Network::Setup()
 {
     WiFi.disconnect(true);
@@ -35,6 +82,7 @@ void Network::Setup()
     webServer.onNotFound([]() {
         webServer.send(200, "text/html", index_html);
     });
+    webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
 }
 
 void Network::SwitchOn()
