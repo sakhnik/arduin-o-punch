@@ -19,6 +19,7 @@ public:
 
 private:
     IClient *_client = nullptr;
+    bool _enable_serial = true;
 
     size_t write(uint8_t) override;
     size_t write(const uint8_t *buffer, size_t size) override;

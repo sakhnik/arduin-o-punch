@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-# Synchronize Arduin-o-punch clock via serial port
+# Synchronize Arduin-o-punch clock via serial port or TCP
 
-import serial
 from datetime import datetime, timedelta, timezone
 import argparse
+from connection import Connection, SerialConnection, TcpConnection
 
 serial_port = '/dev/ttyUSB0'
 baud_rate = 9600
@@ -12,12 +12,11 @@ baud_rate = 9600
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--port", help=f"serial port {serial_port}",
                     type=str)
+parser.add_argument("-t", "--tcp", help="TCP connection", type=str)
 parser.add_argument("-s", "--script", help="file with additional commands",
                     type=str)
 parser.add_argument("--id", help="set station id", type=int)
 args = parser.parse_args()
-if args.port:
-    serial_port = args.port
 
 
 def get_current_time():
@@ -39,12 +38,12 @@ def echo_output(data):
     print(">> " + str(data))
 
 
-with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
+def run(conn: Connection):
     # Wait for a clear prompt
-    ser.write(b'\r')
+    conn.write(b'\r')
     idle_count = 0
     while True:
-        line = ser.readline()
+        line = conn.read()
         echo_output(line)
         if b'Arduin-o-punch> ' == line:
             break
@@ -58,8 +57,8 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     # Get current time before interacting with Arduino
     start = get_current_time()
     # Get Arduin-o-punch clock reading
-    ser.write(b'clock\r')
-    line = ser.readline()
+    conn.write(b'clock\r')
+    line = conn.read()
     echo_output(line)
     arduino_clock = int(line.decode().strip())
     arduino_time = format_time(arduino_clock)
@@ -80,22 +79,32 @@ with serial.Serial(serial_port, baud_rate, timeout=1) as ser:
     target_timestamp = int(now.timestamp()) + 1
 
     # Update Arduino clock
-    ser.write(f'timestamp {target_timestamp}\r'.encode())
-    line = ser.readline()
+    conn.write(f'timestamp {target_timestamp}\r'.encode())
+    line = conn.read()
     echo_output(line)
     timestamp = int(line.decode().strip())
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     print(f"After: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
     if args.id is not None:
-        ser.write(f'id {args.id}\r'.encode())
-        resp = ser.readline()
+        conn.write(f'id {args.id}\r'.encode())
+        resp = conn.read()
         echo_output(resp)
 
     if args.script:
         with open(args.script, 'r') as f:
             for line in f.readlines():
                 print(line.strip())
-                ser.write(f'{line.strip()}\r'.encode())
-                resp = ser.readline()
+                conn.write(f'{line.strip()}\r'.encode())
+                resp = conn.read()
                 echo_output(resp)
+
+
+if args.tcp:
+    with TcpConnection(args.tcp) as conn:
+        run(conn)
+else:
+    if args.port:
+        serial_port = args.port
+    with SerialConnection(serial_port, baud_rate) as conn:
+        run(conn)
