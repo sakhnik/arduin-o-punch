@@ -8,9 +8,13 @@
 #include "src/Utils.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <WebServer.h>
 
-WiFiServer shellServer(23);
+WiFiServer shellServer{23};
 WiFiClient shellClient;
+WebServer webServer{80};
+
+extern const char *index_html PROGMEM;
 
 Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
     : _outMux{outMux}
@@ -24,6 +28,13 @@ void Network::Setup()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
+
+    webServer.on("/", [] {
+        webServer.send(200, "text/html", index_html);
+    });
+    webServer.onNotFound([]() {
+        webServer.send(200, "text/html", index_html);
+    });
 }
 
 void Network::SwitchOn()
@@ -67,6 +78,7 @@ void Network::Tick()
         Serial.print("Local IP: ");
         Serial.println(WiFi.localIP());
         shellServer.begin();
+        webServer.begin();
     }
 
     if (!shellClient) {
@@ -89,6 +101,8 @@ void Network::Tick()
             }
         }
     }
+
+    webServer.handleClient();
 }
 
 bool Network::_Start()
@@ -113,6 +127,7 @@ bool Network::_Stop()
     _outMux.SetClient(nullptr);
     shellClient.stop();
     shellServer.end();
+    webServer.stop();
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     SetCpuFreq(40);
