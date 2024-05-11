@@ -83,6 +83,9 @@ void Network::Setup()
         webServer.send(200, "text/html", index_html);
     });
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
+    webServer.on("/settings", [this] {
+        _HandleGetSettings();
+    });
 }
 
 void Network::SwitchOn()
@@ -187,6 +190,21 @@ void Network::Write(const uint8_t *buffer, size_t size)
     if (shellClient && shellClient.connected()) {
         shellClient.write(buffer, size);
     }
+}
+
+void Network::_HandleGetSettings()
+{
+    String response;
+    const char *nl = "";
+    auto addSetting = [&response](const char *key, const String &val) {
+        if (response.length())
+            response += "\n";
+        response += key;
+        response += "=";
+        response += val;
+    };
+    addSetting("id", String{static_cast<unsigned>(_context.GetId())});
+    webServer.send(200, "text/plain", response);
 }
 
 #endif
