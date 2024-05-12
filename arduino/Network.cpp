@@ -83,9 +83,7 @@ void Network::Setup()
         webServer.send(200, "text/html", index_html);
     });
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
-    webServer.on("/settings", [this] {
-        _HandleGetSettings();
-    });
+    webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
 }
 
 void Network::SwitchOn()
@@ -204,7 +202,31 @@ void Network::_HandleGetSettings()
         response += val;
     };
     addSetting("id", String{static_cast<unsigned>(_context.GetId())});
+    const uint8_t *key = _context.GetKey();
+    char buf[Context::KEY_SIZE * 2 + 1];
+    for (int i = 0; i < Context::KEY_SIZE; ++i) {
+        sprintf(buf + i*2, "%02X", static_cast<unsigned>(key[i]));
+    }
+    buf[Context::KEY_SIZE * 2] = 0;
+    addSetting("key", buf);
+    addSetting("rec-size", String{_context.GetRecorder().GetSize()});
+    addSetting("rec-bits", String{_context.GetRecorder().GetBitsPerRecord()});
     webServer.send(200, "text/plain", response);
+}
+
+void Network::_HandleSettings()
+{
+    if (webServer.method() == HTTP_POST) {
+        _shell.SetId(webServer.arg("id").c_str());
+        _shell.SetKey(webServer.arg("key").c_str());
+        String recorder = webServer.arg("rec-size") + " " + webServer.arg("rec-bits");
+        _shell.RecorderFormat(recorder.c_str());
+        webServer.send(200, "text/html", index_html);
+    } else if (webServer.method() == HTTP_GET) {
+        _HandleGetSettings();
+    } else {
+        webServer.send(405);
+    }
 }
 
 #endif

@@ -4,7 +4,13 @@ from flask import Flask, request
 import re
 
 app = Flask(__name__)
-id = 19
+
+
+class C:
+    id = 19
+    key = '112233445566'
+    rec_size = 512
+    rec_bits = 2
 
 
 @app.route('/')
@@ -15,17 +21,22 @@ def index():
         return match.group(1)
 
 
-@app.route('/settings')
-def get_settings():
-    return f"""id={id}"""
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if request.method == 'GET':
+        return f"id={C.id}\nkey={C.key}\nrec-size={C.rec_size}\nrec-bits={C.rec_bits}"
+    if request.method == 'POST':
+        C.id = int(request.form.get('id'))
+        C.key = request.form.get('key')
+        C.rec_size = int(request.form.get('rec-size'))
+        C.rec_bits = int(request.form.get('rec-bits'))
+        return index()
 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    # Check if the POST request has the file part
     if 'file' not in request.files:
         return 'No file part'
-    # file = request.files['file']
     return 'success'
 
 

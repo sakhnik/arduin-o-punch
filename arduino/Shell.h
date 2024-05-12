@@ -20,6 +20,10 @@ public:
     void ProcessInput(const uint8_t *data, int size);
 #endif
 
+    void SetId(const char *param);
+    void SetKey(const char *hex);
+    void RecorderFormat(const char *str);
+
 private:
     OutMux &_outMux;
     Context &_context;
@@ -32,8 +36,6 @@ private:
     void _PrintPrompt();
     void _Process();
     void _PrintId();
-    void _SetId(const char *param);
-    void _SetKey(const char *hex);
     void _PrintKey();
     void _SetClock(const char *str);
     void _PrintClock(const DateTime &time);
@@ -41,7 +43,6 @@ private:
     void _PrintTimestamp();
     void _PrintDate(const DateTime &time);
     void _PrintTime(const DateTime &time);
-    void _RecorderFormat(const char *str);
     void _RecorderClear(const char *str);
     void _RecorderCheck(const char *str);
     void _RecorderList();

@@ -35,6 +35,7 @@ private:
     void Write(const uint8_t *buffer, size_t size) override;
 
     void _HandleGetSettings();
+    void _HandleSettings();
 };
 
 #endif //ESP32

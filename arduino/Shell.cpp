@@ -134,12 +134,12 @@ void Shell::_Process()
         _PrintWifiSsid();
 #endif //ESP32
     } else if (_buffer.startsWith(F("id "))) {
-        _SetId(_buffer.c_str() + 3);
+        SetId(_buffer.c_str() + 3);
         _PrintId();
     } else if (_buffer.startsWith(F("id"))) {
         _PrintId();
     } else if (_buffer.startsWith(F("key "))) {
-        _SetKey(_buffer.c_str() + 4);
+        SetKey(_buffer.c_str() + 4);
         _PrintKey();
         _buzzer.ConfirmPunch();
     } else if (_buffer.startsWith(F("key"))) {
@@ -158,7 +158,7 @@ void Shell::_Process()
     } else if (_buffer.startsWith(F("date"))) {
         _PrintDate(_context.GetDateTime());
     } else if (_buffer.startsWith(F("recfmt "))) {
-        _RecorderFormat(_buffer.c_str() + 7);
+        RecorderFormat(_buffer.c_str() + 7);
     } else if (_buffer.startsWith(F("recclr "))) {
         _RecorderClear(_buffer.c_str() + 7);
     } else if (_buffer.startsWith(F("recdays "))) {
@@ -216,7 +216,7 @@ T ParseNum(const char *&str)
 
 } //namespace;
 
-void Shell::_SetKey(const char *hex)
+void Shell::SetKey(const char *hex)
 {
     uint8_t key[Context::KEY_SIZE] = {0};
     for (uint8_t i = 0; i < sizeof(key); ++i) {
@@ -295,12 +295,12 @@ void Shell::_PrintId()
     _outMux.println(_context.GetId());
 }
 
-void Shell::_SetId(const char *str)
+void Shell::SetId(const char *str)
 {
     _context.SetId(ParseNum<uint8_t>(str));
 }
 
-void Shell::_RecorderFormat(const char *str)
+void Shell::RecorderFormat(const char *str)
 {
     uint16_t count = ParseNum<uint16_t>(str);
     uint8_t bits_per_record = ParseNum<uint8_t>(str);
