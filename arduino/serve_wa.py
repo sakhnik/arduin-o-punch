@@ -11,6 +11,7 @@ class C:
     key = '112233445566'
     rec_size = 512
     rec_bits = 2
+    rec_days = 1
 
 
 @app.route('/')
@@ -24,12 +25,15 @@ def index():
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if request.method == 'GET':
-        return f"id={C.id}\nkey={C.key}\nrec-size={C.rec_size}\nrec-bits={C.rec_bits}"
+        r = f"id={C.id}\nkey={C.key}\nrec-size={C.rec_size}"
+        r += f"\nrec-bits={C.rec_bits}\nrec-days={C.rec_days}"
+        return r
     if request.method == 'POST':
         C.id = int(request.form.get('id'))
         C.key = request.form.get('key')
         C.rec_size = int(request.form.get('rec-size'))
         C.rec_bits = int(request.form.get('rec-bits'))
+        C.rec_days = int(request.form.get('rec-days'))
         return index()
 
 

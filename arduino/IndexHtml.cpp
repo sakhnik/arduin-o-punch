@@ -55,6 +55,10 @@ const char *index_html PROGMEM = R"html(
           </td>
         </tr>
         <tr>
+          <td><label for='record-days'>Період журналу (днів):</label></td>
+          <td><input type='number' id='record-days' name='rec-days'/></td>
+        </tr>
+        <tr>
           <td></td>
           <td><input type='submit' value='Застосувати'></td>
         </tr>
@@ -83,6 +87,32 @@ const char *index_html PROGMEM = R"html(
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+        setupSettingsFormSubmit();
+        reloadSettings();
+    });
+
+    function setupSettingsFormSubmit() {
+        var form = document.getElementById("settings-form");
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+            fetch(form.action, {
+                method: form.method,
+                body: new FormData(form)
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error('Form submission failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    }
+
+    function reloadSettings() {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/settings', true);
         xhr.onload = function() {
@@ -94,13 +124,11 @@ const char *index_html PROGMEM = R"html(
                 console.error('Request failed with status:', xhr.status);
             }
         };
-
         xhr.onerror = function() {
             console.error('Request failed');
         };
-
         xhr.send();
-    });
+    }
 
     function updateSettings(data) {
         var keyValuePairs = data.split('\n');
@@ -115,6 +143,8 @@ const char *index_html PROGMEM = R"html(
                     document.getElementById('record-size').value = keyValue[1];
                 } else if (keyValue[0] === 'rec-bits') {
                     document.getElementById('record-bits-' + keyValue[1]).checked = true;
+                } else if (keyValue[0] === 'rec-days') {
+                    document.getElementById('record-days').value = keyValue[1];
                 }
             }
         });

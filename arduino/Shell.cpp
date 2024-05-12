@@ -162,7 +162,7 @@ void Shell::_Process()
     } else if (_buffer.startsWith(F("recclr "))) {
         _RecorderClear(_buffer.c_str() + 7);
     } else if (_buffer.startsWith(F("recdays "))) {
-        _SetRecordRetainDays(_buffer.c_str() + 9);
+        SetRecordRetainDays(_buffer.c_str() + 9);
     } else if (_buffer.startsWith(F("recdays"))) {
         _PrintRecordRetainDays();
     } else if (_buffer.startsWith(F("rec "))) {
@@ -358,7 +358,7 @@ void Shell::_PrintRecordRetainDays()
     _outMux.println(_context.GetRecordRetainDays());
 }
 
-void Shell::_SetRecordRetainDays(const char *str)
+void Shell::SetRecordRetainDays(const char *str)
 {
     _context.SetRecordRetainDays(ParseNum<uint8_t>(str));
 }

@@ -211,6 +211,7 @@ void Network::_HandleGetSettings()
     addSetting("key", buf);
     addSetting("rec-size", String{_context.GetRecorder().GetSize()});
     addSetting("rec-bits", String{_context.GetRecorder().GetBitsPerRecord()});
+    addSetting("rec-days", String{_context.GetRecordRetainDays()});
     webServer.send(200, "text/plain", response);
 }
 
@@ -221,6 +222,7 @@ void Network::_HandleSettings()
         _shell.SetKey(webServer.arg("key").c_str());
         String recorder = webServer.arg("rec-size") + " " + webServer.arg("rec-bits");
         _shell.RecorderFormat(recorder.c_str());
+        _shell.SetRecordRetainDays(webServer.arg("rec-days").c_str());
         webServer.send(200, "text/html", index_html);
     } else if (webServer.method() == HTTP_GET) {
         _HandleGetSettings();

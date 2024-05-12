@@ -23,6 +23,7 @@ public:
     void SetId(const char *param);
     void SetKey(const char *hex);
     void RecorderFormat(const char *str);
+    void SetRecordRetainDays(const char *str);
 
 private:
     OutMux &_outMux;
@@ -47,7 +48,6 @@ private:
     void _RecorderCheck(const char *str);
     void _RecorderList();
     void _PrintRecordRetainDays();
-    void _SetRecordRetainDays(const char *str);
     void _PrintDD(uint8_t d);
 #ifdef ESP32
     void _SetWifiSsid(const char *str);
