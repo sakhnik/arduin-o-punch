@@ -7,6 +7,7 @@ const char *index_html PROGMEM = R"html(
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
   <title>Станція Arduin-O-Punch</title>
   <style>
     body {
