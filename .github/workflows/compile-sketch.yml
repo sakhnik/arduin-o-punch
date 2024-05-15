@@ -33,7 +33,7 @@ jobs:
       - name: Upload build-pro - ${{ env.repository_name }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.date_today }} - ${{ env.repository_name }} - Arduino Pro Mini build
+          name: ${{ env.date_today }}-${{ env.repository_name }}-pro.avr.hex
           path: arduino/build-pro/aop-pro.avr.hex
 
       - name: Compile the sketch for ESP32 C3
@@ -45,5 +45,5 @@ jobs:
       - name: Upload build-c3 - ${{ env.repository_name }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.date_today }} - ${{ env.repository_name }} - ESP32-C3 build
+          name: ${{ env.date_today }}-${{ env.repository_name }}-c3.esp32.bin
           path: arduino/build-c3/aop-c3.esp32.bin
