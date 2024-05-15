@@ -26,20 +26,24 @@ jobs:
 
       - name: Compile the sketch for Arduino Pro Mini
         working-directory: ./arduino
-        run: arduino-cli compile -m pro --build-path ./build-pro
+        run: |
+          cmake -B build-pro -DPROFILE=pro
+          cmake --build build-pro
 
       - name: Upload build-pro - ${{ env.repository_name }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.date_today }} - ${{ env.repository_name }} - Arduino Pro Mini build
-          path: arduino/build-pro/
+          path: arduino/build-pro/aop-pro.avr.hex
 
       - name: Compile the sketch for ESP32 C3
         working-directory: ./arduino
-        run: arduino-cli compile -m c3 --build-path ./build-c3
+        run: |
+          cmake -B build-c3 -DPROFILE=c3
+          cmake --build build-c3
 
       - name: Upload build-c3 - ${{ env.repository_name }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.date_today }} - ${{ env.repository_name }} - ESP32-C3 build
-          path: arduino/build-c3/
+          path: arduino/build-c3/aop-c3.esp32.bin
