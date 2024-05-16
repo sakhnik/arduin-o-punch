@@ -18,7 +18,7 @@ const char *index_html PROGMEM = R"html(
 <body>
   <div class="container">
     <h1>Станція Arduin-O-Punch</h1>
-    <p>Версія <span>")html PROJECT_VERSION "-" GIT_REVISION R"html(</span></p>
+    <p>Версія <span>)html" PROJECT_VERSION "-" GIT_REVISION R"html(</span></p>
     <h3>Налаштування</h3>
     <form method='POST' action='/settings' id='settings-form' target='_self'>
       <table>
@@ -68,10 +68,10 @@ const char *index_html PROGMEM = R"html(
     </form>
     <h3>Оновлення</h3>
     <form method='POST' enctype='multipart/form-data' id='upload-form'>
-      <input type='file' id='file' name='update'>
-      <input type='submit' value='Завантажити'>
+      <input type='file' id='file' name='update' accept='.esp32.bin'/>
+      <input type='submit' value='Завантажити'/>
     </form>
-    <br>
+    <br/>
     <div id='prg' style='width:0;color:white;text-align:center'>0%</div>
   </div>
   <script>

@@ -42,13 +42,13 @@ def get_git_revision():
 def index():
     with open("IndexHtml.cpp", 'r') as file:
         data = file.read()
-        match = re.search(r'R"html\((.*?)\)html"', data, re.DOTALL)
+        match = re.search(r'R"html\((.*?)\)html";', data, re.DOTALL)
         content = match.group(1)
         content_lines = content.splitlines()
         version_idx = [i for i, line in enumerate(content_lines)
                        if "PROJECT_VERSION" in line][0]
         version = content_lines[version_idx]
-        version = re.sub(r'"\)html .* R"html\(',
+        version = re.sub(r'\)html" .* R"html\(',
                          f"{get_project_version()}-{get_git_revision()}",
                          version)
         content_lines[version_idx] = version
