@@ -18,6 +18,7 @@ const char *index_html PROGMEM = R"html(
 <body>
   <div class="container">
     <h1>Станція Arduin-O-Punch</h1>
+    <p>Версія <span>")html PROJECT_VERSION "-" GIT_REVISION R"html(</span></p>
     <h3>Налаштування</h3>
     <form method='POST' action='/settings' id='settings-form' target='_self'>
       <table>

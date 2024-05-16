@@ -114,7 +114,10 @@ void Shell::_Process()
         _outMux.println(F("wifipass pass     Set WiFi password"));
 #endif //ESP32
     } else if (_buffer.startsWith(F("info"))) {
-        _outMux.println(F("version=2.1.0"));
+        _outMux.print(F("version="));
+        _outMux.print(PROJECT_VERSION);
+        _outMux.print("-");
+        _outMux.println(GIT_REVISION);
         _outMux.print(F("id="));
         _PrintId();
         auto now = _context.GetDateTime();
