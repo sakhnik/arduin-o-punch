@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+// *INDENT-OFF*
+
 const char *index_html PROGMEM = R"html(
 <!DOCTYPE html>
 <html lang="uk">
@@ -175,5 +177,7 @@ const char *index_html PROGMEM = R"html(
 </body>
 </html>
 )html";
+
+// *INDENT-ON*
 
 #endif //ESP32
