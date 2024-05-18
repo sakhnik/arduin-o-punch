@@ -2,6 +2,7 @@
 
 from flask import Flask, request
 import re
+import subprocess
 
 app = Flask(__name__)
 
@@ -14,12 +15,44 @@ class C:
     rec_days = 1
 
 
+def get_project_version():
+    version_pattern = re.compile(r'^project\(.*VERSION\s+([0-9.-]+)',
+                                 re.IGNORECASE)
+    with open('CMakeLists.txt', 'r') as file:
+        for line in file:
+            match = version_pattern.search(line)
+            if match:
+                return match.group(1)
+    return None
+
+
+def get_git_revision():
+    try:
+        result = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'],
+                                check=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True)
+        git_revision = result.stdout.strip()
+        return git_revision
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while getting Git revision: {e.stderr}")
+        return None
+
+
 @app.route('/')
 def index():
     with open("IndexHtml.cpp", 'r') as file:
         data = file.read()
-        match = re.search(r'R"html\((.*?)\)html"', data, re.DOTALL)
-        return match.group(1)
+        match = re.search(r'R"html\((.*?)\)html";', data, re.DOTALL)
+        content = match.group(1)
+        content_lines = content.splitlines()
+        version_idx = [i for i, line in enumerate(content_lines)
+                       if "PROJECT_VERSION" in line][0]
+        version = content_lines[version_idx]
+        version = re.sub(r'\)html" .* R"html\(',
+                         f"{get_project_version()}-{get_git_revision()}",
+                         version)
+        content_lines[version_idx] = version
+        return "\n".join(content_lines)
 
 
 @app.route('/settings', methods=['GET', 'POST'])
