@@ -15,6 +15,33 @@ const char *index_html PROGMEM = R"html(
     body {
       font-family: sans-serif;
     }
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup.show {
+      display: flex;
+    }
+
+    .popup-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    #closeRecordBtn {
+        margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -68,6 +95,16 @@ const char *index_html PROGMEM = R"html(
         </tr>
       </table>
     </form>
+
+    <button id="openRecordBtn">Переглянути журнал</button>
+
+    <div id="record" class="popup">
+        <div class="popup-content">
+            <button id="closeRecordBtn">Закрити</button>
+            <p>Журнал відмітки. Натисність ESC щоб закрити.</p>
+        </div>
+    </div>
+
     <h3>Оновлення</h3>
     <form method='POST' enctype='multipart/form-data' id='upload-form'>
       <input type='file' id='file' name='update' accept='.esp32.bin'/>
@@ -93,6 +130,7 @@ const char *index_html PROGMEM = R"html(
     document.addEventListener("DOMContentLoaded", function() {
         setupSettingsFormSubmit();
         reloadSettings();
+        setupRecordPopup();
     });
 
     function setupSettingsFormSubmit() {
@@ -172,7 +210,28 @@ const char *index_html PROGMEM = R"html(
             if (w == '100%') prg.style.backgroundColor = 'black';
         });
         req.send(data);
-     });
+    });
+
+    function setupRecordPopup() {
+        const openRecordBtn = document.getElementById('openRecordBtn');
+        const recordPopup = document.getElementById('record');
+        const closeRecordBtn = document.getElementById('closeRecordBtn');
+
+        openRecordBtn.addEventListener('click', () => {
+            recordPopup.classList.add('show');
+        });
+
+        closeRecordBtn.addEventListener('click', () => {
+            recordPopup.classList.remove('show');
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                recordPopup.classList.remove('show');
+            }
+        });
+    }
+
   </script>
 </body>
 </html>
