@@ -71,6 +71,9 @@ void handleUpdate()
 
 } //namespace;
 
+extern unsigned char icon32_png[];
+extern unsigned int icon32_png_len;
+
 void Network::Setup()
 {
     WiFi.disconnect(true);
@@ -81,6 +84,9 @@ void Network::Setup()
     });
     webServer.onNotFound([]() {
         webServer.send(200, "text/html", index_html);
+    });
+    webServer.on("/favicon.ico", [] {
+        webServer.send_P(200, PSTR("image/png"), reinterpret_cast<const char *>(icon32_png), icon32_png_len);
     });
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
     webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });

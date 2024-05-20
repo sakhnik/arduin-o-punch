@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from flask import Flask, request
+from flask import Flask, request, send_file
+import io
 import re
 import subprocess
 
@@ -53,6 +54,17 @@ def index():
                          version)
         content_lines[version_idx] = version
         return "\n".join(content_lines)
+
+
+@app.route('/favicon.ico')
+def favicon():
+    with open('favicon.cpp', 'r') as f:
+        content = f.read()
+    match = re.search(r'unsigned char icon32_png\[\] = \{([^\}]+)\};', content)
+    byte_values = match.group(1).strip().split(',')
+    byte_values = [int(b.strip(), 16) for b in byte_values if b.strip()]
+    img_io = io.BytesIO(bytes(byte_values))
+    return send_file(img_io, mimetype='image/png')
 
 
 @app.route('/settings', methods=['GET', 'POST'])
