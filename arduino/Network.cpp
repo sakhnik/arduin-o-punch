@@ -90,6 +90,7 @@ void Network::Setup()
     });
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
     webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
+    webServer.on("/record", HTTP_ANY, [this] { _HandleRecord(); });
 }
 
 void Network::SwitchOn()
@@ -237,4 +238,27 @@ void Network::_HandleSettings()
     }
 }
 
+void Network::_HandleRecord()
+{
+    if (webServer.method() == HTTP_GET) {
+        struct Collector : AOP::Recorder::IVisitor
+        {
+            String buffer;
+
+            void OnCard(uint16_t card, uint8_t count, void *ctx) override
+            {
+                if (buffer.length() != 0) {
+                    buffer += ' ';
+                }
+                buffer += card;
+                buffer += ':';
+                buffer += static_cast<uint16_t>(count);
+            }
+        } collector;
+        _context.GetRecorder().List(collector, &collector);
+        webServer.send(200, "text/plain", collector.buffer);
+    } else {
+        webServer.send(405);
+    }
+}
 #endif

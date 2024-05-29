@@ -42,6 +42,25 @@ const char *index_html PROGMEM = R"html(
     #closeRecordBtn {
         margin-top: 20px;
     }
+
+    .record-container {
+        width: 100%;
+        max-height: 400px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+    }
+    .record-container table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .record-container th, .record-container td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+    .record-container th {
+        background-color: #f4f4f4;
+    }
   </style>
 </head>
 <body>
@@ -99,10 +118,18 @@ const char *index_html PROGMEM = R"html(
     <button id="openRecordBtn">Переглянути журнал</button>
 
     <div id="record" class="popup">
-        <div class="popup-content">
-            <button id="closeRecordBtn">Закрити</button>
-            <p>Журнал відмітки. Натисність ESC щоб закрити.</p>
+      <div class="popup-content">
+        <button id="closeRecordBtn">Закрити</button>
+        <p>Журнал відмітки. Натисність ESC щоб закрити.</p>
+        <div class="record-container">
+          <table id="record-table">
+            <thead><tr><th>Картка</th><th>Кількість</th></tr></thead>
+            <tbody>
+              <!-- Rows will be inserted here -->
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
 
     <h3>Оновлення</h3>
@@ -218,6 +245,7 @@ const char *index_html PROGMEM = R"html(
         const closeRecordBtn = document.getElementById('closeRecordBtn');
 
         openRecordBtn.addEventListener('click', () => {
+            fetchRecordAndDisplay();
             recordPopup.classList.add('show');
         });
 
@@ -232,6 +260,43 @@ const char *index_html PROGMEM = R"html(
         });
     }
 
+    function fetchRecordAndDisplay() {
+        fetch('/record')
+            .then(response => response.text())
+            .then(data => {
+                const parsedRecord = parseRecord(data);
+                populateRecord(parsedRecord);
+            })
+            .catch(error => {
+                console.error('Error fetching record:', error);
+            });
+    }
+
+    function parseRecord(data) {
+        const pairs = data.split(' ');
+        return pairs.map(pair => {
+            const [card, count] = pair.split(':');
+            return { card: parseInt(card, 10), count: parseInt(count, 10) };
+        });
+    }
+
+    function populateRecord(data) {
+        const tbody = document.querySelector('#record-table tbody');
+        tbody.innerHTML = '';
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            const cardCell = document.createElement('td');
+            const countCell = document.createElement('td');
+
+            cardCell.textContent = item.card;
+            countCell.textContent = item.count;
+
+            row.appendChild(cardCell);
+            row.appendChild(countCell);
+            tbody.appendChild(row);
+        });
+    }
   </script>
 </body>
 </html>
