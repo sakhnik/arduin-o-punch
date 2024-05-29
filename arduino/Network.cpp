@@ -15,8 +15,6 @@ WiFiServer shellServer{23};
 WiFiClient shellClient;
 WebServer webServer{80};
 
-extern const char *index_html PROGMEM;
-
 Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
     : _outMux{outMux}
     , _context{context}
@@ -71,23 +69,14 @@ void handleUpdate()
 
 } //namespace;
 
-extern unsigned char icon32_png[];
-extern unsigned int icon32_png_len;
+void RegisterWebUI();
 
 void Network::Setup()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
 
-    webServer.on("/", [] {
-        webServer.send(200, "text/html", index_html);
-    });
-    webServer.onNotFound([]() {
-        webServer.send(200, "text/html", index_html);
-    });
-    webServer.on("/favicon.ico", [] {
-        webServer.send_P(200, PSTR("image/png"), reinterpret_cast<const char *>(icon32_png), icon32_png_len);
-    });
+    RegisterWebUI();
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
     webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
     webServer.on("/record", HTTP_ANY, [this] { _HandleRecord(); });
@@ -221,6 +210,8 @@ void Network::_HandleGetSettings()
     addSetting("rec-days", String{_context.GetRecordRetainDays()});
     webServer.send(200, "text/plain", response);
 }
+
+extern const char *index_html;
 
 void Network::_HandleSettings()
 {
