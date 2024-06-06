@@ -37,6 +37,7 @@ private:
     void _HandleGetSettings();
     void _HandleSettings();
     void _HandleRecord();
+    void _HandleClock();
 };
 
 #endif //ESP32

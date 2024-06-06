@@ -80,6 +80,7 @@ void Network::Setup()
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
     webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
     webServer.on("/record", HTTP_ANY, [this] { _HandleRecord(); });
+    webServer.on("/clock", HTTP_ANY, [this] { _HandleClock(); });
 }
 
 void Network::SwitchOn()
@@ -252,4 +253,26 @@ void Network::_HandleRecord()
         webServer.send(405);
     }
 }
+
+void Network::_HandleClock()
+{
+    if (webServer.method() == HTTP_GET) {
+        char buf[64];
+        sprintf(buf, "%d", _context.GetDateTime().unixtime());
+        webServer.send(200, "text/plain", buf);
+    } else if (webServer.method() == HTTP_POST) {
+        if (!webServer.hasArg("plain")) {
+            webServer.send(400, "text/plain", "No data");
+            return;
+        }
+        auto body = webServer.arg("plain");
+        uint32_t datetime{};
+        sscanf(body.c_str(), "%d", &datetime);
+        _context.SetDateTime(datetime);
+        webServer.send(200, "text/plain", body);
+    } else {
+        webServer.send(405);
+    }
+}
+
 #endif
