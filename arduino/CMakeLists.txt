@@ -48,7 +48,7 @@ add_custom_command(
 add_custom_target(compile ALL DEPENDS ${TARGET_FILE})
 
 add_custom_target(upload
-    COMMAND arduino-cli upload -p ${PORT} -m ${PROFILE} --build-path ${CMAKE_BINARY_DIR}
+    COMMAND arduino-cli upload -p ${PORT} -m ${PROFILE} --input-dir ${CMAKE_BINARY_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Uploading with profile ${PROFILE} to ${PORT}"
 )
