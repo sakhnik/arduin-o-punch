@@ -4,7 +4,7 @@ cd $(dirname "${BASH_SOURCE[0]}")
 
 em++ \
     -lembind \
-    aop.cpp ../src/*.cpp \
+    aop.cpp ../lib/aop/*.cpp \
     -o aop.js \
     -DBUILD_WA=1
 
