@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/Recorder.h"
+#include "Recorder.h"
 #include <Arduino.h>
 #include <RTClib.h>
 
@@ -15,7 +15,7 @@ public:
 
     int8_t Setup();
 
-    static const uint8_t KEY_SIZE = 6;
+    static constexpr const uint8_t KEY_SIZE = 6;
     const uint8_t* GetKey() const
     {
         return _key;

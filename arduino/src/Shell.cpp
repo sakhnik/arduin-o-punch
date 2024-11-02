@@ -2,7 +2,7 @@
 #include "Context.h"
 #include "Buzzer.h"
 #include "OutMux.h"
-#include "src/PunchCard.h"
+#include "PunchCard.h"
 #include <RTClib.h>
 
 namespace {

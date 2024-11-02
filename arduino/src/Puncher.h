@@ -3,7 +3,7 @@
 #include <MFRC522v2.h>
 #include <MFRC522DriverSPI.h>
 #include <MFRC522DriverPinSimple.h>
-#include "src/ErrorCode.h"
+#include "ErrorCode.h"
 #include "defs.h"
 
 class Context;

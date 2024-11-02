@@ -4,7 +4,7 @@
 #include "Context.h"
 #include "Shell.h"
 #include "CpuFreq.h"
-#include "src/Utils.h"
+#include "Utils.h"
 #include <ArduinoBLE.h>
 
 Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)

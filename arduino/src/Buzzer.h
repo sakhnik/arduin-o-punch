@@ -1,7 +1,7 @@
 #pragma once
 
 #include <arduino-timer.h>
-#include <CircularBuffer.h>
+#include <CircularBuffer.hpp>
 
 class Buzzer
 {
