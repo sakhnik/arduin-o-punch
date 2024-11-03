@@ -40,6 +40,8 @@ void AdvanceOperationMode()
     case OM_WIFI:
         network.SwitchOff();
         break;
+    default:
+        break;
     }
     operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
     switch (operation_mode) {
@@ -55,6 +57,9 @@ void AdvanceOperationMode()
         // Play a confirmation melody only after that to avoid distortion.
         network.SwitchOn();
         buzzer.SignalWifi();
+        break;
+    default:
+        // Shouldn't be reached
         break;
     }
 }
