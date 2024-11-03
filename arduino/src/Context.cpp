@@ -30,18 +30,18 @@ struct EepromImpl : AOP::Recorder::IEeprom
 
 } //namespace;
 
-#define ADDROF(field) (Context::ADDRESS + offsetof(Context, field))
+#define ADDROF(field) (Context::ADDRESS + offsetof(Context::_Data, field))
 
 struct RecorderAccess
 {
     // Choose a non-aligned region for the punch record. This will spread eeprom wear.
-    static constexpr int RECORD_START = ADDROF(_recorder);
+    static constexpr int RECORD_START = Context::ADDRESS + sizeof(Context::_Data);
     // Just start with an odd address
     static constexpr int RECORD_ADJUSTED_START = (RECORD_START & 1) == 1 ? RECORD_START : RECORD_START + 1;
 };
 
 Context::Context(Buzzer &buzzer)
-    : _buzzer{buzzer}
+    : _buzzer{&buzzer}
     , _recorder{eeprom_impl}
 {
 }
@@ -51,32 +51,32 @@ int8_t Context::Setup()
     if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
-        _buzzer.SignalRTCFail();
+        _buzzer->SignalRTCFail();
         return -1;
     }
 
     // Initialize external EEPROM with default speed, default I2C bus
     eeprom.begin();
 
-    eeprom.read(ADDROF(_id), &_id, sizeof(_id));
-    eeprom.read(ADDROF(_key), _key, sizeof(_key));
-    eeprom.read(ADDROF(_record_retain_days), &_record_retain_days, sizeof(_record_retain_days));
-    if (_record_retain_days == 0xff)
-        _record_retain_days = 1;
+    eeprom.read(ADDROF(_id), &_data._id, sizeof(_data._id));
+    eeprom.read(ADDROF(_key), _data._key, sizeof(_data._key));
+    eeprom.read(ADDROF(_record_retain_days), &_data._record_retain_days, sizeof(_data._record_retain_days));
+    if (_data._record_retain_days == 0xff)
+        _data._record_retain_days = 1;
 #ifdef ESP32
-    eeprom.read(ADDROF(_wifi_ssid), reinterpret_cast<uint8_t *>(_wifi_ssid), sizeof(_wifi_ssid));
-    eeprom.read(ADDROF(_wifi_pass), reinterpret_cast<uint8_t *>(_wifi_pass), sizeof(_wifi_pass));
+    eeprom.read(ADDROF(_wifi_ssid), reinterpret_cast<uint8_t *>(_data._wifi_ssid), sizeof(_data._wifi_ssid));
+    eeprom.read(ADDROF(_wifi_pass), reinterpret_cast<uint8_t *>(_data._wifi_pass), sizeof(_data._wifi_pass));
 #endif //ESP32
 
     // Restore current record
     _recorder.Setup(RecorderAccess::RECORD_ADJUSTED_START,
                     static_cast<uint16_t>(static_cast<uint16_t>(eeprom.length() / 8) - RecorderAccess::RECORD_ADJUSTED_START));
 
-    if (_record_retain_days > 0) {
+    if (_data._record_retain_days > 0) {
         // If record is older than the retain period, reformat.
         uint32_t timestamp = rtc.now().unixtime();
         uint16_t cur_day = timestamp / _recorder.SECONDS_IN_DAY;
-        if (cur_day - _recorder.GetFormatDay() >= _record_retain_days) {
+        if (cur_day - _recorder.GetFormatDay() >= _data._record_retain_days) {
             _recorder.Format(_recorder.GetSize(), _recorder.GetBitsPerRecord(), timestamp);
         }
     }
@@ -87,7 +87,7 @@ int8_t Context::Setup()
 bool Context::IsKeyDefault() const
 {
     for (int i = 0; i < KEY_SIZE; ++i) {
-        if (_key[i] != 0xff)
+        if (_data._key[i] != 0xff)
             return false;
     }
     return true;
@@ -95,8 +95,8 @@ bool Context::IsKeyDefault() const
 
 void Context::OnNewKey(const uint8_t *key)
 {
-    memcpy(_key, key, sizeof(_key));
-    eeprom.write(ADDROF(_key), _key, sizeof(_key));
+    memcpy(_data._key, key, sizeof(_data._key));
+    eeprom.write(ADDROF(_key), _data._key, sizeof(_data._key));
 }
 
 DateTime Context::GetDateTime() const
@@ -146,14 +146,14 @@ void Context::SetDateTime(uint32_t timestamp)
 
 void Context::SetId(uint8_t id)
 {
-    _id = id;
-    eeprom.write(ADDROF(_id), &_id, sizeof(_id));
+    _data._id = id;
+    eeprom.write(ADDROF(_id), &_data._id, sizeof(_data._id));
 }
 
 void Context::SetRecordRetainDays(uint8_t days)
 {
-    _record_retain_days = days;
-    eeprom.write(ADDROF(_record_retain_days), &_record_retain_days, sizeof(_record_retain_days));
+    _data._record_retain_days = days;
+    eeprom.write(ADDROF(_record_retain_days), &_data._record_retain_days, sizeof(_data._record_retain_days));
 }
 
 #ifdef ESP32
@@ -161,21 +161,21 @@ void Context::SetRecordRetainDays(uint8_t days)
 void Context::SetWifiSsid(const char *ssid)
 {
     auto length = strlen(ssid);
-    if (length > sizeof(_wifi_ssid))
-        length = sizeof(_wifi_ssid);
-    memcpy(_wifi_ssid, ssid, length);
-    _wifi_ssid[length - 1] = 0;
-    eeprom.write(ADDROF(_wifi_ssid), reinterpret_cast<uint8_t *>(_wifi_ssid), length);
+    if (length > sizeof(_data._wifi_ssid))
+        length = sizeof(_data._wifi_ssid);
+    memcpy(_data._wifi_ssid, ssid, length);
+    _data._wifi_ssid[length - 1] = 0;
+    eeprom.write(ADDROF(_wifi_ssid), reinterpret_cast<uint8_t *>(_data._wifi_ssid), length);
 }
 
 void Context::SetWifiPass(const char *pass)
 {
     auto length = strlen(pass);
-    if (length > sizeof(_wifi_pass))
-        length = sizeof(_wifi_pass);
-    memcpy(_wifi_pass, pass, length);
-    _wifi_pass[length - 1] = 0;
-    eeprom.write(ADDROF(_wifi_pass), reinterpret_cast<uint8_t *>(_wifi_pass), length);
+    if (length > sizeof(_data._wifi_pass))
+        length = sizeof(_data._wifi_pass);
+    memcpy(_data._wifi_pass, pass, length);
+    _data._wifi_pass[length - 1] = 0;
+    eeprom.write(ADDROF(_wifi_pass), reinterpret_cast<uint8_t *>(_data._wifi_pass), length);
 }
 
 #endif //ESP32
