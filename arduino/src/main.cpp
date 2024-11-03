@@ -111,8 +111,6 @@ void setup()
 // Don't loop here to make sure serialEvent() is processed.
 void loop()
 {
-    auto now = millis();
-
     auto res = puncher.Punch();
     if (!res) {
         buzzer.ConfirmPunch();
