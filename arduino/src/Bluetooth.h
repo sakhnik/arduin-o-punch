@@ -3,7 +3,7 @@
 #ifdef ESP32
 
 #include "OutMux.h"
-#include "src/RingBuffer.h"
+#include "RingBuffer.h"
 
 class Context;
 class Shell;

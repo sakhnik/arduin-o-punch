@@ -1,6 +1,6 @@
 #ifdef BUILD_WA
 
-#include "../src/PunchCard.h"
+#include "../lib/aop/PunchCard.h"
 #include <emscripten/bind.h>
 #include <emscripten/em_js.h>
 

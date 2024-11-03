@@ -43,8 +43,8 @@ const char* ErrorCode::ToStr() const
         return "RC ARG"; // Invalid argument.
     case MFRC522Constants::STATUS_CRC_WRONG:
         return "RC CRC";       // The CRC_A does not match.
-    case MFRC522Constants::STATUS_UNKNOWN:
-        return "RC UNK";
+//    case MFRC522Constants::STATUS_UNKNOWN:
+//        return "RC UNK";
     case MFRC522Constants::STATUS_MIFARE_NACK:
         return "RC NACK";    // A MIFARE PICC responded with NAK.
 #endif

@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: mymindstorm/setup-emsdk@v14
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set current date as env variable
         run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
@@ -29,7 +29,7 @@ jobs:
         run: ./arduino/wa/build.sh
 
       - name: Upload build - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.date_today }} - ${{ env.repository_name }} - WebApp build
           path: |

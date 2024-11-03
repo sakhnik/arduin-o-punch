@@ -1,7 +1,7 @@
 #include "Puncher.h"
 #include "Context.h"
-#include "src/IMifare.h"
-#include "src/PunchCard.h"
+#include "IMifare.h"
+#include "PunchCard.h"
 
 //#define LOGGER
 #ifdef LOGGER

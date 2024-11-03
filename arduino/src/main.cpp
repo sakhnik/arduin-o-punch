@@ -31,6 +31,39 @@ OperationMode operation_mode = OM_NORMAL;
 Bluetooth bluetooth {outMux, context, shell};
 Network network {outMux, context, shell, buzzer};
 
+void AdvanceOperationMode()
+{
+    switch (operation_mode) {
+    case OM_BLUETOOTH:
+        bluetooth.SwitchOff();
+        break;
+    case OM_WIFI:
+        network.SwitchOff();
+        break;
+    default:
+        break;
+    }
+    operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
+    switch (operation_mode) {
+    case OM_NORMAL:
+        buzzer.SignalOk();
+        break;
+    case OM_BLUETOOTH:
+        buzzer.SignalBluetooth();
+        bluetooth.SwitchOn();
+        break;
+    case OM_WIFI:
+        // It takes a second or so to initialize WiFi. The CPU will be busy.
+        // Play a confirmation melody only after that to avoid distortion.
+        network.SwitchOn();
+        buzzer.SignalWifi();
+        break;
+    default:
+        // Shouldn't be reached
+        break;
+    }
+}
+
 #endif //ESP32
 
 void setup()
@@ -103,36 +136,6 @@ void loop()
     network.Tick();
 #endif
 }
-
-#ifdef ESP32
-void AdvanceOperationMode()
-{
-    switch (operation_mode) {
-    case OM_BLUETOOTH:
-        bluetooth.SwitchOff();
-        break;
-    case OM_WIFI:
-        network.SwitchOff();
-        break;
-    }
-    operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
-    switch (operation_mode) {
-    case OM_NORMAL:
-        buzzer.SignalOk();
-        break;
-    case OM_BLUETOOTH:
-        buzzer.SignalBluetooth();
-        bluetooth.SwitchOn();
-        break;
-    case OM_WIFI:
-        // It takes a second or so to initialize WiFi. The CPU will be busy.
-        // Play a confirmation melody only after that to avoid distortion.
-        network.SwitchOn();
-        buzzer.SignalWifi();
-        break;
-    }
-}
-#endif //ESP32
 
 #ifdef ARDUINO_AVR_PRO
 void serialEvent()

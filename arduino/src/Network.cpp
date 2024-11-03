@@ -5,7 +5,7 @@
 #include "Shell.h"
 #include "Buzzer.h"
 #include "CpuFreq.h"
-#include "src/Utils.h"
+#include "Utils.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WebServer.h>
