@@ -66,7 +66,7 @@ public:
 
     static uint32_t GetTimestamp(const uint8_t *data, int offset)
     {
-        return  (data[offset] & 0xff) | ((data[offset + 1] & 0xff) << 8) | ((data[offset + 2] & 0xff) << 16);
+        return  uint32_t(data[offset] & 0xff) | (uint32_t(data[offset + 1] & 0xff) << 8) | (uint32_t(data[offset + 2] & 0xff) << 16);
     }
 
     static uint32_t GetTimestamp(const uint8_t *data, int offset, uint32_t timestamp0)
