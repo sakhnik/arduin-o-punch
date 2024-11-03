@@ -315,7 +315,7 @@ class PunchCardTest {
         val aopCli = File(aopCliPath)
         if (!aopCli.exists() || !aopCli.canExecute()) {
             val rootDir = System.getProperty("user.dir")
-            val process = ProcessBuilder(listOf(File(rootDir, "../../arduino/src/test.sh").path, "--skip-tests"))
+            val process = ProcessBuilder(listOf(File(rootDir, "../../arduino/lib/aop/test.sh").path, "--skip-tests"))
                 .redirectErrorStream(true)
                 .start()
 
