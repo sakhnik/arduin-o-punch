@@ -1,8 +1,7 @@
 package com.sakhnik.arduinopunch
 
-import android.app.AlertDialog
+import android.app.Application
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.nfc.NfcAdapter
@@ -10,20 +9,9 @@ import android.nfc.Tag
 import android.nfc.tech.MifareClassic
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ProgressBar
-import android.widget.TableLayout
-import android.widget.TableRow
-import android.widget.TextView
 import android.widget.Toast
-import android.widget.ToggleButton
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -33,51 +21,55 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
-import androidx.activity.result.ActivityResultLauncher
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.android.material.navigation.NavigationView
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
-import com.sakhnik.arduinopunch.R.id.toggleUrlEditing
 import java.io.IOException
-import java.time.DateTimeException
-import java.time.Duration
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
+    private val cardViewModel: CardViewModel by viewModels()
+    private lateinit var nfcAdapter: NfcAdapter
+    private lateinit var pendingIntent: PendingIntent
+    private lateinit var okEffectPlayer: MediaPlayer
+    private lateinit var failEffectPlayer: MediaPlayer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+        // Create a PendingIntent that will be used to read NFC tags
+        pendingIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), flags
+        )
+
         setContent {
             AppTheme {
                 // A surface container using the 'background' color from the theme
@@ -85,17 +77,97 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    MainScreen(cardViewModel)
                 }
             }
         }
+
+        okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
+        failEffectPlayer = MediaPlayer.create(this, R.raw.fail)
+    }
+
+    override fun onDestroy() {
+        okEffectPlayer.release()
+        failEffectPlayer.release()
+        super.onDestroy()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter.disableForegroundDispatch(this)
+        //savePreferences(currentView)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (NfcAdapter.ACTION_TAG_DISCOVERED == intent.action) {
+            // A new NFC tag was discovered
+            val tag: Tag? =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+                }
+
+            // Handle MIFARE Classic 1K cards
+            if (tag != null) {
+                MifareClassic.get(tag)?.use {
+                    thread {
+                        handleMifare(it)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleMifare(mifare: MifareClassic) {
+        mifare.connect()
+        if (mifare.type != MifareClassic.TYPE_CLASSIC || mifare.size != MifareClassic.SIZE_1K) {
+            runOnUiThread {
+                failEffectPlayer.start()
+                Toast.makeText(this,
+                    getString(R.string.only_1k_mifare_classic_cards_are_expected), Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+
+        try {
+            cardViewModel.handleCard(mifare)
+
+            runOnUiThread {
+                okEffectPlayer.start()
+            }
+        } catch (ex: IOException) {
+            Log.e(null, "IO exception $ex")
+            runOnUiThread {
+                failEffectPlayer.start()
+                Toast.makeText(this, "${ex.message}", Toast.LENGTH_LONG).show()
+            }
+        } catch (ex: RuntimeException) {
+            Log.e(null, "Runtime exception $ex")
+            runOnUiThread {
+                failEffectPlayer.start()
+                Toast.makeText(this, "${ex.message}", Toast.LENGTH_LONG).show()
+            }
+        } finally {
+            cardViewModel.updateProgress(0f)
+        }
+        mifare.close()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: CardViewModel) {
+    val progress by viewModel.progress
     val navController = rememberNavController()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -138,8 +210,19 @@ fun MainScreen() {
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)
+                Spacer(Modifier.height(8.dp))
+
+                LaunchedEffect(navController) {
+                    navController.currentBackStackEntryFlow.collect { backStackEntry ->
+                        val destinationRoute = backStackEntry.destination.route
+                        viewModel.updateCurrentDestination(destinationRoute)
+                    }
+                }
+
                 NavHost(navController, startDestination = DST_FORMAT) {
-                    composable(DST_FORMAT) { FormatScreen() }
+                    composable(DST_FORMAT) { FormatScreen(viewModel) }
                     composable(DST_PUNCH) { PunchScreen() }
                     composable(DST_CLEAR) { ClearScreen() }
                     composable(DST_READ) { ReadScreen() }
@@ -150,20 +233,24 @@ fun MainScreen() {
     )
 }
 
+class MockCardViewModel : CardViewModel(Application()) {
+    init {
+        // Initialize with sample progress for preview
+        updateProgress(0.75f)
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun MainScreenPreview() {
     AppTheme {
-        MainScreen()
+        val mockViewModel = MockCardViewModel()
+        MainScreen(mockViewModel)
     }
 }
 
 //class MainActivity : AppCompatActivity() {
 //
-//    private lateinit var nfcAdapter: NfcAdapter
-//    private lateinit var pendingIntent: PendingIntent
-//    private lateinit var okEffectPlayer: MediaPlayer
-//    private lateinit var failEffectPlayer: MediaPlayer
 //    private var currentView: Int = R.layout.format_view
 //
 //    private val menuToLayout = mapOf(
@@ -226,17 +313,7 @@ fun GreetingPreview() {
 //        //}
 //        //setActiveView(currentView)
 //
-//        okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
-//        failEffectPlayer = MediaPlayer.create(this, R.raw.fail)
 //
-//        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-//
-//        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-//        // Create a PendingIntent that will be used to read NFC tags
-//        pendingIntent = PendingIntent.getActivity(
-//            this, 0,
-//            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), flags
-//        )
 //    }
 //
 //    override fun onSaveInstanceState(outState: Bundle) {
@@ -279,10 +356,6 @@ fun GreetingPreview() {
 //                        barcodeLauncher.launch(ScanOptions().setOrientationLocked(false))
 //                    }
 //                }
-//                val showOldKeys = findViewById<Button>(R.id.showOldKeys)
-//                showOldKeys.setOnClickListener {
-//                    showPreviousKeys()
-//                }
 //            }
 //            R.layout.read_runner_view -> {
 //                val toggleEditUrl = findViewById<ToggleButton>(toggleUrlEditing)
@@ -290,26 +363,6 @@ fun GreetingPreview() {
 //                    findViewById<EditText>(R.id.editUploadUrl).isEnabled = isChecked
 //                }
 //            }
-//        }
-//    }
-//
-//    private companion object {
-//        const val CURRENT_VIEW_KEY = "currentView"
-//
-//        private object Prefs {
-//            const val NAME = "Prefs"
-//            const val KEY_CARD_ID = "cardId"
-//            const val KEY_KEY = "key"
-//            const val KEY_KNOWN_KEYS = "knownKeys"
-//            const val KEY_STATION_ID = "stationId"
-//            const val KEY_UPLOAD = "upload"
-//            const val KEY_UPLOAD_URL = "uploadUrl"
-//
-//            const val KNOWN_KEYS_HISTORY_SIZE = 4
-//        }
-//
-//        private fun parseKey(hex: String): ByteArray {
-//            return hex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
 //        }
 //    }
 //
@@ -348,108 +401,8 @@ fun GreetingPreview() {
 //        }
 //    }
 //
-//    private fun getKeyHex(): String {
-//        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-//        val keyRaw = prefs.getString(Prefs.KEY_KEY, null) ?: ""
-//        return keyRaw + "0".repeat(12 - keyRaw.length)
-//    }
-//
-//    private fun getKey(): ByteArray {
-//        return parseKey(getKeyHex())
-//    }
-//
-//    override fun onDestroy() {
-//        okEffectPlayer.release()
-//        failEffectPlayer.release()
-//        super.onDestroy()
-//    }
-//
-//    override fun onResume() {
-//        super.onResume()
-//        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null)
-//    }
-//
-//    override fun onPause() {
-//        super.onPause()
-//        nfcAdapter.disableForegroundDispatch(this)
-//        savePreferences(currentView)
-//    }
-//
-//    override fun onNewIntent(intent: Intent) {
-//        super.onNewIntent(intent)
-//        if (NfcAdapter.ACTION_TAG_DISCOVERED == intent.action) {
-//            // A new NFC tag was discovered
-//            val tag: Tag? =
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//                    intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-//                } else {
-//                    @Suppress("DEPRECATION")
-//                    intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
-//                }
-//
-//            // Handle MIFARE Classic 1K cards
-//            if (tag != null) {
-//                val mifare = MifareClassic.get(tag)
-//                thread {
-//                    handleMifare(mifare)
-//                }
-//            }
-//        }
-//    }
-//
 //    private fun getTimestamp(): Long {
 //        return Duration.between(LocalTime.of(0, 0), LocalTime.now()).seconds
-//    }
-//
-//    private fun handleMifare(mifare: MifareClassic?) {
-//        mifare?.use { mifareClassic ->
-//            mifareClassic.connect()
-//            if (mifareClassic.type != MifareClassic.TYPE_CLASSIC || mifareClassic.size != MifareClassic.SIZE_1K) {
-//                runOnUiThread {
-//                    failEffectPlayer.start()
-//                    Toast.makeText(this,
-//                        getString(R.string.only_1k_mifare_classic_cards_are_expected), Toast.LENGTH_LONG).show()
-//                }
-//                return
-//            }
-//
-//            try {
-//                when (currentView) {
-//                    R.layout.format_view -> formatRunner(mifareClassic)
-//                    R.layout.clear_view -> clearRunner(mifareClassic)
-//                    R.layout.punch_view -> punchRunner(mifareClassic)
-//                    R.layout.read_runner_view -> readRunner(mifareClassic)
-//                    R.layout.reset_view -> resetRunner(mifareClassic)
-//                }
-//
-//                runOnUiThread {
-//                    okEffectPlayer.start()
-//                }
-//            } catch (ex: IOException) {
-//                Log.e(null, "IO exception $ex")
-//                runOnUiThread {
-//                    failEffectPlayer.start()
-//                    Toast.makeText(this, "${ex.message}", Toast.LENGTH_LONG).show()
-//                }
-//            } catch (ex: RuntimeException) {
-//                Log.e(null, "Runtime exception $ex")
-//                runOnUiThread {
-//                    failEffectPlayer.start()
-//                    Toast.makeText(this, "${ex.message}", Toast.LENGTH_LONG).show()
-//                }
-//            } finally {
-//                findViewById<ProgressBar>(R.id.progressBar).progress = 0
-//            }
-//            mifareClassic.close()
-//        }
-//    }
-//
-//    private fun setProgress(n: Int, d: Int) {
-//        runOnUiThread {
-//            val progress = findViewById<ProgressBar>(R.id.progressBar)
-//            progress.max = d
-//            progress.progress = n
-//        }
 //    }
 //
 //    private fun resetRunner(mifareClassic: MifareClassic) {
@@ -514,61 +467,5 @@ fun GreetingPreview() {
 //        card.clear(this::setProgress)
 //    }
 //
-//    private fun formatRunner(mifareClassic: MifareClassic) {
-//        val key = getKey()
-//        Log.d(null, "Key is ${key.joinToString("") { "%02X".format(it) }}")
-//        updateKnownKeys()
 //
-//        val etId = findViewById<EditText>(R.id.editCardId)
-//        val id = etId.text.toString().toInt()
-//        val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-//        card.format(id, getKnownKeys(), this::setProgress)
-//    }
-//
-//    private fun getKnownKeys(): List<ByteArray> {
-//        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-//        return prefs.getString(Prefs.KEY_KNOWN_KEYS, "")!!.split(",").filter { it.isNotEmpty() }.map { parseKey(it) }
-//    }
-//
-//    private fun showPreviousKeys() {
-//        val keyHex = getKeyHex()
-//        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-//        var knownKeys = prefs.getString(Prefs.KEY_KNOWN_KEYS, "")!!
-//        // knownKeys contains the actual key too, skip it
-//        if (knownKeys.startsWith(keyHex)) {
-//            knownKeys = knownKeys.subSequence(keyHex.length, knownKeys.length).toString()
-//        }
-//        if (knownKeys.endsWith(",")) {
-//            knownKeys = knownKeys.subSequence(0, knownKeys.length - 1).toString()
-//        }
-//        if (knownKeys.length > 1) {
-//            val msg = knownKeys.replace(",", "\n")
-//            val builder = AlertDialog.Builder(this)
-//            builder.setMessage(msg)
-//                .setPositiveButton("OK") {_, _ -> }
-//                .show()
-//        }
-//    }
-//
-//    // Take the current key and make sure it's in the list of known keys
-//    private fun updateKnownKeys() {
-//        val keyHex = getKeyHex()
-//        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-//        val knownKeys = prefs.getString(Prefs.KEY_KNOWN_KEYS, "")!!
-//        if (knownKeys.startsWith(keyHex)) {
-//            // It's already there
-//            return
-//        }
-//        val knownKeysList = knownKeys.split(",")
-//        val newList = ArrayList<String>()
-//        newList.add(keyHex)
-//        // Limit the history of the known keys
-//        if (knownKeysList.size > Prefs.KNOWN_KEYS_HISTORY_SIZE)
-//            newList.addAll(knownKeysList.subList(0, Prefs.KNOWN_KEYS_HISTORY_SIZE))
-//        else
-//            newList.addAll(knownKeysList)
-//        val editor = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE).edit()
-//        editor.putString(Prefs.KEY_KNOWN_KEYS, newList.joinToString(","))
-//        editor.apply()
-//    }
 //}
