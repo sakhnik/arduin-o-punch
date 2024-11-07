@@ -223,8 +223,8 @@ fun MainScreen(viewModel: CardViewModel) {
 
                 NavHost(navController, startDestination = DST_FORMAT) {
                     composable(DST_FORMAT) { FormatScreen(viewModel) }
-                    composable(DST_PUNCH) { PunchScreen() }
                     composable(DST_CLEAR) { ClearScreen() }
+                    composable(DST_PUNCH) { PunchScreen(viewModel) }
                     composable(DST_READ) { ReadScreen() }
                     composable(DST_RESET) { ResetScreen() }
                 }
@@ -373,9 +373,6 @@ fun MainScreenPreview() {
 //                editor.putString(Prefs.KEY_CARD_ID, findViewById<EditText>(R.id.editCardId).text.toString())
 //                editor.putString(Prefs.KEY_KEY, findViewById<EditText>(R.id.editKey).text.toString())
 //            }
-//            R.layout.punch_view -> {
-//                editor.putString(Prefs.KEY_STATION_ID, findViewById<EditText>(R.id.editStationId).text.toString())
-//            }
 //            R.layout.read_runner_view -> {
 //                editor.putBoolean(Prefs.KEY_UPLOAD, findViewById<CheckBox>(R.id.checkBoxUpload).isChecked)
 //                editor.putString(Prefs.KEY_UPLOAD_URL, findViewById<EditText>(R.id.editUploadUrl).text.toString())
@@ -387,28 +384,11 @@ fun MainScreenPreview() {
 //    private fun loadPreferences(viewId: Int) {
 //        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
 //        when (viewId) {
-//            R.layout.format_view -> {
-//                findViewById<EditText>(R.id.editCardId).setText(prefs.getString(Prefs.KEY_CARD_ID, getString(R.string._1)))
-//                findViewById<EditText>(R.id.editKey).setText(prefs.getString(Prefs.KEY_KEY, ""))
-//            }
-//            R.layout.punch_view -> {
-//                findViewById<EditText>(R.id.editStationId).setText(prefs.getString(Prefs.KEY_STATION_ID, getString(R.string._31)))
-//            }
 //            R.layout.read_runner_view -> {
 //                findViewById<CheckBox>(R.id.checkBoxUpload).isChecked = prefs.getBoolean(Prefs.KEY_UPLOAD, false)
 //                findViewById<EditText>(R.id.editUploadUrl).setText(prefs.getString(Prefs.KEY_UPLOAD_URL, getString(R.string.https_sakhnik_com_qr_o_punch_card)))
 //            }
 //        }
-//    }
-//
-//    private fun getTimestamp(): Long {
-//        return Duration.between(LocalTime.of(0, 0), LocalTime.now()).seconds
-//    }
-//
-//    private fun resetRunner(mifareClassic: MifareClassic) {
-//        val key = getKey()
-//        val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-//        card.reset(getKnownKeys(), this::setProgress)
 //    }
 //
 //    private fun readRunner(mifareClassic: MifareClassic) {
@@ -453,19 +433,4 @@ fun MainScreenPreview() {
 //            }
 //        }
 //    }
-//
-//    private fun punchRunner(mifareClassic: MifareClassic) {
-//        val key = getKey()
-//        val station = findViewById<EditText>(R.id.editStationId).text.toString().toInt()
-//        val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-//        card.punch(Punch(station, getTimestamp()), this::setProgress)
-//    }
-//
-//    private fun clearRunner(mifareClassic: MifareClassic) {
-//        val key = getKey()
-//        val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-//        card.clear(this::setProgress)
-//    }
-//
-//
 //}

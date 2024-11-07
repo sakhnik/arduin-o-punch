@@ -1,6 +1,8 @@
 package com.sakhnik.arduinopunch
 
 import android.view.LayoutInflater
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,20 +11,23 @@ import androidx.compose.ui.viewinterop.AndroidView
 const val DST_PUNCH = "punch"
 
 @Composable
-fun PunchScreen() {
+fun PunchScreen(cardViewModel: CardViewModel) {
     AndroidView(
         factory = { context ->
-            // Inflate the XML layout
+            val storage = cardViewModel.getStorage()
+
             val view = LayoutInflater.from(context).inflate(R.layout.punch_view, null)
 
-            // Access the views in the XML layout
-            //val textView = view.findViewById<TextView>(R.id.exampleText)
-            //val button = view.findViewById<Button>(R.id.exampleButton)
-
-            //// Set up interactions or modify the views if needed
-            //button.setOnClickListener {
-            //    textView.text = "Button Clicked!"
-            //}
+            val etStation = view.findViewById<EditText>(R.id.editStationId)
+            etStation.setText(storage.getStationId())
+            etStation.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    storage.updateStationId(etStation.text.toString())
+                    true // Return true to consume the action
+                } else {
+                    false
+                }
+            }
 
             view // Return the view to display in Compose
         },

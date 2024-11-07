@@ -82,9 +82,15 @@ class Storage(private val context: Context) {
         editor.apply()
     }
 
-//        when (viewId) {
-//            R.layout.format_view -> {
-//                findViewById<EditText>(R.id.editCardId).setText())
-//                findViewById<EditText>(R.id.editKey).setText(prefs.getString(Prefs.KEY_KEY, ""))
+    fun getStationId(): String {
+        val prefs = context.getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
+        return prefs.getString(Prefs.KEY_STATION_ID, context.getString(R.string._31)) ?: "31"
+    }
+
+    fun updateStationId(stationId: String) {
+        val editor = context.getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE).edit()
+        editor.putString(Prefs.KEY_STATION_ID, stationId)
+        editor.apply()
+    }
 
 }
