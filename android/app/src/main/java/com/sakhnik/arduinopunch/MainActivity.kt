@@ -84,6 +84,12 @@ class MainActivity : ComponentActivity() {
 
         okEffectPlayer = MediaPlayer.create(this, R.raw.ok)
         failEffectPlayer = MediaPlayer.create(this, R.raw.fail)
+
+        cardViewModel.toastMessage.observe(this) { message ->
+            message?.let {
+                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -134,6 +140,7 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this,
                     getString(R.string.only_1k_mifare_classic_cards_are_expected), Toast.LENGTH_LONG).show()
             }
+            mifare.close()
             return
         }
 
@@ -172,7 +179,7 @@ fun MainScreen(viewModel: CardViewModel) {
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Blue,
                     titleContentColor = Color.White
                 )
@@ -225,7 +232,7 @@ fun MainScreen(viewModel: CardViewModel) {
                     composable(DST_FORMAT) { FormatScreen(viewModel) }
                     composable(DST_CLEAR) { ClearScreen() }
                     composable(DST_PUNCH) { PunchScreen(viewModel) }
-                    composable(DST_READ) { ReadScreen() }
+                    composable(DST_READ) { ReadScreen(viewModel) }
                     composable(DST_RESET) { ResetScreen() }
                 }
             }
@@ -252,14 +259,6 @@ fun MainScreenPreview() {
 //class MainActivity : AppCompatActivity() {
 //
 //    private var currentView: Int = R.layout.format_view
-//
-//    private val menuToLayout = mapOf(
-//        R.id.menu_item_format to R.layout.format_view,
-//        R.id.menu_item_clear to R.layout.clear_view,
-//        R.id.menu_item_punch to R.layout.punch_view,
-//        R.id.menu_item_read to R.layout.read_runner_view,
-//        R.id.menu_item_reset to R.layout.reset_view,
-//    )
 //
 //    private val barcodeLauncher: ActivityResultLauncher<ScanOptions> =
 //        registerForActivityResult(ScanContract()) { result ->
@@ -293,18 +292,6 @@ fun MainScreenPreview() {
 //        //drawerLayout.addDrawerListener(toggle)
 //        //toggle.syncState()
 //
-//        //val navigationView = findViewById<NavigationView>(R.id.navigation_view)
-//        //navigationView.setNavigationItemSelectedListener { menuItem ->
-//        //    if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//        //        drawerLayout.closeDrawer(GravityCompat.START)
-//        //    }
-//        //    savePreferences(currentView)
-//        //    val viewId = menuToLayout.getOrDefault(menuItem.itemId, currentView)
-//        //    currentView = viewId
-//        //    setActiveView(viewId)
-//        //    true
-//        //}
-//
 //        //if (savedInstanceState != null) {
 //        //    currentView = savedInstanceState.getInt(CURRENT_VIEW_KEY)
 //        //    if (currentView == 0) {
@@ -327,20 +314,6 @@ fun MainScreenPreview() {
 //        super.onRestoreInstanceState(savedInstanceState)
 //    }
 //
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        val id = item.itemId
-//        if (id == android.R.id.home) {
-//            val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
-//            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//                drawerLayout.closeDrawer(GravityCompat.START)
-//            } else {
-//                drawerLayout.openDrawer(GravityCompat.START)
-//            }
-//            return true
-//        }
-//        return super.onOptionsItemSelected(item)
-//    }
-//
 //    private fun setActiveView(viewId: Int) {
 //        val container = findViewById<FrameLayout>(R.id.main_content)
 //        container.removeAllViews()
@@ -357,80 +330,7 @@ fun MainScreenPreview() {
 //                    }
 //                }
 //            }
-//            R.layout.read_runner_view -> {
-//                val toggleEditUrl = findViewById<ToggleButton>(toggleUrlEditing)
-//                toggleEditUrl.setOnCheckedChangeListener{_, isChecked ->
-//                    findViewById<EditText>(R.id.editUploadUrl).isEnabled = isChecked
-//                }
-//            }
 //        }
 //    }
 //
-//    private fun savePreferences(viewId: Int) {
-//        val editor = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE).edit()
-//        when (viewId) {
-//            R.layout.format_view -> {
-//                editor.putString(Prefs.KEY_CARD_ID, findViewById<EditText>(R.id.editCardId).text.toString())
-//                editor.putString(Prefs.KEY_KEY, findViewById<EditText>(R.id.editKey).text.toString())
-//            }
-//            R.layout.read_runner_view -> {
-//                editor.putBoolean(Prefs.KEY_UPLOAD, findViewById<CheckBox>(R.id.checkBoxUpload).isChecked)
-//                editor.putString(Prefs.KEY_UPLOAD_URL, findViewById<EditText>(R.id.editUploadUrl).text.toString())
-//            }
-//        }
-//        editor.apply()
-//    }
-//
-//    private fun loadPreferences(viewId: Int) {
-//        val prefs = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
-//        when (viewId) {
-//            R.layout.read_runner_view -> {
-//                findViewById<CheckBox>(R.id.checkBoxUpload).isChecked = prefs.getBoolean(Prefs.KEY_UPLOAD, false)
-//                findViewById<EditText>(R.id.editUploadUrl).setText(prefs.getString(Prefs.KEY_UPLOAD_URL, getString(R.string.https_sakhnik_com_qr_o_punch_card)))
-//            }
-//        }
-//    }
-//
-//    private fun readRunner(mifareClassic: MifareClassic) {
-//        val key = getKey()
-//        val card = PunchCard(MifareImpl(mifareClassic), key, applicationContext)
-//        val readOut = card.readOut(this::setProgress)
-//
-//        if (findViewById<CheckBox>(R.id.checkBoxUpload).isChecked) {
-//            val url = findViewById<EditText>(R.id.editUploadUrl).text.toString()
-//            Uploader(this).upload(readOut, url)
-//        }
-//
-//        runOnUiThread {
-//            findViewById<TextView>(R.id.textViewCardNumber).text = getString(R.string.card_id_report, readOut.cardNumber)
-//
-//            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
-//            for (i in tableLayout.childCount - 1 downTo 1) {
-//                tableLayout.removeViewAt(i)
-//            }
-//
-//            // Format LocalTime to "HH:mm:ss"
-//            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-//
-//            for ((index, punch) in readOut.punches.withIndex()) {
-//                val tableRow = TableRow(this)
-//                val cell1 = TextView(this)
-//                val strNumber = "${index + 1}"
-//                cell1.text = strNumber
-//                tableRow.addView(cell1)
-//                val cell2 = TextView(this)
-//                cell2.text = punch.station.toString()
-//                tableRow.addView(cell2)
-//                val cell3 = TextView(this)
-//                try {
-//                val localTime = LocalTime.ofSecondOfDay(punch.timestamp)
-//                cell3.text = localTime.format(formatter)
-//                } catch (ex: DateTimeException) {
-//                    cell3.text = "???"
-//                }
-//                tableRow.addView(cell3)
-//                tableLayout.addView(tableRow)
-//            }
-//        }
-//    }
 //}
