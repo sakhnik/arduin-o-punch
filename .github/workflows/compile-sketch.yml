@@ -32,21 +32,16 @@ jobs:
       - name: Set repository name as env variable
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
-      - name: Compile for Arduino Pro Mini
+      - name: Compile for all environments
         working-directory: ./arduino
         run: |
-          pio run -e pro -j3
+          pio run -j3
 
       - name: Upload build-pro - ${{ env.repository_name }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.date_today }}-${{ env.repository_name }}-pro.avr.hex
           path: arduino/.pio/build/pro/firmware.hex
-
-      - name: Compile for ESP32 C3
-        working-directory: ./arduino
-        run: |
-          pio run -e esp32c3 -j3
 
       - name: Upload build-c3 - ${{ env.repository_name }}
         uses: actions/upload-artifact@v4

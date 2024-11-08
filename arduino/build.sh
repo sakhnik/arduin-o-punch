@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 astyle --project '*.cpp,*.h,*.ino'
-./src/test.sh
-cmake -B /tmp/aop-pro -DPROFILE=pro
-cmake --build /tmp/aop-pro
+./lib/aop/test.sh
+#pio run -e esp32c3 -j3
+#pio run -e pro -j3
+pio run -j3
