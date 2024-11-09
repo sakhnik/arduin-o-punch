@@ -22,7 +22,7 @@ const val DST_READ = "read"
 fun ReadScreen(cardViewModel: CardViewModel) {
     AndroidView(
         factory = { context ->
-            val storage = cardViewModel.getStorage()
+            val storage = cardViewModel.storage
             val view = LayoutInflater.from(context).inflate(R.layout.read_runner_view, null)
 
             val cbUpload = view.findViewById<CheckBox>(R.id.checkBoxUpload)

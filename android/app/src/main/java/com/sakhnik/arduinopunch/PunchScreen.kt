@@ -14,7 +14,7 @@ const val DST_PUNCH = "punch"
 fun PunchScreen(cardViewModel: CardViewModel) {
     AndroidView(
         factory = { context ->
-            val storage = cardViewModel.getStorage()
+            val storage = cardViewModel.storage
 
             val view = LayoutInflater.from(context).inflate(R.layout.punch_view, null)
 

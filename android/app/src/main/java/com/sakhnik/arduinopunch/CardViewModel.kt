@@ -16,7 +16,9 @@ open class CardViewModel(application: Application) : AndroidViewModel(applicatio
     //val currentDestination: LiveData<String?> = _currentDestination
     private val _progress = mutableFloatStateOf(0f)
     val progress: State<Float> = _progress
-    private val storage = Storage(application.applicationContext)
+    val storage: Storage by lazy {
+        Storage(application.applicationContext)
+    }
     private val _readOut = MutableLiveData(PunchCard.Info(0, listOf()))
     val readOut: LiveData<PunchCard.Info> get() = _readOut
     private val _toastMessage = MutableLiveData<String>()
@@ -28,10 +30,6 @@ open class CardViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun getStringFromResources(resourceId: Int): String {
         return getApplication<Application>().getString(resourceId)
-    }
-
-    fun getStorage(): Storage {
-        return storage
     }
 
     fun updateCurrentDestination(destination: String?) {
