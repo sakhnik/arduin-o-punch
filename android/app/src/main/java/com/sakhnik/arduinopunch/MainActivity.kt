@@ -55,6 +55,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import java.io.IOException
 import kotlin.concurrent.thread
 
@@ -262,20 +263,22 @@ fun MainScreen(viewModel: CardViewModel) {
 class MockRepository : Repository {
     private val mockKeyFlow = MutableStateFlow("0".repeat(12))
     private val mockCardIdFlow = MutableStateFlow("1")
+    private val mockKnownKeysFlow = MutableStateFlow("F".repeat(12))
 
     override val keyHexFlow: Flow<String> = mockKeyFlow
     override val cardIdFlow: Flow<String> = mockCardIdFlow
+    override val knownKeysFlow: Flow<String> = mockKnownKeysFlow
 
     override suspend fun saveKeyHex(value: String) {
         mockKeyFlow.value = value
     }
 
-    override fun getKey(): ByteArray {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun saveCardId(value: String) {
         mockCardIdFlow.value = value
+    }
+
+    override suspend fun saveKnownKeys() {
+        mockKnownKeysFlow.value = "${mockKeyFlow.first()},${mockKnownKeysFlow.first()}"
     }
 }
 

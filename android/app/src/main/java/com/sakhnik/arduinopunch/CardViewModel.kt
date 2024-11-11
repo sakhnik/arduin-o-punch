@@ -41,6 +41,14 @@ open class CardViewModel(private val repository: Repository, application: Applic
         }
     }
 
+    val knownKeys: Flow<String> = repository.knownKeysFlow
+
+    private fun updateKnownKeys() {
+        viewModelScope.launch {
+            repository.saveKnownKeys()
+        }
+    }
+
     val cardId: Flow<String> = repository.cardIdFlow
 
     fun updateCardId(value: String) {
@@ -76,26 +84,34 @@ open class CardViewModel(private val repository: Repository, application: Applic
         }
     }
 
+    private fun getKnownKeys(): List<ByteArray> {
+        return runBlocking { knownKeys.first() }.split(",").filter { it.isNotEmpty() }.map { RepositoryImpl.parseKey(it) }
+    }
+
+    private fun getKey(): ByteArray {
+        return runBlocking { RepositoryImpl.parseKey(keyHex.first()) }
+    }
+
     private fun formatCard(mifare: MifareClassic) {
-        val key = repository.getKey()
-        storage.updateKnownKeys()
+        val key = getKey()
+        updateKnownKeys()
 
         val context = getApplication<Application>().applicationContext
         val cardId = runBlocking { cardId.first() }.toInt()
         Log.d(null, "Format $cardId with key ${key.joinToString("") { "%02X".format(it) }}")
         val card = PunchCard(MifareImpl(mifare), key, context)
-        card.format(cardId, storage.getKnownKeys(), this::setProgress)
+        card.format(cardId, getKnownKeys(), this::setProgress)
     }
 
     private fun clearCard(mifareClassic: MifareClassic) {
-        val key = repository.getKey()
+        val key = getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifareClassic), key, context)
         card.clear(this::setProgress)
     }
 
     private fun punchCard(mifare: MifareClassic) {
-        val key = repository.getKey()
+        val key = getKey()
         val context = getApplication<Application>().applicationContext
         val station = storage.getStationId().toInt()
         val card = PunchCard(MifareImpl(mifare), key, context)
@@ -107,14 +123,14 @@ open class CardViewModel(private val repository: Repository, application: Applic
     }
 
     private fun resetCard(mifare: MifareClassic) {
-        val key = repository.getKey()
+        val key = getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifare), key, context)
-        card.reset(storage.getKnownKeys(), this::setProgress)
+        card.reset(getKnownKeys(), this::setProgress)
     }
 
     private fun readRunner(mifareClassic: MifareClassic) {
-        val key = repository.getKey()
+        val key = getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifareClassic), key, context)
         val readOut = card.readOut(this::setProgress)
