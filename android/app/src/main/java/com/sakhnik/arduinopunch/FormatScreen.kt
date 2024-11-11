@@ -15,11 +15,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,20 +28,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 const val DST_FORMAT = "format"
 
 @Composable
 fun FormatScreen(cardViewModel: CardViewModel) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
         // Title Text
         Text(
             text = stringResource(id = R.string.format_runner_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -52,7 +55,9 @@ fun FormatScreen(cardViewModel: CardViewModel) {
         // Instruction Text
         Text(
             text = stringResource(id = R.string.format_runner_instruction),
-            modifier = Modifier.fillMaxWidth().align(Alignment.Start)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Start)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -68,12 +73,13 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                 )
             }
             item {
-                // EditText equivalent (TextField)
-                //var text by remember { mutableStateOf("") }
-                var text by rememberSaveable { mutableStateOf("Text") }
+                val keyHex by cardViewModel.keyHex.collectAsState(initial = "0".repeat(12))
+
                 TextField(
-                    value = text,
-                    onValueChange = { text = it },
+                    value = keyHex,
+                    onValueChange = {
+                        cardViewModel.updateKeyHex(it)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                     visualTransformation = PasswordVisualTransformation(),
@@ -99,10 +105,13 @@ fun FormatScreen(cardViewModel: CardViewModel) {
             }
             item {
                 // EditText equivalent (TextField) for cardId
-                var cardId by remember { mutableStateOf("") }
+                val cardId by cardViewModel.cardId.collectAsState(initial = stringResource(id = R.string._1))
+
                 TextField(
                     value = cardId,
-                    onValueChange = { cardId = it },
+                    onValueChange = {
+                        cardViewModel.updateCardId(it)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     label = { Text(stringResource(id = R.string.card_id)) },
@@ -158,7 +167,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
 
 private fun showPreviousKeys(cardViewModel: CardViewModel, context: Context) {
     val storage = cardViewModel.storage
-    val keyHex = storage.getKeyHex()
+    val keyHex = runBlocking { cardViewModel.keyHex.first() }
     var knownKeys = storage.getKnownKeysStr()
     // knownKeys contains the actual key too, skip it
     if (knownKeys.startsWith(keyHex)) {

@@ -8,10 +8,15 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.time.LocalTime
 
-open class CardViewModel(application: Application) : AndroidViewModel(application) {
+open class CardViewModel(private val repository: Repository, application: Application) : AndroidViewModel(application) {
     private val _currentDestination = MutableLiveData<String?>()
     //val currentDestination: LiveData<String?> = _currentDestination
     private val _progress = mutableFloatStateOf(0f)
@@ -26,6 +31,23 @@ open class CardViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun postToast(message: String) {
         _toastMessage.postValue(message)
+    }
+
+    val keyHex: Flow<String> = repository.keyHexFlow
+
+    fun updateKeyHex(value: String) {
+        viewModelScope.launch {
+            repository.saveKeyHex(value)
+        }
+    }
+
+    val cardId: Flow<String> = repository.cardIdFlow
+
+    fun updateCardId(value: String) {
+        Log.d(null, "** updateCardId $value")
+        viewModelScope.launch {
+            repository.saveCardId(value)
+        }
     }
 
     fun getStringFromResources(resourceId: Int): String {
@@ -55,25 +77,25 @@ open class CardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private fun formatCard(mifare: MifareClassic) {
-        val key = storage.getKey()
+        val key = repository.getKey()
         storage.updateKnownKeys()
 
         val context = getApplication<Application>().applicationContext
-        val cardId = storage.getCardId().toInt()
+        val cardId = runBlocking { cardId.first() }.toInt()
         Log.d(null, "Format $cardId with key ${key.joinToString("") { "%02X".format(it) }}")
         val card = PunchCard(MifareImpl(mifare), key, context)
         card.format(cardId, storage.getKnownKeys(), this::setProgress)
     }
 
     private fun clearCard(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = repository.getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifareClassic), key, context)
         card.clear(this::setProgress)
     }
 
     private fun punchCard(mifare: MifareClassic) {
-        val key = storage.getKey()
+        val key = repository.getKey()
         val context = getApplication<Application>().applicationContext
         val station = storage.getStationId().toInt()
         val card = PunchCard(MifareImpl(mifare), key, context)
@@ -85,14 +107,14 @@ open class CardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private fun resetCard(mifare: MifareClassic) {
-        val key = storage.getKey()
+        val key = repository.getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifare), key, context)
         card.reset(storage.getKnownKeys(), this::setProgress)
     }
 
     private fun readRunner(mifareClassic: MifareClassic) {
-        val key = storage.getKey()
+        val key = repository.getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifareClassic), key, context)
         val readOut = card.readOut(this::setProgress)

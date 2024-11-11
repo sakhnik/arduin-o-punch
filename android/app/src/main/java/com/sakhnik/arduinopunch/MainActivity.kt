@@ -46,14 +46,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.IOException
 import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
-    private val cardViewModel: CardViewModel by viewModels()
+    private val cardViewModel: CardViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(CardViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return CardViewModel(RepositoryImpl(applicationContext), application) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+    }
     private lateinit var nfcAdapter: NfcAdapter
     private lateinit var pendingIntent: PendingIntent
     private lateinit var okEffectPlayer: MediaPlayer
@@ -240,7 +254,27 @@ fun MainScreen(viewModel: CardViewModel) {
     )
 }
 
-class MockCardViewModel : CardViewModel(Application()) {
+class MockRepository : Repository {
+    private val mockKeyFlow = MutableStateFlow("0".repeat(12))
+    private val mockCardIdFlow = MutableStateFlow("1")
+
+    override val keyHexFlow: Flow<String> = mockKeyFlow
+    override val cardIdFlow: Flow<String> = mockCardIdFlow
+
+    override suspend fun saveKeyHex(value: String) {
+        mockKeyFlow.value = value
+    }
+
+    override fun getKey(): ByteArray {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun saveCardId(value: String) {
+        mockCardIdFlow.value = value
+    }
+}
+
+class MockCardViewModel : CardViewModel(MockRepository(), Application()) {
     init {
         // Initialize with sample progress for preview
         updateProgress(0.75f)
