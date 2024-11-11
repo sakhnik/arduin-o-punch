@@ -13,6 +13,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -83,6 +85,8 @@ class MainActivity : ComponentActivity() {
             this, 0,
             Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), flags
         )
+
+        enableEdgeToEdge()
 
         setContent {
             AppTheme {
@@ -190,6 +194,7 @@ fun MainScreen(viewModel: CardViewModel) {
     val navController = rememberNavController()
 
     Scaffold(
+        modifier = Modifier.imePadding(), // This modifier moves the BottomAppBar above the keyboard
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
