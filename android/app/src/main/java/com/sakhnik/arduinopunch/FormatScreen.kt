@@ -175,6 +175,6 @@ private fun showPreviousKeys(cardViewModel: CardViewModel, context: Context) {
 fun FormatScreenPreview() {
     AppTheme {
         val mockViewModel = MockCardViewModel()
-        MainScreen(mockViewModel)
+        FormatScreen(mockViewModel)
     }
 }
