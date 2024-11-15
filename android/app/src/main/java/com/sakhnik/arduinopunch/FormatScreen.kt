@@ -3,13 +3,12 @@ package com.sakhnik.arduinopunch
 import android.app.AlertDialog
 import android.content.Context
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -71,17 +70,18 @@ fun FormatScreen(cardViewModel: CardViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
-            item {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = stringResource(id = R.string.key),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.weight(0.25f)
                 )
-            }
-            item {
+
                 val keyHex by cardViewModel.keyHex.collectAsState(initial = "0".repeat(12))
                 var passwordVisible by remember { mutableStateOf(false) }
 
@@ -90,7 +90,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     onValueChange = {
                         cardViewModel.updateKeyHex(it)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -104,24 +104,26 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     //maxLength = 12,
                     singleLine = true
                 )
-            }
-            item {
+
                 // Button for showOldKeys
                 val context = LocalContext.current
                 Button(
                     onClick = { showPreviousKeys(cardViewModel, context) },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.weight(0.6f)
                 ) {
                     Text("🔑🔑")
                 }
             }
-            item {
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = stringResource(id = R.string.card_id),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.weight(0.25f)
                 )
-            }
-            item {
+
                 // EditText equivalent (TextField) for cardId
                 val cardId by cardViewModel.cardId.collectAsState(initial = stringResource(id = R.string._1))
 
@@ -130,18 +132,17 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     onValueChange = {
                         cardViewModel.updateCardId(it)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     label = { Text(stringResource(id = R.string.card_id)) },
                     //maxLength = 5,
                     singleLine = true
                 )
-            }
-            item {
+
                 // Button for scanButton
                 Button(
                     onClick = { /* Handle click */ },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.weight(0.6f)
                 ) {
                     Text(stringResource(id = R.string.scan_qr))
                 }
