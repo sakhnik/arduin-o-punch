@@ -61,11 +61,6 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(id = R.string.key),
-                    modifier = Modifier.weight(0.4f)
-                )
-
                 val keyHex by cardViewModel.keyHex.collectAsState(initial = "0".repeat(12))
                 var passwordVisible by remember { mutableStateOf(false) }
 
@@ -96,7 +91,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                 val context = LocalContext.current
                 Button(
                     onClick = { showPreviousKeys(cardViewModel, context) },
-                    modifier = Modifier.weight(0.6f)
+                    modifier = Modifier.weight(0.5f)
                 ) {
                     Text("🔑🔑")
                 }
@@ -108,11 +103,6 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(id = R.string.card_id),
-                    modifier = Modifier.weight(0.4f)
-                )
-
                 // EditText equivalent (TextField) for cardId
                 val cardId by cardViewModel.cardId.collectAsState(initial = stringResource(id = R.string._1))
 
@@ -133,7 +123,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                 // Button for scanButton
                 Button(
                     onClick = { /* Handle click */ },
-                    modifier = Modifier.weight(0.6f)
+                    modifier = Modifier.weight(0.5f)
                 ) {
                     Text(stringResource(id = R.string.scan_qr))
                 }

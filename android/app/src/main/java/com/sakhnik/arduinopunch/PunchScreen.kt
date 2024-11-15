@@ -42,11 +42,6 @@ fun PunchScreen(cardViewModel: CardViewModel) {
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(id = R.string.station_id),
-                    modifier = Modifier.weight(0.4f)
-                )
-
                 val stationId by cardViewModel.stationId.collectAsState(initial = stringResource(id = R.string._31))
 
                 TextField(
@@ -64,7 +59,7 @@ fun PunchScreen(cardViewModel: CardViewModel) {
                 )
 
                 Spacer(
-                    modifier = Modifier.weight(0.6f)
+                    modifier = Modifier.weight(0.5f)
                 )
             }
         }
