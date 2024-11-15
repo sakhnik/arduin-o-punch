@@ -71,7 +71,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier.fillMaxWidth().padding(4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
