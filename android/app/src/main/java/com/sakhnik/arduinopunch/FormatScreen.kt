@@ -48,33 +48,17 @@ fun FormatScreen(cardViewModel: CardViewModel) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Title Text
-        Text(
-            text = stringResource(id = R.string.format_runner_title),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Instruction Text
-        Text(
-            text = stringResource(id = R.string.format_runner_instruction),
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Start)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
+        ScreenHeader(R.string.format_runner_title, R.string.format_runner_instruction)
 
         Column(
-            modifier = Modifier.fillMaxWidth().padding(4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -90,7 +74,9 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     onValueChange = {
                         cardViewModel.updateKeyHex(it)
                     },
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -116,7 +102,9 @@ fun FormatScreen(cardViewModel: CardViewModel) {
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -132,7 +120,9 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     onValueChange = {
                         cardViewModel.updateCardId(it)
                     },
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     label = { Text(stringResource(id = R.string.card_id)) },
                     //maxLength = 5,
@@ -167,6 +157,33 @@ private fun showPreviousKeys(cardViewModel: CardViewModel, context: Context) {
         builder.setMessage(msg)
             .setPositiveButton("OK") {_, _ -> }
             .show()
+    }
+}
+
+@Composable
+fun ScreenHeader(titleId: Int, instructionId: Int) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Title Text
+        Text(
+            text = stringResource(id = titleId),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Instruction Text
+        Text(
+            text = stringResource(id = instructionId),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Start)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
