@@ -21,11 +21,14 @@ open class CardViewModel(private val repository: Repository, application: Applic
     //val currentDestination: LiveData<String?> = _currentDestination
     private val _progress = mutableFloatStateOf(0f)
     val progress: State<Float> = _progress
-    val storage: Storage by lazy {
-        Storage(application.applicationContext)
-    }
+
     private val _readOut = MutableLiveData(PunchCard.Info(0, listOf()))
     val readOut: LiveData<PunchCard.Info> get() = _readOut
+    // Helper method for preview
+    fun setReadOutForPreview(readOut: PunchCard.Info) {
+        _readOut.value = readOut
+    }
+
     private val _toastMessage = MutableLiveData<String>()
     val toastMessage: LiveData<String> get() = _toastMessage
 
@@ -62,6 +65,22 @@ open class CardViewModel(private val repository: Repository, application: Applic
     fun updateStationId(value: String) {
         viewModelScope.launch {
             repository.saveStationId(value)
+        }
+    }
+
+    val uploadEnabled: Flow<Boolean> = repository.uploadEnabledFlow
+
+    fun updateUploadEnabled(value: Boolean) {
+        viewModelScope.launch {
+            repository.saveUploadEnabled(value)
+        }
+    }
+
+    val uploadUrl: Flow<String> = repository.uploadUrlFlow
+
+    fun updateUploadUrl(value: String) {
+        viewModelScope.launch {
+            repository.saveUploadUrl(value)
         }
     }
 
@@ -143,8 +162,10 @@ open class CardViewModel(private val repository: Repository, application: Applic
         val readOut = card.readOut(this::setProgress)
         _readOut.postValue(readOut)
 
-        if (storage.hasUpload()) {
-            Uploader(this).upload(readOut, storage.getUploadUrl())
+        val doUpload = runBlocking { uploadEnabled.first() }
+        if (doUpload) {
+            val uploadUrl = runBlocking { uploadUrl.first() }
+            Uploader(this).upload(readOut, uploadUrl)
         }
     }
 }

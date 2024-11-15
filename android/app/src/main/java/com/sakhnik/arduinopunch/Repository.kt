@@ -1,6 +1,7 @@
 package com.sakhnik.arduinopunch
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -22,6 +23,12 @@ interface Repository {
 
     suspend fun saveKnownKeys()
     val knownKeysFlow: Flow<String>
+
+    suspend fun saveUploadEnabled(value: Boolean)
+    val uploadEnabledFlow: Flow<Boolean>
+
+    suspend fun saveUploadUrl(value: String)
+    val uploadUrlFlow: Flow<String>
 }
 
 class RepositoryImpl(private val context: Context): Repository {
@@ -30,6 +37,8 @@ class RepositoryImpl(private val context: Context): Repository {
         private val PREF_CARD_ID = stringPreferencesKey("cardId")
         private val PREF_KNOWN_KEYS = stringPreferencesKey("knownKeys")
         private val PREF_STATION_ID = stringPreferencesKey("stationId")
+        private val PREF_UPLOAD_ENABLED = booleanPreferencesKey("upload")
+        private val PREF_UPLOAD_URL = stringPreferencesKey("uploadUrl")
 
         const val KNOWN_KEYS_HISTORY_SIZE = 4
 
@@ -70,6 +79,28 @@ class RepositoryImpl(private val context: Context): Repository {
     override val stationIdFlow: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[PREF_STATION_ID] ?: context.getString(R.string._31)
+        }
+
+    override suspend fun saveUploadEnabled(value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PREF_UPLOAD_ENABLED] = value
+        }
+    }
+
+    override val uploadEnabledFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PREF_UPLOAD_ENABLED] ?: false
+        }
+
+    override suspend fun saveUploadUrl(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PREF_UPLOAD_URL] = value
+        }
+    }
+
+    override val uploadUrlFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PREF_UPLOAD_URL] ?: context.getString(R.string.https_sakhnik_com_qr_o_punch_card)
         }
 
     override suspend fun saveKnownKeys() {
