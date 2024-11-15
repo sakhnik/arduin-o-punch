@@ -52,9 +52,16 @@ open class CardViewModel(private val repository: Repository, application: Applic
     val cardId: Flow<String> = repository.cardIdFlow
 
     fun updateCardId(value: String) {
-        Log.d(null, "** updateCardId $value")
         viewModelScope.launch {
             repository.saveCardId(value)
+        }
+    }
+
+    val stationId: Flow<String> = repository.stationIdFlow
+
+    fun updateStationId(value: String) {
+        viewModelScope.launch {
+            repository.saveStationId(value)
         }
     }
 
@@ -113,7 +120,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
     private fun punchCard(mifare: MifareClassic) {
         val key = getKey()
         val context = getApplication<Application>().applicationContext
-        val station = storage.getStationId().toInt()
+        val station = runBlocking { stationId.first() }.toInt()
         val card = PunchCard(MifareImpl(mifare), key, context)
         card.punch(Punch(station, getTimestamp()), this::setProgress)
     }

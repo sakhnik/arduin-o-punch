@@ -63,7 +63,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
             ) {
                 Text(
                     text = stringResource(id = R.string.key),
-                    modifier = Modifier.weight(0.25f)
+                    modifier = Modifier.weight(0.4f)
                 )
 
                 val keyHex by cardViewModel.keyHex.collectAsState(initial = "0".repeat(12))
@@ -78,6 +78,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                         .fillMaxWidth()
                         .weight(1f),
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                    label = { Text(stringResource(id = R.string.key)) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Default.Lock else Icons.Default.Search
@@ -109,7 +110,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
             ) {
                 Text(
                     text = stringResource(id = R.string.card_id),
-                    modifier = Modifier.weight(0.25f)
+                    modifier = Modifier.weight(0.4f)
                 )
 
                 // EditText equivalent (TextField) for cardId

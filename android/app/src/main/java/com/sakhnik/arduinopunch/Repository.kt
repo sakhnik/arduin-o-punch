@@ -17,6 +17,9 @@ interface Repository {
     suspend fun saveCardId(value: String)
     val cardIdFlow: Flow<String>
 
+    suspend fun saveStationId(value: String)
+    val stationIdFlow: Flow<String>
+
     suspend fun saveKnownKeys()
     val knownKeysFlow: Flow<String>
 }
@@ -26,6 +29,7 @@ class RepositoryImpl(private val context: Context): Repository {
         private val PREF_KEY = stringPreferencesKey("key")
         private val PREF_CARD_ID = stringPreferencesKey("cardId")
         private val PREF_KNOWN_KEYS = stringPreferencesKey("knownKeys")
+        private val PREF_STATION_ID = stringPreferencesKey("stationId")
 
         const val KNOWN_KEYS_HISTORY_SIZE = 4
 
@@ -55,6 +59,17 @@ class RepositoryImpl(private val context: Context): Repository {
     override val cardIdFlow: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[PREF_CARD_ID] ?: context.getString(R.string._1)
+        }
+
+    override suspend fun saveStationId(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PREF_STATION_ID] = value
+        }
+    }
+
+    override val stationIdFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PREF_STATION_ID] ?: context.getString(R.string._31)
         }
 
     override suspend fun saveKnownKeys() {

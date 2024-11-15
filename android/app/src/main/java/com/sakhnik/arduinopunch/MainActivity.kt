@@ -263,10 +263,12 @@ fun MainScreen(viewModel: CardViewModel) {
 class MockRepository : Repository {
     private val mockKeyFlow = MutableStateFlow("0".repeat(12))
     private val mockCardIdFlow = MutableStateFlow("1")
+    private val mockStationIdFlow = MutableStateFlow("31")
     private val mockKnownKeysFlow = MutableStateFlow("F".repeat(12))
 
     override val keyHexFlow: Flow<String> = mockKeyFlow
     override val cardIdFlow: Flow<String> = mockCardIdFlow
+    override val stationIdFlow: Flow<String> = mockStationIdFlow
     override val knownKeysFlow: Flow<String> = mockKnownKeysFlow
 
     override suspend fun saveKeyHex(value: String) {
@@ -275,6 +277,10 @@ class MockRepository : Repository {
 
     override suspend fun saveCardId(value: String) {
         mockCardIdFlow.value = value
+    }
+
+    override suspend fun saveStationId(value: String) {
+        mockStationIdFlow.value = value
     }
 
     override suspend fun saveKnownKeys() {
