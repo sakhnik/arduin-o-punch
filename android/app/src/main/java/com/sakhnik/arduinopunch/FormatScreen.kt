@@ -65,7 +65,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val keyHex by cardViewModel.keyHex.collectAsState(initial = "0".repeat(12))
+                val keyHex by cardViewModel.keyHex.collectAsState(initial = "0")
                 var passwordVisible by remember { mutableStateOf(false) }
 
                 TextField(
@@ -165,7 +165,7 @@ private fun showPreviousKeys(cardViewModel: CardViewModel, context: Context) {
         val msg = knownKeys.replace(",", "\n")
         val builder = AlertDialog.Builder(context)
         builder.setMessage(msg)
-            .setPositiveButton("OK") {_, _ -> }
+            .setPositiveButton("OK") { _, _ -> }
             .show()
     }
 }

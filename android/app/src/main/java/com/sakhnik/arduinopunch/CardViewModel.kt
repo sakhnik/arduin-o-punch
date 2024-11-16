@@ -9,13 +9,21 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.time.LocalTime
 
+@OptIn(FlowPreview::class)
 open class CardViewModel(private val repository: Repository, application: Application) : AndroidViewModel(application) {
     private val _currentDestination = MutableLiveData<String?>()
     //val currentDestination: LiveData<String?> = _currentDestination
@@ -36,12 +44,22 @@ open class CardViewModel(private val repository: Repository, application: Applic
         _toastMessage.postValue(message)
     }
 
-    val keyHex: Flow<String> = repository.keyHexFlow
+    private val _keyHex = MutableStateFlow(runBlocking { repository.keyHexFlow.first() })
+    val keyHex: StateFlow<String> get() = _keyHex
 
     fun updateKeyHex(value: String) {
-        viewModelScope.launch {
-            repository.saveKeyHex(value)
-        }
+        _keyHex.value = value
+    }
+
+    init {
+        _keyHex.debounce(500) // Wait 500 ms after the last text change
+            .distinctUntilChanged() // Prevent duplicate saves for the same text
+            .onEach { value ->
+                viewModelScope.launch {
+                    repository.saveKeyHex(value)
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     val knownKeys: Flow<String> = repository.knownKeysFlow
