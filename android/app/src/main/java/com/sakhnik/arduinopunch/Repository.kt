@@ -43,20 +43,20 @@ class RepositoryImpl(private val context: Context): Repository {
         const val KNOWN_KEYS_HISTORY_SIZE = 4
 
         fun parseKey(hex: String): ByteArray {
-            return hex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
+            val paddedHex = hex.substring(0, 12).padEnd(12, '0')
+            return paddedHex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
         }
     }
 
     override suspend fun saveKeyHex(value: String) {
         context.dataStore.edit { preferences ->
-            preferences[PREF_KEY] = value + "0".repeat(12 - value.length)
+            preferences[PREF_KEY] = value
         }
     }
 
     override val keyHexFlow: Flow<String> = context.dataStore.data
         .map { preferences ->
-            val value = preferences[PREF_KEY] ?: ""
-            value + "0".repeat(12 - value.length)
+            preferences[PREF_KEY] ?: ""
         }
 
     override suspend fun saveCardId(value: String) {
