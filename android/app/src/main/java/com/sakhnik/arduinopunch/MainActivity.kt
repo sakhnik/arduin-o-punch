@@ -30,11 +30,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -217,11 +217,11 @@ fun MainScreen(viewModel: CardViewModel) {
                     }
                     Spacer(Modifier.weight(1f, true))
                     IconButton(onClick = { navController.navigate(DST_PUNCH) }) {
-                        Icon(Icons.Default.Check, contentDescription = stringResource(id = R.string.punch))
+                        Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.punch))
                     }
                     Spacer(Modifier.weight(1f, true))
                     IconButton(onClick = { navController.navigate(DST_READ) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(id = R.string.read_card))
+                        Icon(Icons.Default.List, contentDescription = stringResource(id = R.string.read_card))
                     }
                     Spacer(Modifier.weight(1f, true))
                     IconButton(onClick = { navController.navigate(DST_RESET) }) {
