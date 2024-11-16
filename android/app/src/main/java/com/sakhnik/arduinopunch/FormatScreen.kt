@@ -2,6 +2,8 @@ package com.sakhnik.arduinopunch
 
 import android.app.AlertDialog
 import android.content.Context
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +37,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -120,9 +124,24 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                     singleLine = true
                 )
 
+                val context = LocalContext.current
+                val barcodeLauncher = rememberLauncherForActivityResult(contract = ScanContract()) { result ->
+                    if (result?.contents == null) {
+                        Toast.makeText(context, context.getString(R.string.cancelled), Toast.LENGTH_SHORT).show()
+                    } else {
+                        val regex = Regex("""SetStartNumber (\d+)""")
+                        val number = regex.find(result.contents)?.groupValues?.get(1)
+                        if (number != null) {
+                            cardViewModel.updateCardId(number)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.not_from_qr_o_punch), Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+
                 // Button for scanButton
                 Button(
-                    onClick = { /* Handle click */ },
+                    onClick = { barcodeLauncher.launch(ScanOptions()) },
                     modifier = Modifier.weight(0.5f)
                 ) {
                     Text(stringResource(id = R.string.scan_qr))
