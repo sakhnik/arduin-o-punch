@@ -51,14 +51,15 @@ open class CardViewModel(private val repository: Repository, application: Applic
         _keyHex.value = value
     }
 
-    init {
-        _keyHex.debounce(500) // Wait 500 ms after the last text change
-            .distinctUntilChanged() // Prevent duplicate saves for the same text
-            .onEach { value ->
-                viewModelScope.launch {
-                    repository.saveKeyHex(value)
-                }
-            }
+    private fun <T> trackAndSave(
+        flow: StateFlow<T>,
+        saveAction: suspend (T) -> Unit,
+        debounceMillis: Long = 500L
+    ) {
+        flow
+            .debounce(debounceMillis)
+            .distinctUntilChanged()
+            .onEach { value -> saveAction(value) }
             .launchIn(viewModelScope)
     }
 
@@ -70,20 +71,18 @@ open class CardViewModel(private val repository: Repository, application: Applic
         }
     }
 
-    val cardId: Flow<String> = repository.cardIdFlow
+    private val _cardId = MutableStateFlow(runBlocking { repository.cardIdFlow.first() })
+    val cardId: StateFlow<String> get() = _cardId
 
     fun updateCardId(value: String) {
-        viewModelScope.launch {
-            repository.saveCardId(value)
-        }
+        _cardId.value = value
     }
 
-    val stationId: Flow<String> = repository.stationIdFlow
+    private val _stationId = MutableStateFlow(runBlocking { repository.stationIdFlow.first() })
+    val stationId: StateFlow<String> get() = _stationId
 
     fun updateStationId(value: String) {
-        viewModelScope.launch {
-            repository.saveStationId(value)
-        }
+        _stationId.value = value
     }
 
     val uploadEnabled: Flow<Boolean> = repository.uploadEnabledFlow
@@ -94,12 +93,18 @@ open class CardViewModel(private val repository: Repository, application: Applic
         }
     }
 
-    val uploadUrl: Flow<String> = repository.uploadUrlFlow
+    private val _uploadUrl = MutableStateFlow(runBlocking { repository.uploadUrlFlow.first() })
+    val uploadUrl: StateFlow<String> get() = _uploadUrl
 
     fun updateUploadUrl(value: String) {
-        viewModelScope.launch {
-            repository.saveUploadUrl(value)
-        }
+        _uploadUrl.value = value
+    }
+
+    init {
+        trackAndSave(_keyHex, { repository.saveKeyHex(it) })
+        trackAndSave(_cardId, { repository.saveCardId(it) })
+        trackAndSave(_stationId, { repository.saveStationId(it) })
+        trackAndSave(_uploadUrl, { repository.saveUploadUrl(it) })
     }
 
     fun getStringFromResources(resourceId: Int): String {
