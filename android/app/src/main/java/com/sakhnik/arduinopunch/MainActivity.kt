@@ -57,7 +57,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import java.io.IOException
-import kotlin.concurrent.thread
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     private val cardViewModel: CardViewModel by viewModels {
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var pendingIntent: PendingIntent
     private lateinit var okEffectPlayer: MediaPlayer
     private lateinit var failEffectPlayer: MediaPlayer
+    private lateinit var executor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -109,6 +111,8 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             }
         }
+
+        executor = Executors.newFixedThreadPool(1)
     }
 
     override fun onDestroy() {
@@ -142,9 +146,12 @@ class MainActivity : ComponentActivity() {
 
             // Handle MIFARE Classic 1K cards
             if (tag != null) {
-                MifareClassic.get(tag)?.use {
-                    thread {
-                        handleMifare(it)
+                MifareClassic.get(tag).also {
+                    executor.submit {
+                        it.use {
+                            it.connect()
+                            handleMifare(it)
+                        }
                     }
                 }
             }
@@ -152,14 +159,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleMifare(mifare: MifareClassic) {
-        mifare.connect()
         if (mifare.type != MifareClassic.TYPE_CLASSIC || mifare.size != MifareClassic.SIZE_1K) {
             runOnUiThread {
                 failEffectPlayer.start()
                 Toast.makeText(this,
                     getString(R.string.only_1k_mifare_classic_cards_are_expected), Toast.LENGTH_LONG).show()
             }
-            mifare.close()
             return
         }
 
@@ -184,7 +189,6 @@ class MainActivity : ComponentActivity() {
         } finally {
             cardViewModel.updateProgress(0f)
         }
-        mifare.close()
     }
 }
 
