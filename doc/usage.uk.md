@@ -141,7 +141,6 @@ Android Studio. Він не опублікований у Play Marker або д�
 помилки і на екрані з’явиться коротке повідомлення з подробицями.
 
 <img alt="Prepare Card" src="images/android-prepare.png" width="512"/>
-<img alt="Menu" src="images/android-menu.png" width="512"/>
 <img alt="Read out" src="images/android-readout.png" width="512"/>
 
 ### Станція Arduin-o-punch
