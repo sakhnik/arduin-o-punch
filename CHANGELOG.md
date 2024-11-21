@@ -17,10 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Building firmware with platformio
+- Ported Android app to Jetpack Compose
 
 ### Removed
 
 - Key display in `info`
+- Navigation menu from Android app, using icon buttons instead
 
 ## [2.0.0] - 2024.04.29
 

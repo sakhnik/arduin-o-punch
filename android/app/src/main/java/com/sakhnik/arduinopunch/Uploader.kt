@@ -1,7 +1,5 @@
 package com.sakhnik.arduinopunch
 
-import android.widget.Toast
-import androidx.core.app.ComponentActivity
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -13,7 +11,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 
-class Uploader(private val activity: ComponentActivity) : Callback {
+class Uploader(private val viewModel: CardViewModel) : Callback {
     fun upload(readOut: PunchCard.Info, url: String) {
         val jsonData = formatJson(readOut)
         val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
@@ -70,15 +68,12 @@ class Uploader(private val activity: ComponentActivity) : Callback {
     }
 
     override fun onFailure(call: Call, e: IOException) {
-        activity.runOnUiThread {
-            Toast.makeText(activity,
-                activity.getString(R.string.failed_to_upload, e.message), Toast.LENGTH_LONG).show()
-        }
+        val msg = viewModel.getStringFromResources(R.string.failed_to_upload).format(e.message)
+        viewModel.postToast(msg)
     }
 
     override fun onResponse(call: Call, response: Response) {
-        activity.runOnUiThread {
-            Toast.makeText(activity, activity.getString(R.string.uploaded), Toast.LENGTH_SHORT).show()
-        }
+        val msg = viewModel.getStringFromResources(R.string.uploaded)
+        viewModel.postToast(msg)
     }
 }
