@@ -174,41 +174,7 @@ Arduino Pro Mini, використаний у базовій станції, н�
 
 <img alt="USB-UART" src="images/usb-uart.jpg" width="512"/>
 
-Для програмування контролера потрібно виконати команду `arduino-cli compile -m
-pro -u` в директорії `arduino`:
-
-```
-~/work/orienteering/arduin-o-punch/arduino main*
-$ arduino-cli compile -m pro -u
-Sketch uses 22848 bytes (74%) of program storage space. Maximum is 30720 bytes.
-Global variables use 1046 bytes (51%) of dynamic memory, leaving 1002 bytes for local variables. Maximum is 2048 bytes.
-
-Used library   Version Path
-arduino-timer  3.0.1   /run/media/sakhnik/Android/Arduino/libraries/arduino-timer
-CircularBuffer 1.3.3   /run/media/sakhnik/Android/Arduino/libraries/CircularBuffer
-RTClib         2.1.1   /run/media/sakhnik/Android/Arduino/libraries/RTClib
-Adafruit BusIO 1.14.4  /run/media/sakhnik/Android/Arduino/libraries/Adafruit_BusIO
-Wire           1.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/Wire
-RFID_MFRC522v2 2.0.4   /run/media/sakhnik/Android/Arduino/libraries/RFID_MFRC522v2
-SPI            1.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/SPI
-EEPROM         2.0     /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6/libraries/EEPROM
-
-Used platform Version Path
-arduino:avr   1.8.6   /run/media/sakhnik/Android/.arduino15/packages/arduino/hardware/avr/1.8.6
-```
-
-У операційній системі Windows `arduino-cli` можна встановити з допомогою
-[chocolatey](https://chocolatey.org/):
-
-```
-PS> choco install arduino-cli
-```
-
-Для завантаження програми на станцію потрібно вказати послідовний порт `COM5`:
-
-```
-PS> arduino-cli -m pro upload -p COM5
-```
+Мікропрограма збирається з допомогою [PlatformIO](https://platformio.org).
 
 ### Командна оболонка
 
