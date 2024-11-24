@@ -122,7 +122,7 @@ uint32_t Context::GetClock(const DateTime *date_time) const
 void Context::SetClock(uint32_t clock)
 {
     auto now = dst.calculateTime(rtc.now());
-    auto ms = clock % 1000;
+    //auto ms = clock % 1000;
     clock /= 1000;
     auto sec = clock % 60;
     clock /= 60;
