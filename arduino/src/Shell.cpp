@@ -43,8 +43,17 @@ void Shell::_ProcessChar(char ch)
         // Echo the rest of the command if necessary
         if (Tick())
             Serial.println();
-        _Process();
-        _buffer.remove(0, _buffer.length());
+        // Trim whitespaces from the left
+        unsigned idx = 0;
+        while (idx < _buffer.length() && isWhitespace(_buffer[idx])) {
+            ++idx;
+        }
+        _buffer.remove(0, idx);
+        // Process commands if anything left
+        if (_buffer.length() > 0) {
+            _Process();
+            _buffer.remove(0, _buffer.length());
+        }
         if (Tick())
             _PrintPrompt();
     }
@@ -183,8 +192,10 @@ void Shell::_Process()
         _PrintWifiPass();
 #endif //ESP32
     } else {
-        _outMux.print(F("Unknown command: "));
-        _outMux.println(_buffer);
+        if (_buffer[0] != '\r' && _buffer[0] != '\n') {
+            _outMux.print(F("Unknown command: "));
+            _outMux.println(_buffer);
+        }
     }
 }
 
