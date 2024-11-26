@@ -20,6 +20,8 @@ public:
     void SignalWifi();
     void SignalDit();
     void SignalDah();
+    void SignalPause();
+    void SignalNumber(uint16_t);
 
     struct Melody
     {

@@ -119,10 +119,12 @@ void Network::Tick()
     // Confirm connection with dah
     if (!_connection_signalled) {
         _connection_signalled = true;
-        _buzzer.SignalDah();
+        _buzzer.SignalPause();
+        _buzzer.SignalPause();
         Serial.println("Connected");
         Serial.print("Local IP: ");
         Serial.println(WiFi.localIP());
+        _buzzer.SignalNumber(WiFi.localIP()[3]);
         shellServer.begin();
         webServer.begin();
     }

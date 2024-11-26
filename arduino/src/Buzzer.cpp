@@ -41,11 +41,19 @@ bool Buzzer::Player::OnTimeout(void *ctx)
         self->idx = 0;
         self->state = LOW;
     }
-    // If the melody has ended, remove the timer and relax.
+    // If the melody has ended
     uint8_t cur_duration = self->melody.sequence[self->idx];
     if (!cur_duration) {
-        self->_timer.cancel(self->_task);
-        return true;
+        // No more melodies: cancel the timer and relax
+        if (self->melodies.isEmpty()) {
+            self->_timer.cancel(self->_task);
+            return true;
+        }
+        // Proceed to the next melody
+        self->melody = self->melodies.shift();
+        self->idx = 0;
+        self->state = LOW;
+        cur_duration = self->melody.sequence[self->idx];
     }
     uint8_t cur_state = self->state;
     // Confirm with the led (the builtin isn't available together with SPI).
@@ -105,6 +113,33 @@ const Buzzer::Melody Dit{DIT_SEQUENCE, 255};
 const uint8_t DAH_SEQUENCE[] = {START, DAH, P, 0};
 const Buzzer::Melody Dah{DAH_SEQUENCE, 255};
 
+const uint8_t PAUSE_SEQUENCE[] = {P_L, 0};
+const Buzzer::Melody Pause{PAUSE_SEQUENCE, 255};
+
+// Digits
+const uint8_t DIGIT_0_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P, DAH, P, DAH, P_L, 0};
+const uint8_t DIGIT_1_SEQUENCE[] = {START, DIT, P, DAH, P, DAH, P, DAH, P, DAH, P_L, 0};
+const uint8_t DIGIT_2_SEQUENCE[] = {START, DIT, P, DIT, P, DAH, P, DAH, P, DAH, P_L, 0};
+const uint8_t DIGIT_3_SEQUENCE[] = {START, DIT, P, DIT, P, DIT, P, DAH, P, DAH, P_L, 0};
+const uint8_t DIGIT_4_SEQUENCE[] = {START, DIT, P, DIT, P, DIT, P, DIT, P, DAH, P_L, 0};
+const uint8_t DIGIT_5_SEQUENCE[] = {START, DIT, P, DIT, P, DIT, P, DIT, P, DIT, P_L, 0};
+const uint8_t DIGIT_6_SEQUENCE[] = {START, DAH, P, DIT, P, DIT, P, DIT, P, DIT, P_L, 0};
+const uint8_t DIGIT_7_SEQUENCE[] = {START, DAH, P, DAH, P, DIT, P, DIT, P, DIT, P_L, 0};
+const uint8_t DIGIT_8_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P, DIT, P, DIT, P_L, 0};
+const uint8_t DIGIT_9_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P, DAH, P, DIT, P_L, 0};
+const Buzzer::Melody Digits[] = {
+    {DIGIT_0_SEQUENCE, 255},
+    {DIGIT_1_SEQUENCE, 255},
+    {DIGIT_2_SEQUENCE, 255},
+    {DIGIT_3_SEQUENCE, 255},
+    {DIGIT_4_SEQUENCE, 255},
+    {DIGIT_5_SEQUENCE, 255},
+    {DIGIT_6_SEQUENCE, 255},
+    {DIGIT_7_SEQUENCE, 255},
+    {DIGIT_8_SEQUENCE, 255},
+    {DIGIT_9_SEQUENCE, 255},
+};
+
 } //namespace Morse;
 
 void Buzzer::SignalRTCFail()
@@ -150,4 +185,18 @@ void Buzzer::SignalDit()
 void Buzzer::SignalDah()
 {
     _player.Play(Morse::Dah);
+}
+
+void Buzzer::SignalPause()
+{
+    _player.Play(Morse::Pause);
+}
+
+void Buzzer::SignalNumber(uint16_t num)
+{
+    if (!num) {
+        return;
+    }
+    SignalNumber(num / 10);
+    _player.Play(Morse::Digits[num % 10]);
 }

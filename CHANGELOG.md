@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bluetooth server for configuration
 - TCP server on port 23 over WiFi for configuration
 - Web app for configuration and OTA firmware update
+- Signal last octet of IP address in Morse
 
 ### Changed
 
