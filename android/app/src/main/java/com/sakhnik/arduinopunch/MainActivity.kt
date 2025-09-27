@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import androidx.activity.viewModels
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,18 +40,22 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -146,9 +152,9 @@ class MainActivity : ComponentActivity() {
 
             // Handle MIFARE Classic 1K cards
             if (tag != null) {
-                MifareClassic.get(tag).also {
+                MifareClassic.get(tag).also { card ->
                     executor.submit {
-                        it.use {
+                        card.use {
                             it.connect()
                             handleMifare(it)
                         }
@@ -197,6 +203,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: CardViewModel) {
     val progress by viewModel.progress
     val navController = rememberNavController()
+    var selectedAction by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.imePadding(), // This modifier moves the BottomAppBar above the keyboard
@@ -210,29 +217,62 @@ fun MainScreen(viewModel: CardViewModel) {
             )
         },
         bottomBar = {
-            BottomAppBar(
-                content = {
-                    IconButton(onClick = { navController.navigate(DST_FORMAT) }) {
-                        Icon(Icons.Default.Create, contentDescription = stringResource(id = R.string.format_card))
-                    }
-                    Spacer(Modifier.weight(1f, true))
-                    IconButton(onClick = { navController.navigate(DST_CLEAR) }) {
-                        Icon(Icons.Default.Clear, contentDescription = stringResource(id = R.string.clear_punches))
-                    }
-                    Spacer(Modifier.weight(1f, true))
-                    IconButton(onClick = { navController.navigate(DST_PUNCH) }) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.punch))
-                    }
-                    Spacer(Modifier.weight(1f, true))
-                    IconButton(onClick = { navController.navigate(DST_READ) }) {
-                        Icon(Icons.Default.List, contentDescription = stringResource(id = R.string.read_card))
-                    }
-                    Spacer(Modifier.weight(1f, true))
-                    IconButton(onClick = { navController.navigate(DST_RESET) }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(id = R.string.reset_card))
-                    }
+            BottomAppBar {
+
+                NavButton(
+                    action = DST_FORMAT,
+                    icon = Icons.Default.Create,
+                    description = stringResource(id = R.string.format_card),
+                    selectedAction = selectedAction,
+                    navController
+                ) {
+                    selectedAction = it
                 }
-            )
+                Spacer(Modifier.weight(1f, true))
+
+                NavButton(
+                    action = DST_CLEAR,
+                    icon = Icons.Default.Clear,
+                    description = stringResource(id = R.string.clear_punches),
+                    selectedAction = selectedAction,
+                    navController
+                ) {
+                    selectedAction = it
+                }
+                Spacer(Modifier.weight(1f, true))
+
+                NavButton(
+                    action = DST_PUNCH,
+                    icon = Icons.Default.Add,
+                    description = stringResource(id = R.string.punch),
+                    selectedAction = selectedAction,
+                    navController
+                ) {
+                    selectedAction = it
+                }
+                Spacer(Modifier.weight(1f, true))
+
+                NavButton(
+                    action = DST_READ,
+                    icon = Icons.Default.List,
+                    description = stringResource(id = R.string.read_card),
+                    selectedAction = selectedAction,
+                    navController
+                ) {
+                    selectedAction = it
+                }
+                Spacer(Modifier.weight(1f, true))
+
+                NavButton(
+                    action = DST_RESET,
+                    icon = Icons.Default.Delete,
+                    description = stringResource(id = R.string.reset_card),
+                    selectedAction = selectedAction,
+                    navController
+                ) {
+                    selectedAction = it
+                }
+            }
         },
         content = { paddingValues ->
             // Main content area, respecting padding from Scaffold components
@@ -262,6 +302,46 @@ fun MainScreen(viewModel: CardViewModel) {
             }
         }
     )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun NavButton(
+    action: String,
+    icon: ImageVector,
+    description: String,
+    selectedAction: String?,
+    navController: NavHostController,
+    setSelected: (String?) -> Unit
+) {
+    val isSelected = selectedAction == action
+    val enabled = selectedAction == null || isSelected
+
+    val iconColor = when {
+        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+        isSelected -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    Icon(
+        imageVector = icon,
+        contentDescription = description,
+        tint = iconColor,
+        modifier = Modifier
+            .combinedClickable(
+                enabled = enabled,
+                onClick = { navController.navigate(action) },
+                onLongClick = {
+                    navController.navigate(action)
+                    toggleSelection(action, selectedAction, setSelected)
+                }
+            )
+            .padding(8.dp)
+    )
+}
+
+fun toggleSelection(action: String, current: String?, set: (String?) -> Unit) {
+    set(if (current == action) null else action)
 }
 
 class MockRepository : Repository {
