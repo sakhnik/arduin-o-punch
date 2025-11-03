@@ -1,31 +1,45 @@
 package com.sakhnik.arduinopunch
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,57 +122,150 @@ fun ReadScreen(cardViewModel: CardViewModel) {
 @Composable
 fun PunchesTable(viewModel: CardViewModel) {
     val readOut by viewModel.readOut.observeAsState()
-
-    // Format LocalTime to "HH:mm:ss"
     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+    val clipboardManager = LocalClipboardManager.current
 
-    readOut?.let {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+    val selectedRows = remember { mutableStateListOf<Int>() }
+
+    readOut?.let { readout ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .wrapContentHeight()
         ) {
+            // Card ID title
             Text(
-                text = "${stringResource(id = R.string.card_id)} ${it.cardNumber}",
-                fontSize = 24.sp,
+                text = "${stringResource(id = R.string.card_id)} ${readout.cardNumber}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 4.dp)
             )
-        }
 
-        LazyColumn {
-            // Header row
-            item {
-                TableRow(cells = listOf("Index", "Station", "Timestamp"))
+            // Table header
+            TableRow(
+                cells = listOf(stringResource(R.string.index),
+                    stringResource(R.string.station), stringResource(R.string.timestamp)
+                ),
+                isHeader = true
+            )
+
+            // Scrollable table content
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .fillMaxWidth()
+            ) {
+                itemsIndexed(readout.punches) { index, punch ->
+                    val isSelected = index in selectedRows
+                    val station = punch.station.toString()
+                    val timestamp = try {
+                        LocalTime.ofSecondOfDay(punch.timestamp).format(formatter)
+                    } catch (_: DateTimeException) {
+                        "???"
+                    }
+                    TableRow(
+                        cells = listOf("${index + 1}", station, timestamp),
+                        isSelected = isSelected,
+                        isEven = index % 2 == 0,
+                        onClick = {
+                            if (isSelected) selectedRows.remove(index)
+                            else selectedRows.add(index)
+                        }
+                    )
+                }
             }
 
-            // Data rows
-            items(it.punches.size) { index ->
-                val punch = it.punches[index]
-                val station = punch.station.toString()
-                val timestamp = try {
-                    LocalTime.ofSecondOfDay(punch.timestamp).format(formatter)
-                } catch (ex: DateTimeException) {
-                    "???"
+            // Buttons directly below the table (tight spacing)
+            if (readout.punches.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    val allSelected = selectedRows.size == readout.punches.size
+
+                    Button(
+                        onClick = {
+                            if (allSelected) selectedRows.clear()
+                            else {
+                                selectedRows.clear()
+                                selectedRows.addAll(readout.punches.indices)
+                            }
+                        },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            if (allSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all),
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            val selectedText = selectedRows.joinToString("\n") { index ->
+                                val punch = readout.punches[index]
+                                val station = punch.station.toString()
+                                val timestamp = try {
+                                    LocalTime.ofSecondOfDay(punch.timestamp).format(formatter)
+                                } catch (_: DateTimeException) {
+                                    "???"
+                                }
+                                "${index + 1}\t$station\t$timestamp"
+                            }
+                            clipboardManager.setText(AnnotatedString(selectedText))
+                        },
+                        enabled = selectedRows.isNotEmpty(),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(stringResource(R.string.copy), fontSize = 14.sp)
+                    }
                 }
-                TableRow(cells = listOf("${index + 1}", station, timestamp))
             }
         }
     }
 }
 
 @Composable
-fun TableRow(cells: List<String>) {
+fun TableRow(
+    cells: List<String>,
+    isHeader: Boolean = false,
+    isSelected: Boolean = false,
+    isEven: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
+    val background = when {
+        isHeader -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        isSelected -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
+        isEven -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+        else -> Color.Transparent
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .background(background)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(vertical = 4.dp, horizontal = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        cells.forEach { cell ->
+        cells.forEachIndexed { _, cell ->
             Text(
                 text = cell,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 4.dp),
-                textAlign = TextAlign.Center
+                    .padding(horizontal = 2.dp),
+                textAlign = TextAlign.Center,
+                fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+                fontSize = if (isHeader) 14.sp else 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

@@ -40,4 +40,10 @@
     <string name="uploaded">Вивантажено</string>
     <string name="failed_to_upload">Не вдалося вивантажити: %1$s</string>
     <string name="data_is_corrupted">Дані пошкоджено</string>
+    <string name="copy">Копіювати</string>
+    <string name="deselect_all">Вибрати нічого</string>
+    <string name="select_all">Вибрати все</string>
+    <string name="index">Індекс</string>
+    <string name="station">Станція</string>
+    <string name="timestamp">Час</string>
 </resources>

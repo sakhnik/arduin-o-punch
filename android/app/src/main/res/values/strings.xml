@@ -42,4 +42,10 @@
     <string name="uploaded">Uploaded</string>
     <string name="failed_to_upload">Failed to upload: %1$s</string>
     <string name="data_is_corrupted">Data is corrupted</string>
+    <string name="copy">Copy</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="select_all">Select All</string>
+    <string name="index">Index</string>
+    <string name="station">Station</string>
+    <string name="timestamp">Timestamp</string>
 </resources>

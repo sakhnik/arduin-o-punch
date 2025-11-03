@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Web app for configuration and OTA firmware update
 - Signal last octet of IP address in Morse
 - Long tap on the selector locks the view in the Android app
+- Android: allow selecting and copying punches to the clipboard
 
 ### Changed
 
