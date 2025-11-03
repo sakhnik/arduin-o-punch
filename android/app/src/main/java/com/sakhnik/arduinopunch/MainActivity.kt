@@ -12,8 +12,10 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -37,9 +39,13 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
@@ -51,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -62,6 +69,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -204,6 +212,32 @@ fun MainScreen(viewModel: CardViewModel) {
     val progress by viewModel.progress
     val navController = rememberNavController()
     var selectedAction by remember { mutableStateOf<String?>(null) }
+    var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/yaml")
+    ) { uri ->
+        uri?.let {
+            val yamlString = runBlocking { viewModel.settingsToYaml() }
+            context.contentResolver.openOutputStream(uri)?.use { it.write(yamlString.toByteArray()) }
+            Toast.makeText(context,
+                context.getString(R.string.settings_exported), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val yamlText = stream.bufferedReader().readText()
+                runBlocking { viewModel.yamlToSettings(yamlText) }
+            }
+            Toast.makeText(context,
+                context.getString(R.string.settings_imported), Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.imePadding(), // This modifier moves the BottomAppBar above the keyboard
@@ -213,7 +247,32 @@ fun MainScreen(viewModel: CardViewModel) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Blue,
                     titleContentColor = Color.White
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.export_settings)) },
+                            onClick = {
+                                expanded = false
+                                exportLauncher.launch("aop.yaml")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.import_settings)) },
+                            onClick = {
+                                expanded = false
+                                importLauncher.launch(arrayOf("*/*"))
+                            }
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -381,6 +440,10 @@ class MockRepository : Repository {
 
     override suspend fun saveKnownKeys() {
         mockKnownKeysFlow.value = "${mockKeyFlow.first()},${mockKnownKeysFlow.first()}"
+    }
+
+    override suspend fun saveKnownKeys2(value: String) {
+        mockKnownKeysFlow.value = value
     }
 }
 

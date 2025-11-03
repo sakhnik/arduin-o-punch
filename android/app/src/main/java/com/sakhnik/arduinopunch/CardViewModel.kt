@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.yaml.snakeyaml.Yaml
 import java.time.Duration
 import java.time.LocalTime
 
@@ -190,5 +191,27 @@ open class CardViewModel(private val repository: Repository, application: Applic
             val uploadUrl = runBlocking { uploadUrl.first() }
             Uploader(this).upload(readOut, uploadUrl)
         }
+    }
+
+    companion object {
+        private const val KEY_KEY_HEX = "keyHex"
+        private const val KEY_KNOWN_KEYS = "knownKeys"
+        private const val KEY_UPLOAD_URL = "uploadUrl"
+    }
+
+    suspend fun settingsToYaml(): String {
+        val map = mapOf(
+            KEY_KEY_HEX to repository.keyHexFlow.first(),
+            KEY_KNOWN_KEYS to repository.knownKeysFlow.first(),
+            KEY_UPLOAD_URL to repository.uploadUrlFlow.first()
+        )
+        return Yaml().dump(map)
+    }
+
+    suspend fun yamlToSettings(yamlText: String) {
+        val data = Yaml().load<Map<String, Any>>(yamlText)
+        data[KEY_KEY_HEX]?.let { repository.saveKeyHex(it.toString()) }
+        data[KEY_KNOWN_KEYS]?.let { repository.saveKnownKeys2(it.toString()) }
+        data[KEY_UPLOAD_URL]?.let { repository.saveUploadUrl(it.toString()) }
     }
 }

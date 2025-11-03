@@ -14,8 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TCP server on port 23 over WiFi for configuration
 - Web app for configuration and OTA firmware update
 - Signal last octet of IP address in Morse
-- Long tap on the selector locks the view in the Android app
+- Android: long tap on the selector locks the view
 - Android: allow selecting and copying punches to the clipboard
+- Android: export/import settings
 
 ### Changed
 

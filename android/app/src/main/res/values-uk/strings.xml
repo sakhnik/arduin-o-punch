@@ -46,4 +46,8 @@
     <string name="index">Індекс</string>
     <string name="station">Станція</string>
     <string name="timestamp">Час</string>
+    <string name="import_settings">Імпорт налаштувань</string>
+    <string name="export_settings">Експорт налаштувань</string>
+    <string name="settings_imported">Налаштування імпортовано</string>
+    <string name="settings_exported">Налаштування експортовано</string>
 </resources>

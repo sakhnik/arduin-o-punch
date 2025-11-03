@@ -64,6 +64,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("org.yaml:snakeyaml:2.3")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("androidx.navigation:navigation-compose:2.8.4")
     testImplementation("junit:junit:4.13.2")

@@ -48,4 +48,8 @@
     <string name="index">Index</string>
     <string name="station">Station</string>
     <string name="timestamp">Timestamp</string>
+    <string name="import_settings">Import settings</string>
+    <string name="export_settings">Export settings</string>
+    <string name="settings_imported">Settings imported</string>
+    <string name="settings_exported">Settings exported</string>
 </resources>

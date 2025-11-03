@@ -22,6 +22,7 @@ interface Repository {
     val stationIdFlow: Flow<String>
 
     suspend fun saveKnownKeys()
+    suspend fun saveKnownKeys2(value: String)
     val knownKeysFlow: Flow<String>
 
     suspend fun saveUploadEnabled(value: Boolean)
@@ -120,6 +121,12 @@ class RepositoryImpl(private val context: Context): Repository {
             else
                 newList.addAll(knownKeysList)
             preferences[PREF_KNOWN_KEYS] = newList.joinToString(",")
+        }
+    }
+
+    override suspend fun saveKnownKeys2(value: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PREF_KNOWN_KEYS] = value
         }
     }
 
