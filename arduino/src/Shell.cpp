@@ -194,7 +194,13 @@ void Shell::_Process()
     } else {
         if (_buffer[0] != '\r' && _buffer[0] != '\n') {
             _outMux.print(F("Unknown command: "));
-            _outMux.println(_buffer);
+            for (int i = 0; i < _buffer.length(); ++i) {
+                _outMux.print(' ');
+                _outMux.print((int)_buffer[i], HEX);
+            }
+            _outMux.print(" <");
+            _outMux.print(_buffer);
+            _outMux.println(">");
         }
     }
 }

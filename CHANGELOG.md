@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Building firmware with platformio
 - Ported Android app to Jetpack Compose
+- Arduino: display the bytes of unknown command
 
 ### Removed
 
