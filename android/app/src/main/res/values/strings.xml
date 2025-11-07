@@ -4,7 +4,7 @@
     <string name="navigation_drawer_close">Navigation drawer close</string>
     <string name="_31" translatable="false">31</string>
     <string name="station_id">Station</string>
-    <string name="from_runner_card">From runner card</string>
+    <string name="from_card">From card</string>
     <string name="clear">Clear</string>
     <string name="clock_offset">Clock offset</string>
     <string name="upload">Upload</string>
@@ -22,17 +22,17 @@
     <string name="bad_checksum">Bad checksum</string>
     <string name="no_known_key_for_sector">No known key for sector %d</string>
     <string name="the_card_is_full">The card is full</string>
-    <string name="format_runner_title">Format runner card</string>
-    <string name="format_runner_instruction">Prepare a runner card: format with the given 12-hexadigit encryption key, assign ID (0..65535).</string>
+    <string name="format_title">Format card</string>
+    <string name="format_instruction">Prepare a card: format with the given 12-hexadigit encryption key, assign ID (0..65535).</string>
     <string name="key">Key</string>
-    <string name="clear_runner_title">Clear runner card</string>
-    <string name="clear_runner_instruction">Clear previous punches from a card without changing card information (like ID).</string>
-    <string name="punch_runner_title">Punch runner card</string>
-    <string name="punch_runner_instruction">Punch runner card with the given station ID (0..255) and current time.\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
-    <string name="read_runner_title">Read runner card</string>
-    <string name="read_runner_instruction">Read out a runner card, display the punches and optionally upload to QuickEvent using qr-o-punch protocol.</string>
-    <string name="reset_runner_title">Reset runner card</string>
-    <string name="reset_runner_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
+    <string name="clear_title">Clear card</string>
+    <string name="clear_instruction">Clear previous punches from a card without changing card information (like ID).</string>
+    <string name="punch_title">Punch card</string>
+    <string name="punch_instruction">Punch card with the given station ID (0..255) and current time.\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
+    <string name="read_title">Read card</string>
+    <string name="read_instruction">Read out a card, display the punches and optionally upload to QuickEvent using qr-o-punch protocol.</string>
+    <string name="reset_title">Reset card</string>
+    <string name="reset_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
     <string name="time">Time</string>
     <string name="number">Number</string>
     <string name="cancelled">Cancelled</string>

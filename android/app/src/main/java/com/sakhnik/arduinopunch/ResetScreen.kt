@@ -18,7 +18,7 @@ fun ResetScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(R.string.reset_runner_title, R.string.reset_runner_instruction)
+        ScreenHeader(R.string.reset_title, R.string.reset_instruction)
     }
 }
 

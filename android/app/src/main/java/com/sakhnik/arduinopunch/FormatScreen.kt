@@ -52,7 +52,7 @@ fun FormatScreen(cardViewModel: CardViewModel) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(R.string.format_runner_title, R.string.format_runner_instruction)
+        ScreenHeader(R.string.format_title, R.string.format_instruction)
 
         Column(
             modifier = Modifier

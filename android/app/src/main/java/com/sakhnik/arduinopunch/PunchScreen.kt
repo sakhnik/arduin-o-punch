@@ -29,7 +29,7 @@ fun PunchScreen(cardViewModel: CardViewModel) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(R.string.punch_runner_title, R.string.punch_runner_instruction)
+        ScreenHeader(R.string.punch_title, R.string.punch_instruction)
 
         Column(
             modifier = Modifier

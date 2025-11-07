@@ -18,7 +18,7 @@ fun ClearScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(titleId = R.string.clear_runner_title, instructionId = R.string.clear_runner_instruction)
+        ScreenHeader(titleId = R.string.clear_title, instructionId = R.string.clear_instruction)
     }
 }
 

@@ -57,7 +57,7 @@ fun ReadScreen(cardViewModel: CardViewModel) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ScreenHeader(R.string.read_runner_title, R.string.read_runner_instruction)
+        ScreenHeader(R.string.read_title, R.string.read_instruction)
 
         Column(
             modifier = Modifier
