@@ -40,7 +40,9 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -253,6 +255,8 @@ fun MainScreen(viewModel: CardViewModel) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
                     }
 
+                    var showAboutDialog by remember { mutableStateOf(false) }
+
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
@@ -269,6 +273,33 @@ fun MainScreen(viewModel: CardViewModel) {
                             onClick = {
                                 expanded = false
                                 importLauncher.launch(arrayOf("*/*"))
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.about_app)) }, // Add string to strings.xml
+                            onClick = {
+                                expanded = false
+                                showAboutDialog = true
+                            }
+                        )
+                    }
+
+                    if (showAboutDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showAboutDialog = false },
+                            confirmButton = {
+                                Button(onClick = { showAboutDialog = false }) {
+                                    Text("OK")
+                                }
+                            },
+                            title = { Text(stringResource(R.string.about_app)) },
+                            text = {
+
+                                Text(
+                                    stringResource(R.string.version, BuildConfig.VERSION_NAME) +
+                                        stringResource(R.string.git_revision, BuildConfig.GIT_REVISION) +
+                                        stringResource(R.string.build_type, BuildConfig.BUILD_TYPE)
+                                )
                             }
                         )
                     }

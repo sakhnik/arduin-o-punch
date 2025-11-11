@@ -1,6 +1,16 @@
+import java.io.ByteArrayOutputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+val gitRevision: String = ByteArrayOutputStream().use { outputStream ->
+    project.exec {
+        commandLine("git", "rev-parse", "--short", "HEAD")
+        standardOutput = outputStream
+    }
+    outputStream.toString().trim()
 }
 
 android {
@@ -11,13 +21,15 @@ android {
         applicationId = "com.sakhnik.arduinopunch"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "2.1.0"
+        versionCode = 5
+        versionName = "2.1.0-jpc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "GIT_REVISION", "\"${gitRevision}\"")
     }
 
     buildTypes {
@@ -38,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"

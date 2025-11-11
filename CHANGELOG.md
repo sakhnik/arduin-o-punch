@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Android: long tap on the selector locks the view
 - Android: allow selecting and copying punches to the clipboard
 - Android: export/import settings
+- Android: about dialog with version and git revision
 
 ### Changed
 

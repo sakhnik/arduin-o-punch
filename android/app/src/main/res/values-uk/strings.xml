@@ -50,4 +50,8 @@
     <string name="export_settings">Експорт налаштувань</string>
     <string name="settings_imported">Налаштування імпортовано</string>
     <string name="settings_exported">Налаштування експортовано</string>
+    <string name="about_app">Про</string>
+    <string name="version">Версія: %1$s\n</string>
+    <string name="git_revision">Ревізія Git: %1$s\n</string>
+    <string name="build_type">Тип збірки: %1$s</string>
 </resources>

@@ -52,4 +52,8 @@
     <string name="export_settings">Export settings</string>
     <string name="settings_imported">Settings imported</string>
     <string name="settings_exported">Settings exported</string>
+    <string name="about_app">About</string>
+    <string name="version">Version: %1$s\n</string>
+    <string name="git_revision">Git Revision: %1$s\n</string>
+    <string name="build_type">Build Type: %1$s</string>
 </resources>
