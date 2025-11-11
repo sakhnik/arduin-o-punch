@@ -210,8 +210,16 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
     suspend fun yamlToSettings(yamlText: String) {
         val data = Yaml().load<Map<String, Any>>(yamlText)
-        data[KEY_KEY_HEX]?.let { repository.saveKeyHex(it.toString()) }
+        data[KEY_KEY_HEX]?.let {
+            val newValue = it.toString()
+            _keyHex.value = newValue
+            repository.saveKeyHex(newValue)
+        }
         data[KEY_KNOWN_KEYS]?.let { repository.saveKnownKeys2(it.toString()) }
-        data[KEY_UPLOAD_URL]?.let { repository.saveUploadUrl(it.toString()) }
+        data[KEY_UPLOAD_URL]?.let {
+            val newValue = it.toString()
+            _uploadUrl.value = newValue
+            repository.saveUploadUrl(newValue)
+        }
     }
 }
