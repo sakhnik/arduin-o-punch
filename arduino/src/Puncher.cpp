@@ -103,6 +103,13 @@ struct MifareClassic : AOP::IMifare
 
 ErrorCode Puncher::Punch()
 {
+    static int loopCount = 0;
+    if (++loopCount > 100) {
+        loopCount = 0;
+        mfrc522.PCD_Reset();
+        mfrc522.PCD_Init();
+    }
+
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if (!mfrc522.PICC_IsNewCardPresent()) {
         return ErrorCode::NO_CARD;

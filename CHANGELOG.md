@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ported Android app to Jetpack Compose
 - Arduino: display the bytes of unknown command
 - Android: remove the word "runner" from every page
+- Arduino: soft reset MFRC522 periodically
 
 ### Removed
 
