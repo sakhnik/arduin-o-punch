@@ -114,7 +114,14 @@ void loop()
     auto res = puncher.Punch();
     if (!res) {
         buzzer.ConfirmPunch();
-    }
+    } /*else {
+        if (res == ErrorCode::NO_CARD) {
+            Serial.print('.');
+        } else {
+            Serial.println((int)res);
+        }
+        Serial.flush();
+    }*/
 
     if (res == ErrorCode::CARD_IS_FULL) {
         buzzer.SignalCardFull();
