@@ -2,6 +2,7 @@
 #include "Context.h"
 #include "IMifare.h"
 #include "PunchCard.h"
+#include "Buzzer.h"
 
 //#define LOGGER
 #ifdef LOGGER
@@ -103,8 +104,9 @@ struct MifareClassic : AOP::IMifare
 
 ErrorCode Puncher::Punch()
 {
+    // Soft reset the RFID chip periodically when the buzzer is silent to avoid distraction
     static int loopCount = 0;
-    if (++loopCount > 100) {
+    if (++loopCount > 100 && _context.GetBuzzer().IsIdle()) {
         loopCount = 0;
         mfrc522.PCD_Reset();
         mfrc522.PCD_Init();

@@ -10,6 +10,7 @@ public:
 
     void Setup();
     void Tick();
+    bool IsIdle();
 
     void ConfirmPunch();
     void SignalDefaultKey();

@@ -11,6 +11,8 @@ class Context
 public:
     Context(Buzzer &buzzer);
 
+    Buzzer& GetBuzzer() const { return *_buzzer; }
+
     int8_t Setup();
 
     static constexpr const uint8_t KEY_SIZE = 6;

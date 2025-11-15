@@ -16,6 +16,11 @@ void Buzzer::Tick()
     _timer.tick();
 }
 
+bool Buzzer::IsIdle()
+{
+    return !_player._task;
+}
+
 void Buzzer::Player::Play(const Melody &melody)
 {
     // If another melody is being played, enqueue
@@ -47,6 +52,7 @@ bool Buzzer::Player::OnTimeout(void *ctx)
         // No more melodies: cancel the timer and relax
         if (self->melodies.isEmpty()) {
             self->_timer.cancel(self->_task);
+            self->_task = nullptr;
             return true;
         }
         // Proceed to the next melody
