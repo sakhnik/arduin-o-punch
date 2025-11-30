@@ -5,7 +5,7 @@
 Формат засновано на [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 і цей проєкт використовує [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Не випущено]
+## [2.1.0] - 2025.11.30
 
 ### Додано
 
@@ -85,7 +85,7 @@
 
 - Перші 10 прототипів з відкритим корпусом
 
-[Не випущено]: https://github.com/sakhnik/arduin-o-punch/compare/v2.0.0...HEAD
+[2.1.0]: https://github.com/sakhnik/arduin-o-punch/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/sakhnik/arduin-o-punch/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/sakhnik/arduin-o-punch/compare/v1.0...v1.1.0
 [1.0]: https://github.com/sakhnik/arduin-o-punch/releases/tag/v1.0
