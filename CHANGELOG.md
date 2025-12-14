@@ -13,7 +13,7 @@ TBD
 
 ### Changed
 
-TBD
+- License GPL v2
 
 ### Removed
 
