@@ -1,0 +1,7 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "AO4435")(type "KiCad")(uri "${KIPRJMOD}/lib/AO4435.pretty")(options "")(descr ""))
+  (lib (name "RFID-RC522")(type "KiCad")(uri "${KIPRJMOD}/lib/RFID-RC522.pretty")(options "")(descr ""))
+  (lib (name "TC00500")(type "KiCad")(uri "${KIPRJMOD}/lib/TC00500.pretty")(options "")(descr ""))
+  (lib (name "ESP32-C3_SUPERMINI_TH")(type "KiCad")(uri "${KIPRJMOD}/lib/ESP32-C3_SUPERMINI_TH.pretty")(options "")(descr ""))
+)
