@@ -2,7 +2,7 @@
 
   Battery 18350
 
-  * 2025-11-04 CR2032
+  - 2025-11-04 CR2032
 
 # 41
 
@@ -14,25 +14,25 @@
 
   Battery 18650
 
-  * 2025-11-04 CR2032
+  - 2025-11-04 CR2032
 
 # 50
 
   Battery 18350
 
-  * 2025-11-04 CR2032
+  - 2025-11-04 CR2032
 
 # 54
 
   Battery 18350
 
-  * 2025-11-04 CR2032
+  - 2025-11-04 CR2032
 
 # 55 pro16
 
   Battery 18650
 
-  * 2025-11-06 18650
+  - 2025-11-06 18650
 
 # 57 pro16
 
@@ -44,7 +44,7 @@
 
   Battery 18650
 
-  * 2025-11-06 18650
+  - 2025-11-06 18650
 
 # 64 pro16
 
@@ -52,41 +52,50 @@
 
   Battery 18350
 
-  * 2025-11-07 GND contact
+  - 2025-11-07 GND contact
 
 # 69
 
   Battery 18650
 
-  * 2025-11-07 Reglue clock
+  - 2025-11-07 Reglue clock
+  - 2025-12-05 Solder GND
+  - 2025-12-06 Failure GND - lagging
 
 # 70
 
   Battery 18650
 
-  * 2025-11-04 leaky battery, clock is off
-  * 2025-11-06 18650
+  - 2025-11-04 leaky battery, clock is off
+  - 2025-11-06 18650
+
+# 73
+
+  Battery 18650
+
+  - 2025-12-05 Solder GND
 
 # 74
 
   Battery 18650
 
-  * 2025-11-04 18650
+  - 2025-11-04 18650
+  - 2025-12-06 Solder GND
 
 # 75
 
   Battery 18650
 
-  * 2025-11-06 18650
+  - 2025-11-06 18650
 
 # 76
 
   Battery 18650
 
-  * 2025-11-06 18650
-  * 2025-11-07 CR2032
-  * 2025-11-13 GND fix
-  * 2025-11-22 Solder GND
+  - 2025-11-06 18650
+  - 2025-11-07 CR2032
+  - 2025-11-13 GND fix
+  - 2025-11-22 Solder GND
 
 # 77
 
@@ -100,11 +109,17 @@
 
   Battery 18650
 
-  * 2025-11-05 CR2032
-  * 2025-11-22 Solder GND
+  - 2025-11-05 CR2032
+  - 2025-11-22 Solder GND
 
 # 100
 
-  Battery 18350
+  Battery 18650
 
-  * 2025-11-22 Solder GND
+  - 2025-12-05 Solder GND, change 18650, replace CR2032
+
+# 255
+
+  Battery 18650
+
+  - 2025-12-05 Solder GND, replace CR2032, change 18650
