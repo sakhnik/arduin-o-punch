@@ -70,6 +70,7 @@ void setup()
 {
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
+    pinMode(MOSFET_PIN, OUTPUT);
 
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
@@ -111,6 +112,8 @@ void setup()
 // Don't loop here to make sure serialEvent() is processed.
 void loop()
 {
+    digitalWrite(MOSFET_PIN, LOW);
+
     auto res = puncher.Punch();
     if (!res) {
         buzzer.ConfirmPunch();
