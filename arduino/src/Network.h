@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef ESP32
-
 #include "OutMux.h"
 
 class Context;
@@ -39,5 +37,3 @@ private:
     void _HandleRecord();
     void _HandleClock();
 };
-
-#endif //ESP32

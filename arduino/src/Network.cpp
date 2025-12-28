@@ -1,5 +1,3 @@
-#ifdef ESP32
-
 #include "Network.h"
 #include "Context.h"
 #include "Shell.h"
@@ -276,5 +274,3 @@ void Network::_HandleClock()
         webServer.send(405);
     }
 }
-
-#endif

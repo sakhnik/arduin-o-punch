@@ -16,9 +16,7 @@ public:
     void OnSerial();
     boolean Tick();
 
-#ifdef ESP32
     void ProcessInput(const uint8_t *data, int size);
-#endif
 
     void SetId(const char *param);
     void SetKey(const char *hex);
@@ -49,10 +47,8 @@ private:
     void _RecorderList();
     void _PrintRecordRetainDays();
     void _PrintDD(uint8_t d);
-#ifdef ESP32
     void _SetWifiSsid(const char *str);
     void _PrintWifiSsid();
     void _SetWifiPass(const char *str);
     void _PrintWifiPass();
-#endif //ESP32
 };

@@ -1,5 +1,3 @@
-#ifdef ESP32
-
 #include "CpuFreq.h"
 #include <Arduino.h>
 
@@ -10,5 +8,3 @@ void SetCpuFreq(int mhz)
     Serial.print(getCpuFrequencyMhz());
     Serial.println(F(" MHz"));
 }
-
-#endif //ESP32

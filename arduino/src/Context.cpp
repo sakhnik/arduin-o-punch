@@ -63,10 +63,8 @@ int8_t Context::Setup()
     eeprom.read(ADDROF(_record_retain_days), &_data._record_retain_days, sizeof(_data._record_retain_days));
     if (_data._record_retain_days == 0xff)
         _data._record_retain_days = 1;
-#ifdef ESP32
     eeprom.read(ADDROF(_wifi_ssid), reinterpret_cast<uint8_t *>(_data._wifi_ssid), sizeof(_data._wifi_ssid));
     eeprom.read(ADDROF(_wifi_pass), reinterpret_cast<uint8_t *>(_data._wifi_pass), sizeof(_data._wifi_pass));
-#endif //ESP32
 
     // Restore current record
     _recorder.Setup(RecorderAccess::RECORD_ADJUSTED_START,
@@ -156,8 +154,6 @@ void Context::SetRecordRetainDays(uint8_t days)
     eeprom.write(ADDROF(_record_retain_days), &_data._record_retain_days, sizeof(_data._record_retain_days));
 }
 
-#ifdef ESP32
-
 void Context::SetWifiSsid(const char *ssid)
 {
     auto length = strlen(ssid);
@@ -177,5 +173,3 @@ void Context::SetWifiPass(const char *pass)
     _data._wifi_pass[length - 1] = 0;
     eeprom.write(ADDROF(_wifi_pass), reinterpret_cast<uint8_t *>(_data._wifi_pass), length);
 }
-
-#endif //ESP32

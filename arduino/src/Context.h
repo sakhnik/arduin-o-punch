@@ -46,7 +46,6 @@ public:
 
     void SetRecordRetainDays(uint8_t days);
 
-#ifdef ESP32
     const char *GetWifiSsid() const
     {
         return _data._wifi_ssid;
@@ -60,7 +59,6 @@ public:
     }
 
     void SetWifiPass(const char *pass);
-#endif //ESP32
 
 private:
     Buzzer *_buzzer;

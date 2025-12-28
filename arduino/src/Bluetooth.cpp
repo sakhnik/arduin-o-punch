@@ -1,5 +1,3 @@
-#ifdef ESP32
-
 #include "Bluetooth.h"
 #include "Context.h"
 #include "Shell.h"
@@ -111,5 +109,3 @@ void Bluetooth::Write(const uint8_t *buffer, size_t size)
     // Schedule the data for writing at appropriate pace
     _outBuffer.Add(buffer, size);
 }
-
-#endif
