@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import argparse
 from connection import Connection, SerialConnection, TcpConnection
 
-serial_port = '/dev/ttyUSB0'
+serial_port = '/dev/ttyACM0'
 baud_rate = 9600
 
 parser = argparse.ArgumentParser()
