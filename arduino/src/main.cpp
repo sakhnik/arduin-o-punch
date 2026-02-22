@@ -7,12 +7,16 @@
 #include "Bluetooth.h"
 #include "Network.h"
 #include "OutMux.h"
+#include <esp_sleep.h>
 
 Buzzer buzzer;
 Context context{buzzer};
 Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
+
+unsigned long long activityTimeout = 60ul * 5 * 1000;
+unsigned long long prevCardTime = 0;
 
 enum OperationMode
 {
@@ -62,9 +66,12 @@ void AdvanceOperationMode()
 
 void setup()
 {
+    prevCardTime = millis();
+
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(MOSFET_PIN, OUTPUT);
+    pinMode(WAKEUP_PIN, INPUT_PULLUP);
 
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
@@ -107,6 +114,7 @@ void loop()
     auto res = puncher.Punch();
     if (!res) {
         buzzer.ConfirmPunch();
+        prevCardTime = millis();
     } /*else {
         if (res == ErrorCode::NO_CARD) {
             Serial.print('.');
@@ -129,4 +137,30 @@ void loop()
     shell.OnSerial();
     bluetooth.Tick();
     network.Tick();
+
+    if (millis() - prevCardTime >= activityTimeout) {
+        esp_deep_sleep_enable_gpio_wakeup(1ULL << WAKEUP_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);
+        Serial.println("Going to deep sleep");
+
+        Wire.end();  // stop I2C
+
+        // Hold the MOSFET pin in the hihg state during the deep sleep
+        digitalWrite(MOSFET_PIN, HIGH);
+        gpio_hold_en(static_cast<gpio_num_t>(MOSFET_PIN));
+
+        // Hold some pins in the low state
+        static constexpr const int LOW_PINS[] = {LED_CONFIRM_PIN, BUZZER_PIN, RFID_SS_PIN, SDA_PIN, SCL_PIN};
+        for (int pin : LOW_PINS) {
+            digitalWrite(pin, LOW);
+            gpio_hold_en(static_cast<gpio_num_t>(pin));
+        }
+
+        // Enable the pins hold
+        gpio_deep_sleep_hold_en();
+
+        delay(100);
+        esp_deep_sleep_start();
+        // Should never reach!
+        prevCardTime = millis();
+    }
 }
