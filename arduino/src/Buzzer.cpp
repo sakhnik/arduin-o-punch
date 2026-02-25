@@ -1,74 +1,86 @@
 #include "Buzzer.h"
 #include "defs.h"
+#include <Arduino.h>
 
 Buzzer::Buzzer()
-    : _player{_timer}
 {
 }
 
 void Buzzer::Setup()
 {
+    pinMode(BUZZER_PIN, OUTPUT);
+    pinMode(LED_CONFIRM_PIN, OUTPUT);
+
+    digitalWrite(BUZZER_PIN, LOW);
+    digitalWrite(LED_CONFIRM_PIN, LOW);
+
+    _queue = xQueueCreate(8, sizeof(Melody));
+
+    xTaskCreate(
+        TaskEntry,
+        "BuzzerTask",
+        2048,
+        this,
+        1,
+        &_taskHandle
+    );
 }
 
-void Buzzer::Tick()
+void Buzzer::Play(const Melody &melody)
 {
-    // Handle the timer tasks
-    _timer.tick();
+    xQueueSend(_queue, &melody, 0);
 }
 
 bool Buzzer::IsIdle()
 {
-    return !_player._task;
+    return uxQueueMessagesWaiting(_queue) == 0;
 }
 
-void Buzzer::Player::Play(const Melody &melody)
+void Buzzer::TaskEntry(void *arg)
 {
-    // If another melody is being played, enqueue
-    if (_task) {
-        melodies.push(melody);
-        return;
-    }
-    // Start executing the new melody from silence for distinction
-    this->melody = melody;
-    this->idx = 0;
-    this->state = LOW;
-    OnTimeout(this);
+    static_cast<Buzzer *>(arg)->TaskLoop();
 }
 
-bool Buzzer::Player::OnTimeout(void *ctx)
+void Buzzer::TaskLoop()
 {
-    Player *self = reinterpret_cast<Player *>(ctx);
-    // Is there another melody to play and we should go to it?
-    bool to_next_melody = self->idx >= self->melody.interrupt_idx && !self->melodies.isEmpty();
-    // If there's another melody to play, this one can be already interrupted.
-    if (to_next_melody) {
-        self->melody = self->melodies.shift();
-        self->idx = 0;
-        self->state = LOW;
-    }
-    // If the melody has ended
-    uint8_t cur_duration = self->melody.sequence[self->idx];
-    if (!cur_duration) {
-        // No more melodies: cancel the timer and relax
-        if (self->melodies.isEmpty()) {
-            self->_timer.cancel(self->_task);
-            self->_task = nullptr;
-            return true;
+    Melody melody;
+
+    while (true) {
+        // Wait for first melody
+        if (xQueueReceive(_queue, &melody, portMAX_DELAY) != pdTRUE)
+            continue;
+
+        uint8_t idx = 0;
+        uint8_t state = LOW;
+
+        while (true) {
+            uint8_t duration = melody.sequence[idx];
+
+            if (duration == 0) {
+                digitalWrite(BUZZER_PIN, LOW);
+                digitalWrite(LED_CONFIRM_PIN, LOW);
+                break; // melody finished
+            }
+
+            if (idx >= melody.interrupt_idx) {
+                Melody next;
+                if (xQueueReceive(_queue, &next, 0) == pdTRUE) {
+                    melody = next;
+                    idx = 0;
+                    state = LOW;
+                    continue;
+                }
+            }
+
+            digitalWrite(BUZZER_PIN, state);
+            digitalWrite(LED_CONFIRM_PIN, state);
+
+            state = !state;
+            idx++;
+
+            vTaskDelay(pdMS_TO_TICKS(duration * 8));
         }
-        // Proceed to the next melody
-        self->melody = self->melodies.shift();
-        self->idx = 0;
-        self->state = LOW;
-        cur_duration = self->melody.sequence[self->idx];
     }
-    uint8_t cur_state = self->state;
-    // Confirm with the led (the builtin isn't available together with SPI).
-    digitalWrite(LED_CONFIRM_PIN, cur_state);
-    digitalWrite(BUZZER_PIN, cur_state);
-    self->state = 1 - self->state;  // Toggle the state
-    ++self->idx;
-    self->_task = self->_timer.in(static_cast<uint16_t>(cur_duration) << 3, OnTimeout, self);
-    return false;
 }
 
 namespace Morse {
@@ -150,52 +162,52 @@ const Buzzer::Melody Digits[] = {
 
 void Buzzer::SignalRTCFail()
 {
-    _player.Play(Morse::RTC_FAIL);
+    Play(Morse::RTC_FAIL);
 }
 
 void Buzzer::SignalDefaultKey()
 {
-    _player.Play(Morse::KEY_DEF);
+    Play(Morse::KEY_DEF);
 }
 
 void Buzzer::ConfirmPunch()
 {
-    _player.Play(Morse::CONFIRM);
+    Play(Morse::CONFIRM);
 }
 
 void Buzzer::SignalCardFull()
 {
-    _player.Play(Morse::CARD_FULL);
+    Play(Morse::CARD_FULL);
 }
 
 void Buzzer::SignalOk()
 {
-    _player.Play(Morse::OK);
+    Play(Morse::OK);
 }
 
 void Buzzer::SignalBluetooth()
 {
-    _player.Play(Morse::BT);
+    Play(Morse::BT);
 }
 
 void Buzzer::SignalWifi()
 {
-    _player.Play(Morse::WF);
+    Play(Morse::WF);
 }
 
 void Buzzer::SignalDit()
 {
-    _player.Play(Morse::Dit);
+    Play(Morse::Dit);
 }
 
 void Buzzer::SignalDah()
 {
-    _player.Play(Morse::Dah);
+    Play(Morse::Dah);
 }
 
 void Buzzer::SignalPause()
 {
-    _player.Play(Morse::Pause);
+    Play(Morse::Pause);
 }
 
 void Buzzer::SignalNumber(uint16_t num)
@@ -204,5 +216,5 @@ void Buzzer::SignalNumber(uint16_t num)
         return;
     }
     SignalNumber(num / 10);
-    _player.Play(Morse::Digits[num % 10]);
+    Play(Morse::Digits[num % 10]);
 }

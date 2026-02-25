@@ -85,8 +85,9 @@ void setup()
     buzzer.Setup();
 
     if (context.Setup()) {
-        while (true)
-            buzzer.Tick();
+        while (true) {
+            vTaskDelay(1);
+        }
     }
 
     bool initialization_ok = true;
@@ -132,7 +133,6 @@ void loop()
         AdvanceOperationMode();
     }
 
-    buzzer.Tick();
     shell.Tick();
     shell.OnSerial();
     bluetooth.Tick();

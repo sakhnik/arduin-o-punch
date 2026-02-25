@@ -1,28 +1,16 @@
 #pragma once
 
-#include <arduino-timer.h>
-#include <CircularBuffer.hpp>
+#pragma once
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
 
 class Buzzer
 {
 public:
     Buzzer();
-
     void Setup();
-    void Tick();
-    bool IsIdle();
-
-    void ConfirmPunch();
-    void SignalDefaultKey();
-    void SignalRTCFail();
-    void SignalCardFull();
-    void SignalOk();
-    void SignalBluetooth();
-    void SignalWifi();
-    void SignalDit();
-    void SignalDah();
-    void SignalPause();
-    void SignalNumber(uint16_t);
 
     struct Melody
     {
@@ -39,30 +27,25 @@ public:
         }
     };
 
+    bool IsIdle();
+
+    void ConfirmPunch();
+    void SignalDefaultKey();
+    void SignalRTCFail();
+    void SignalCardFull();
+    void SignalOk();
+    void SignalBluetooth();
+    void SignalWifi();
+    void SignalDit();
+    void SignalDah();
+    void SignalPause();
+    void SignalNumber(uint16_t);
+
 private:
-    Timer<> _timer = timer_create_default();
+    QueueHandle_t _queue;
+    TaskHandle_t _taskHandle = nullptr;
 
-    // Play pulse codes, like Morse
-    struct Player
-    {
-        Timer<> &_timer;
-        Timer<>::Task _task = {};
-
-        // Pending melodies
-        CircularBuffer<Melody, 8> melodies;
-        // The melody being currently played
-        Melody melody;
-        // Index into the melody sequence
-        uint8_t idx{};
-        // Buzzer state (high=1, low=0)
-        uint8_t state{};
-
-        Player(Timer<> &timer) : _timer{timer} { }
-
-        void Play(const Melody &);
-
-        static bool OnTimeout(void *ctx);
-    };
-
-    Player _player;
+    static void TaskEntry(void *arg);
+    void TaskLoop();
+    void Play(const Melody &melody);
 };
