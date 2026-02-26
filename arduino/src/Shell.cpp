@@ -16,47 +16,24 @@ Shell::Shell(OutMux &_outMux, Context &context, Buzzer &buzzer)
     , _context{context}
     , _buzzer{buzzer}
 {
-    _buffer.reserve(MAX_SIZE);
 }
 
 void Shell::Setup()
 {
+    _rxQueue = xQueueCreate(128, sizeof(char));
+
+    xTaskCreatePinnedToCore(
+        TaskEntry,
+        "shell",
+        4096,
+        this,
+        1,    // run with low priority to avoid deadlock with tinyusb CDC
+        nullptr,
+        0     // ESP32-C3 single core
+    );
+
     _outMux.println();
     _PrintPrompt();
-}
-
-void Shell::_PrintPrompt()
-{
-    _outMux.print(F("Arduin-o-punch> "));
-}
-
-void Shell::_ProcessChar(char ch)
-{
-    if (!_buffer.length()) {
-        // In the automated communication we don't need the echo, neither the prompt.
-        // If timeout elapses since the first character, revert to interactive move.
-        _echo_timeout = millis() + 100;
-        _echo_idx = 0;
-    }
-    _buffer += ch;
-    if (_buffer.length() >= MAX_SIZE || _buffer.endsWith("\r") || _buffer.endsWith("\n")) {
-        // Echo the rest of the command if necessary
-        if (Tick())
-            Serial.println();
-        // Trim whitespaces from the left
-        unsigned idx = 0;
-        while (idx < _buffer.length() && isWhitespace(_buffer[idx])) {
-            ++idx;
-        }
-        _buffer.remove(0, idx);
-        // Process commands if anything left
-        if (_buffer.length() > 0) {
-            _Process();
-            _buffer.remove(0, _buffer.length());
-        }
-        if (Tick())
-            _PrintPrompt();
-    }
 }
 
 void Shell::OnSerial()
@@ -64,31 +41,116 @@ void Shell::OnSerial()
     while (Serial.available()) {
         int ch = Serial.read();
         if (ch >= 0)
-            _ProcessChar(ch);
+            _PutChar(ch);
     }
 }
 
 void Shell::ProcessInput(const uint8_t *data, int size)
 {
     while (size--) {
-        _ProcessChar(*data++);
+        _PutChar(*data++);
     }
 }
 
-// Return true if started echoing (interactive mode)
-boolean Shell::Tick()
+void Shell::TaskEntry(void* arg)
 {
-    if (_echo_timeout > millis())
-        return false;
-    // Only need to echo to the serial terminal, TCP and BLE show what's being typed by themselves
-    while (_echo_idx < _buffer.length())
-        Serial.print(_buffer[_echo_idx++]);
-    return true;
+    static_cast<Shell*>(arg)->_Task();
 }
 
-void Shell::_Process()
+void Shell::_Task()
 {
-    if (_buffer.startsWith(F("help"))) {
+    String buffer;
+    buffer.reserve(MAX_SIZE);
+    uint8_t echo_idx = 0;
+    uint32_t echo_timeout = 0;
+
+    for (;;) {
+
+        // Compute how long we may block
+        TickType_t wait = portMAX_DELAY;
+
+        if (buffer.length()) {
+            int32_t remaining = (int32_t)(echo_timeout - millis());
+
+            if (remaining <= 0)
+                wait = 0; // timeout already expired
+            else
+                wait = pdMS_TO_TICKS(remaining);
+        }
+
+        // Wait for input OR timeout
+        char ch;
+        bool gotChar = xQueueReceive(_rxQueue, &ch, wait) == pdTRUE;
+
+        uint32_t now = millis();
+
+        // Timeout handling
+        if (buffer.length() && now >= echo_timeout) {
+            while (echo_idx < buffer.length()) {
+                Serial.print(buffer[echo_idx++]);
+                taskYIELD();
+            }
+        }
+
+        if (!gotChar)
+            continue;
+
+        if (!buffer.length()) {
+            // In the automated communication we don't need the echo, neither the prompt.
+            // If timeout elapses since the first character, revert to interactive move.
+            echo_timeout = millis() + 100;
+            echo_idx = 0;
+        }
+
+        buffer += ch;
+
+        if (buffer.length() >= MAX_SIZE ||
+            buffer.endsWith("\r") ||
+            buffer.endsWith("\n"))
+        {
+            // Echo rest if needed
+            if (now >= echo_timeout) {
+                Serial.println();
+                taskYIELD();
+            }
+
+            // Trim leading whitespace
+            unsigned idx = 0;
+            while (idx < buffer.length() &&
+                   isWhitespace(buffer[idx])) {
+                ++idx;
+            }
+
+            buffer.remove(0, idx);
+
+            // Execute command
+            if (buffer.length() > 0) {
+                _Process(buffer);
+                buffer.clear();
+            }
+
+            if (now >= echo_timeout)
+                _PrintPrompt();
+        }
+    }
+}
+
+void Shell::_PrintPrompt()
+{
+    _outMux.print(F("Arduin-o-punch> "));
+}
+
+void Shell::_PutChar(char ch)
+{
+    if (!_rxQueue) return;
+
+    // never block producer
+    xQueueSend(_rxQueue, &ch, 0);
+}
+
+void Shell::_Process(const String &buffer)
+{
+    if (buffer.startsWith(F("help"))) {
         _outMux.println(F("Commands:"));
         _outMux.println(F("info              All info"));
         _outMux.println(F("id                ID"));
@@ -116,7 +178,7 @@ void Shell::_Process()
         _outMux.println(F("wifissid ssid     Set WiFi SSID to connect to"));
         _outMux.println(F("wifipass          Print WiFi password"));
         _outMux.println(F("wifipass pass     Set WiFi password"));
-    } else if (_buffer.startsWith(F("info"))) {
+    } else if (buffer.startsWith(F("info"))) {
         _outMux.print(F("version="));
         _outMux.print(PROJECT_VERSION);
         _outMux.print("-");
@@ -137,59 +199,59 @@ void Shell::_Process()
         _PrintRecordRetainDays();
         _outMux.print(F("wifissid="));
         _PrintWifiSsid();
-    } else if (_buffer.startsWith(F("id "))) {
-        SetId(_buffer.c_str() + 3);
+    } else if (buffer.startsWith(F("id "))) {
+        SetId(buffer.c_str() + 3);
         _PrintId();
-    } else if (_buffer.startsWith(F("id"))) {
+    } else if (buffer.startsWith(F("id"))) {
         _PrintId();
-    } else if (_buffer.startsWith(F("key "))) {
-        SetKey(_buffer.c_str() + 4);
+    } else if (buffer.startsWith(F("key "))) {
+        SetKey(buffer.c_str() + 4);
         _PrintKey();
         _buzzer.ConfirmPunch();
-    } else if (_buffer.startsWith(F("key"))) {
+    } else if (buffer.startsWith(F("key"))) {
         _PrintKey();
-    } else if (_buffer.startsWith(F("clock "))) {
-        _SetClock(_buffer.c_str() + 6);
+    } else if (buffer.startsWith(F("clock "))) {
+        _SetClock(buffer.c_str() + 6);
         _PrintClock(_context.GetDateTime());
-    } else if (_buffer.startsWith(F("clock"))) {
+    } else if (buffer.startsWith(F("clock"))) {
         _PrintClock(_context.GetDateTime());
-    } else if (_buffer.startsWith(F("timestamp "))) {
-        _SetTimestamp(_buffer.c_str() + 10);
-    } else if (_buffer.startsWith(F("timestamp"))) {
+    } else if (buffer.startsWith(F("timestamp "))) {
+        _SetTimestamp(buffer.c_str() + 10);
+    } else if (buffer.startsWith(F("timestamp"))) {
         _PrintTimestamp();
-    } else if (_buffer.startsWith(F("time"))) {
+    } else if (buffer.startsWith(F("time"))) {
         _PrintTime(_context.GetDateTime());
-    } else if (_buffer.startsWith(F("date"))) {
+    } else if (buffer.startsWith(F("date"))) {
         _PrintDate(_context.GetDateTime());
-    } else if (_buffer.startsWith(F("recfmt "))) {
-        RecorderFormat(_buffer.c_str() + 7);
-    } else if (_buffer.startsWith(F("recclr "))) {
-        _RecorderClear(_buffer.c_str() + 7);
-    } else if (_buffer.startsWith(F("recdays "))) {
-        SetRecordRetainDays(_buffer.c_str() + 9);
-    } else if (_buffer.startsWith(F("recdays"))) {
+    } else if (buffer.startsWith(F("recfmt "))) {
+        RecorderFormat(buffer.c_str() + 7);
+    } else if (buffer.startsWith(F("recclr "))) {
+        _RecorderClear(buffer.c_str() + 7);
+    } else if (buffer.startsWith(F("recdays "))) {
+        SetRecordRetainDays(buffer.c_str() + 9);
+    } else if (buffer.startsWith(F("recdays"))) {
         _PrintRecordRetainDays();
-    } else if (_buffer.startsWith(F("rec "))) {
-        _RecorderCheck(_buffer.c_str() + 4);
-    } else if (_buffer.startsWith(F("rec"))) {
+    } else if (buffer.startsWith(F("rec "))) {
+        _RecorderCheck(buffer.c_str() + 4);
+    } else if (buffer.startsWith(F("rec"))) {
         _RecorderList();
-    } else if (_buffer.startsWith("wifissid ")) {
-        _SetWifiSsid(_buffer.c_str() + 9);
-    } else if (_buffer.startsWith("wifissid")) {
+    } else if (buffer.startsWith("wifissid ")) {
+        _SetWifiSsid(buffer.c_str() + 9);
+    } else if (buffer.startsWith("wifissid")) {
         _PrintWifiSsid();
-    } else if (_buffer.startsWith("wifipass ")) {
-        _SetWifiPass(_buffer.c_str() + 9);
-    } else if (_buffer.startsWith("wifipass")) {
+    } else if (buffer.startsWith("wifipass ")) {
+        _SetWifiPass(buffer.c_str() + 9);
+    } else if (buffer.startsWith("wifipass")) {
         _PrintWifiPass();
     } else {
-        if (_buffer[0] != '\r' && _buffer[0] != '\n') {
+        if (buffer[0] != '\r' && buffer[0] != '\n') {
             _outMux.print(F("Unknown command: "));
-            for (int i = 0; i < _buffer.length(); ++i) {
+            for (int i = 0; i < buffer.length(); ++i) {
                 _outMux.print(' ');
-                _outMux.print((int)_buffer[i], HEX);
+                _outMux.print((int)buffer[i], HEX);
             }
             _outMux.print(" <");
-            _outMux.print(_buffer);
+            _outMux.print(buffer);
             _outMux.println(">");
         }
     }

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
 
 class Context;
 class Buzzer;
@@ -14,7 +17,6 @@ public:
 
     void Setup();
     void OnSerial();
-    boolean Tick();
 
     void ProcessInput(const uint8_t *data, int size);
 
@@ -27,13 +29,15 @@ private:
     OutMux &_outMux;
     Context &_context;
     Buzzer &_buzzer;
-    String _buffer;
-    uint8_t _echo_idx = 0;
-    uint32_t _echo_timeout = 0;
 
-    void _ProcessChar(char ch);
+    QueueHandle_t _rxQueue;
+
+    static void TaskEntry(void *arg);
+    void _Task();
+
+    void _PutChar(char ch);
     void _PrintPrompt();
-    void _Process();
+    void _Process(const String &);
     void _PrintId();
     void _PrintKey();
     void _SetClock(const char *str);

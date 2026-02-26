@@ -133,7 +133,6 @@ void loop()
         AdvanceOperationMode();
     }
 
-    shell.Tick();
     shell.OnSerial();
     bluetooth.Tick();
     network.Tick();
