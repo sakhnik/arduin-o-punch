@@ -36,19 +36,10 @@ void Shell::Setup()
     _PrintPrompt();
 }
 
-void Shell::OnSerial()
-{
-    while (Serial.available()) {
-        int ch = Serial.read();
-        if (ch >= 0)
-            _PutChar(ch);
-    }
-}
-
 void Shell::ProcessInput(const uint8_t *data, int size)
 {
     while (size--) {
-        _PutChar(*data++);
+        PutChar(*data++);
     }
 }
 
@@ -140,7 +131,7 @@ void Shell::_PrintPrompt()
     _outMux.print(F("Arduin-o-punch> "));
 }
 
-void Shell::_PutChar(char ch)
+void Shell::PutChar(char ch)
 {
     if (!_rxQueue) return;
 

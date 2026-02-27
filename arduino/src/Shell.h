@@ -16,9 +16,9 @@ public:
     Shell(OutMux &, Context &, Buzzer &);
 
     void Setup();
-    void OnSerial();
 
     void ProcessInput(const uint8_t *data, int size);
+    void PutChar(char ch);
 
     void SetId(const char *param);
     void SetKey(const char *hex);
@@ -35,7 +35,6 @@ private:
     static void TaskEntry(void *arg);
     void _Task();
 
-    void _PutChar(char ch);
     void _PrintPrompt();
     void _Process(const String &);
     void _PrintId();

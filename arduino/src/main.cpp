@@ -102,6 +102,15 @@ void setup()
     bluetooth.Setup();
     network.Setup();
 
+    Serial.onEvent(
+        ARDUINO_HW_CDC_RX_EVENT,
+        [](void *arg, esp_event_base_t base, int32_t id, void *data) {
+            while (Serial.available()) {
+                shell.PutChar(Serial.read());
+            }
+        }
+    );
+
     if (initialization_ok) {
         buzzer.SignalOk();
     }
@@ -133,7 +142,6 @@ void loop()
         AdvanceOperationMode();
     }
 
-    shell.OnSerial();
     bluetooth.Tick();
     network.Tick();
 
