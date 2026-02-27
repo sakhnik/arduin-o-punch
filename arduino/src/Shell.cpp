@@ -22,15 +22,8 @@ void Shell::Setup()
 {
     _rxQueue = xQueueCreate(128, sizeof(char));
 
-    xTaskCreatePinnedToCore(
-        TaskEntry,
-        "shell",
-        4096,
-        this,
-        1,    // run with low priority to avoid deadlock with tinyusb CDC
-        nullptr,
-        0     // ESP32-C3 single core
-    );
+    // run with low priority to avoid deadlock with tinyusb CDC
+    xTaskCreatePinnedToCore(TaskEntry, "shell", 4096, this, 1, nullptr, 0);
 
     _outMux.println();
     _PrintPrompt();

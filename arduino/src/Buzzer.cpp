@@ -16,14 +16,7 @@ void Buzzer::Setup()
 
     _queue = xQueueCreate(8, sizeof(Melody));
 
-    xTaskCreate(
-        TaskEntry,
-        "BuzzerTask",
-        2048,
-        this,
-        1,
-        &_taskHandle
-    );
+    xTaskCreate(TaskEntry, "buzzer", 2048, this, 1, &_taskHandle);
 }
 
 void Buzzer::Play(const Melody &melody)
