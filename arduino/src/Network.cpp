@@ -176,7 +176,7 @@ bool Network::_Stop()
     webServer.stop();
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
-    SetCpuFreq(40);
+    SetCpuFreq(10);
     return false;
 }
 

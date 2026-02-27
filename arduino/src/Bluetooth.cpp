@@ -100,7 +100,7 @@ bool Bluetooth::_Stop()
     _outMux.SetClient(nullptr);
     BLE.end();
     Serial.println("BLE stopped");
-    SetCpuFreq(40);
+    SetCpuFreq(10);
     return false;
 }
 
