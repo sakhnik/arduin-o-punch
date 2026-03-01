@@ -150,6 +150,8 @@ void loop()
         Serial.println("Going to deep sleep");
 
         Wire.end();  // stop I2C
+        pinMode(SDA_PIN, OUTPUT);
+        pinMode(SCL_PIN, OUTPUT);
 
         // Hold the MOSFET pin in the hihg state during the deep sleep
         digitalWrite(MOSFET_PIN, HIGH);
