@@ -64,6 +64,38 @@ void AdvanceOperationMode()
     }
 }
 
+static void EnterSleep()
+{
+    //esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000);
+    esp_deep_sleep_enable_gpio_wakeup(1ULL << WAKEUP_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
+    Serial.println("Going to deep sleep");
+
+    Wire.end();  // stop I2C
+
+    // Configure high impedance state in some pins
+    static constexpr const int HIGH_Z_PINS[] = {RFID_SS_PIN, SDA_PIN, SCL_PIN};
+    for (auto pin : HIGH_Z_PINS) {
+        gpio_reset_pin(static_cast<gpio_num_t>(pin));   // HIGH-Z
+        gpio_hold_en(static_cast<gpio_num_t>(pin));
+    }
+
+    // Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
+    static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN, /*RFID_SS_PIN, SDA_PIN, SCL_PIN*/};
+    for (int pin : HIGH_PINS) {
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
+        gpio_hold_en(static_cast<gpio_num_t>(pin));
+    }
+
+    // Enable the pins hold
+    gpio_deep_sleep_hold_en();
+
+    delay(100);
+    esp_deep_sleep_start();
+    // Should never reach!
+    prevCardTime = millis();
+}
+
 void setup()
 {
     prevCardTime = millis();
@@ -146,30 +178,6 @@ void loop()
     network.Tick();
 
     if (millis() - prevCardTime >= activityTimeout) {
-        esp_deep_sleep_enable_gpio_wakeup(1ULL << WAKEUP_PIN, ESP_GPIO_WAKEUP_GPIO_HIGH);
-        Serial.println("Going to deep sleep");
-
-        Wire.end();  // stop I2C
-        pinMode(SDA_PIN, OUTPUT);
-        pinMode(SCL_PIN, OUTPUT);
-
-        // Hold the MOSFET pin in the hihg state during the deep sleep
-        digitalWrite(MOSFET_PIN, HIGH);
-        gpio_hold_en(static_cast<gpio_num_t>(MOSFET_PIN));
-
-        // Hold some pins in the low state
-        static constexpr const int LOW_PINS[] = {LED_CONFIRM_PIN, BUZZER_PIN, RFID_SS_PIN, SDA_PIN, SCL_PIN};
-        for (int pin : LOW_PINS) {
-            digitalWrite(pin, LOW);
-            gpio_hold_en(static_cast<gpio_num_t>(pin));
-        }
-
-        // Enable the pins hold
-        gpio_deep_sleep_hold_en();
-
-        delay(100);
-        esp_deep_sleep_start();
-        // Should never reach!
-        prevCardTime = millis();
+        EnterSleep();
     }
 }
