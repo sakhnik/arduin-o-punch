@@ -76,8 +76,8 @@ void setup()
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
 
-    // Set the CPU frequency to 40 MHz for power optimization
-    setCpuFrequencyMhz(40);
+    // Set the CPU frequency to 10 MHz for power optimization
+    setCpuFrequencyMhz(10);
     Serial.print(F("CPU Frequency: "));
     Serial.print(getCpuFrequencyMhz());
     Serial.println(F(" MHz"));
