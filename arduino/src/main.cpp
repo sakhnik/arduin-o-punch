@@ -73,7 +73,7 @@ static void EnterSleep()
     Wire.end();  // stop I2C
 
     // Configure high impedance state for the I²C and SPI
-    static constexpr const int HIGH_Z_PINS[] = {SDA, SCL, MISO, MOSI, SCK, RFID_SS_PIN};
+    static constexpr const int HIGH_Z_PINS[] = {SDA, SCL, MISO, MOSI, SCK};
     for (auto pin : HIGH_Z_PINS) {
         gpio_reset_pin(static_cast<gpio_num_t>(pin));   // HIGH-Z
         gpio_hold_en(static_cast<gpio_num_t>(pin));
