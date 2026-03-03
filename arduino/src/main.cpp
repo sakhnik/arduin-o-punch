@@ -72,15 +72,15 @@ static void EnterSleep()
 
     Wire.end();  // stop I2C
 
-    // Configure high impedance state in some pins
-    static constexpr const int HIGH_Z_PINS[] = {RFID_SS_PIN, SDA_PIN, SCL_PIN};
+    // Configure high impedance state for the I²C and SPI
+    static constexpr const int HIGH_Z_PINS[] = {SDA, SCL, MISO, MOSI, SCK, RFID_SS_PIN};
     for (auto pin : HIGH_Z_PINS) {
         gpio_reset_pin(static_cast<gpio_num_t>(pin));   // HIGH-Z
         gpio_hold_en(static_cast<gpio_num_t>(pin));
     }
 
     // Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
-    static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN, /*RFID_SS_PIN, SDA_PIN, SCL_PIN*/};
+    static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN};
     for (int pin : HIGH_PINS) {
         pinMode(pin, OUTPUT);
         digitalWrite(pin, HIGH);
