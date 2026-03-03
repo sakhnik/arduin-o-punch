@@ -1,1 +1,0 @@
-- RC522 to i2c: https://forum.arduino.cc/t/rc522-rfid-rc522-switching-spi-to-uart-interface-or-i2c-possible/425741
