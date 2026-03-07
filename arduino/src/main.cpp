@@ -8,6 +8,10 @@
 #include "Network.h"
 #include "OutMux.h"
 #include <esp_sleep.h>
+#include "driver/gpio.h"
+
+#define uS_TO_S_FACTOR 1000000  // Conversion factor for micro seconds to seconds
+#define TIME_TO_SLEEP 10        // Time ESP32 will sleep (in seconds)
 
 Buzzer buzzer;
 Context context{buzzer};
@@ -70,14 +74,22 @@ static void EnterSleep()
     esp_deep_sleep_enable_gpio_wakeup(1ULL << WAKEUP_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
     Serial.println("Going to deep sleep");
 
-    Wire.end();  // stop I2C
+    // stop buses
+    Wire.end();
+    SPI.end();
 
     // Configure high impedance state for the I²C and SPI
-    static constexpr const int HIGH_Z_PINS[] = {SDA, SCL, MISO, MOSI, SCK, RFID_SS_PIN};
-    for (auto pin : HIGH_Z_PINS) {
-        gpio_reset_pin(static_cast<gpio_num_t>(pin));   // HIGH-Z
-        gpio_hold_en(static_cast<gpio_num_t>(pin));
-    }
+    auto high_z = [](int pin) {
+        gpio_set_direction((gpio_num_t)pin, GPIO_MODE_DISABLE);
+        gpio_set_pull_mode((gpio_num_t)pin, GPIO_FLOATING);
+    };
+
+    high_z(SDA);
+    high_z(SCL);
+    high_z(MOSI);
+    high_z(MISO);
+    high_z(SCK);
+    high_z(SS);
 
     // Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
     static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN};
