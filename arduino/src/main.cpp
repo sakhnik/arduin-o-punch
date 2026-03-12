@@ -75,7 +75,6 @@ static void EnterSleep()
     Serial.println("Going to deep sleep");
 
     // stop buses
-    Wire.end();
     SPI.end();
 
     // Configure high impedance state for the I²C and SPI
@@ -84,8 +83,6 @@ static void EnterSleep()
         gpio_set_pull_mode((gpio_num_t)pin, GPIO_FLOATING);
     };
 
-    high_z(SDA);
-    high_z(SCL);
     high_z(MOSI);
     high_z(MISO);
     high_z(SCK);
