@@ -48,7 +48,6 @@ private:
     String _wifi_ssid;
     String _wifi_pass;
 
-    static constexpr const int ADDRESS = sizeof(Buzzer *);
     AOP::Recorder _recorder;
 
     friend struct RecorderAccess;

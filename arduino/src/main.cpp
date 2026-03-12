@@ -19,7 +19,7 @@ Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
 
-unsigned long long activityTimeout = 60ul * 5 * 1000;
+unsigned long long activityTimeout = 10ul * 1 * 1000;
 unsigned long long prevCardTime = 0;
 
 enum OperationMode
@@ -128,7 +128,8 @@ void setup()
 
     if (context.Setup()) {
         while (true) {
-            vTaskDelay(1);
+            vTaskDelay(1000);
+            Serial.println(F("Failed to initialize"));
         }
     }
 

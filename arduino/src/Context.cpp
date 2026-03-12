@@ -1,6 +1,5 @@
 #include "Context.h"
 #include "Buzzer.h"
-#include <extEEPROM.h>
 #include <RTClib.h>
 #include <flex_DST.h>
 #include <stddef.h>
@@ -15,19 +14,20 @@ RTC_DS3231 rtc;
 // EEST DST rules: last Sunday of March to last Sunday of October
 flex_DST dst{5, 3, 5, 10};
 
-// AT24C32 onboard DS3231 with default address
-extEEPROM eeprom{eeprom_size_t::kbits_32, 1, 32, 0x57};
+constexpr const size_t EEPROM_SIZE = 32 * 1024;
 
 struct EepromImpl : AOP::Recorder::IEeprom
 {
+    uint8_t mem[EEPROM_SIZE];
+
     uint8_t Read(uint16_t addr) override
     {
-        return eeprom.read(addr);
+        return mem[addr];
     }
 
     void Write(uint16_t addr, uint8_t val) override
     {
-        eeprom.write(addr, val);
+        mem[addr] = val;
     }
 } eeprom_impl;
 
@@ -41,14 +41,6 @@ constexpr const char *const PREF_WIFI_PASS = "wifi-pass";
 } //namespace;
 
 #define ADDROF(field) (Context::ADDRESS + offsetof(Context::_Data, field))
-
-struct RecorderAccess
-{
-    // Choose a non-aligned region for the punch record. This will spread eeprom wear.
-    static constexpr int RECORD_START = Context::ADDRESS;
-    // Just start with an odd address
-    static constexpr int RECORD_ADJUSTED_START = (RECORD_START & 1) == 1 ? RECORD_START : RECORD_START + 1;
-};
 
 Context::Context(Buzzer &buzzer)
     : _buzzer{&buzzer}
@@ -73,12 +65,8 @@ int8_t Context::Setup()
         return -1;
     }
 
-    // Initialize external EEPROM with default speed, default I2C bus
-    eeprom.begin();
-
     // Restore current record
-    _recorder.Setup(RecorderAccess::RECORD_ADJUSTED_START,
-                    static_cast<uint16_t>(static_cast<uint16_t>(eeprom.length() / 8) - RecorderAccess::RECORD_ADJUSTED_START));
+    _recorder.Setup(0, EEPROM_SIZE);
 
     if (_record_retain_days > 0) {
         // If record is older than the retain period, reformat.
