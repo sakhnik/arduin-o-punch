@@ -10,7 +10,7 @@ namespace {
 Preferences prefs;
 
 // Should always keep non-DST time
-ESP32Time rtc{3600 * 2};  // GMT+2
+ESP32Time rtc{0};
 // EEST DST rules: last Sunday of March to last Sunday of October
 flex_DST dst{5, 3, 5, 10};
 
