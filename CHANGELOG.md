@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License GPL v2
 - FreeRTOS instead of cooperative loop
 - Decrease CPU frequency to 10 MHz
+- Store settings as non-volatile preferences
 
 ### Removed
 

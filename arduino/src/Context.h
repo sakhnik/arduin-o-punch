@@ -16,10 +16,7 @@ public:
     int8_t Setup();
 
     static constexpr const uint8_t KEY_SIZE = 6;
-    const uint8_t* GetKey() const
-    {
-        return _data._key;
-    }
+    const uint8_t* GetKey() const { return _key; }
     bool IsKeyDefault() const;
     void OnNewKey(const uint8_t *key);
 
@@ -28,54 +25,30 @@ public:
     void SetClock(uint32_t clock);
     void SetDateTime(uint32_t timestamp);
 
-    uint8_t GetId() const
-    {
-        return _data._id;
-    }
+    uint8_t GetId() const { return _id; }
     void SetId(uint8_t id);
 
-    AOP::Recorder& GetRecorder()
-    {
-        return _recorder;
-    }
+    AOP::Recorder& GetRecorder() { return _recorder; }
 
-    int8_t GetRecordRetainDays() const
-    {
-        return _data._record_retain_days;
-    }
-
+    int8_t GetRecordRetainDays() const { return _record_retain_days; }
     void SetRecordRetainDays(uint8_t days);
 
-    const char *GetWifiSsid() const
-    {
-        return _data._wifi_ssid;
-    }
-
+    const char *GetWifiSsid() const { return _wifi_ssid.c_str(); }
     void SetWifiSsid(const char *ssid);
 
-    const char *GetWifiPass() const
-    {
-        return _data._wifi_pass;
-    }
-
+    const char *GetWifiPass() const { return _wifi_pass.c_str(); }
     void SetWifiPass(const char *pass);
 
 private:
     Buzzer *_buzzer;
 
-    static constexpr const int ADDRESS = sizeof(Buzzer *);
-    struct _Data
-    {
-        uint8_t _id = 1;
-        uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-        uint8_t _reserved0 = 0xff;
-        uint8_t _record_retain_days = 1;
-        char _wifi_ssid[16] = {};
-        char _wifi_pass[16] = {};
-        uint8_t _reserved[7];
-    };
+    uint8_t _id = 1;
+    uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    uint8_t _record_retain_days = 1;
+    String _wifi_ssid;
+    String _wifi_pass;
 
-    _Data _data;
+    static constexpr const int ADDRESS = sizeof(Buzzer *);
     AOP::Recorder _recorder;
 
     friend struct RecorderAccess;
