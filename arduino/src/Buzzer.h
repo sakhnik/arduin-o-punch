@@ -31,7 +31,6 @@ public:
 
     void ConfirmPunch();
     void SignalDefaultKey();
-    void SignalRTCFail();
     void SignalCardFull();
     void SignalOk();
     void SignalBluetooth();

@@ -1,6 +1,6 @@
 #include "Context.h"
 #include "Buzzer.h"
-#include <RTClib.h>
+#include <ESP32Time.h>
 #include <flex_DST.h>
 #include <stddef.h>
 #include <Preferences.h>
@@ -10,7 +10,7 @@ namespace {
 Preferences prefs;
 
 // Should always keep non-DST time
-RTC_DS3231 rtc;
+ESP32Time rtc{3600 * 2};  // GMT+2
 // EEST DST rules: last Sunday of March to last Sunday of October
 flex_DST dst{5, 3, 5, 10};
 
@@ -58,19 +58,12 @@ int8_t Context::Setup()
     _wifi_pass = prefs.getString(PREF_WIFI_PASS);
     prefs.end();
 
-    if (!rtc.begin()) {
-        Serial.println("Couldn't find RTC");
-        Serial.flush();
-        _buzzer->SignalRTCFail();
-        return -1;
-    }
-
     // Restore current record
     _recorder.Setup(0, EEPROM_SIZE);
 
     if (_record_retain_days > 0) {
         // If record is older than the retain period, reformat.
-        uint32_t timestamp = rtc.now().unixtime();
+        uint32_t timestamp = rtc.getEpoch();
         uint16_t cur_day = timestamp / _recorder.SECONDS_IN_DAY;
         if (cur_day - _recorder.GetFormatDay() >= _record_retain_days) {
             _recorder.Format(_recorder.GetSize(), _recorder.GetBitsPerRecord(), timestamp);
@@ -99,13 +92,13 @@ void Context::OnNewKey(const uint8_t *key)
 
 DateTime Context::GetDateTime() const
 {
-    return dst.calculateTime(rtc.now());
+    return dst.calculateTime(DateTime{rtc.getEpoch()});
 }
 
 uint32_t Context::GetClock(const DateTime *date_time) const
 {
     if (!date_time) {
-        auto now = dst.calculateTime(rtc.now());
+        auto now = GetDateTime();
         return GetClock(&now);
     }
     // TODO: subsecond resolution
@@ -119,7 +112,7 @@ uint32_t Context::GetClock(const DateTime *date_time) const
 
 void Context::SetClock(uint32_t clock)
 {
-    auto now = dst.calculateTime(rtc.now());
+    auto now = GetDateTime();
     //auto ms = clock % 1000;
     clock /= 1000;
     auto sec = clock % 60;
@@ -130,7 +123,7 @@ void Context::SetClock(uint32_t clock)
     if (dst.checkDST(adjusted)) {
         adjusted = adjusted.unixtime() - 3600;
     }
-    rtc.adjust(adjusted);
+    rtc.setTime(adjusted.unixtime());
 }
 
 void Context::SetDateTime(uint32_t timestamp)
@@ -139,7 +132,7 @@ void Context::SetDateTime(uint32_t timestamp)
     if (dst.checkDST(adjusted)) {
         adjusted = adjusted.unixtime() - 3600;
     }
-    rtc.adjust(adjusted);
+    rtc.setTime(adjusted.unixtime());
 }
 
 void Context::SetId(uint8_t id)
