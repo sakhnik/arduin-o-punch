@@ -53,7 +53,7 @@ int8_t Context::Setup()
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
     prefs.getBytes(PREF_KEY, _key, KEY_SIZE);
-    _id = prefs.getUChar(PREF_RECDAYS, 1);
+    _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID);
     _wifi_pass = prefs.getString(PREF_WIFI_PASS);
     prefs.end();
