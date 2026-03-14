@@ -68,6 +68,9 @@ void AdvanceOperationMode()
     }
 }
 
+// Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
+static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN};
+
 static void EnterSleep()
 {
     //esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000);
@@ -88,8 +91,6 @@ static void EnterSleep()
     high_z(SCK);
     high_z(SS);
 
-    // Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
-    static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN};
     for (int pin : HIGH_PINS) {
         pinMode(pin, OUTPUT);
         digitalWrite(pin, HIGH);
@@ -107,6 +108,11 @@ static void EnterSleep()
 
 void setup()
 {
+    gpio_deep_sleep_hold_dis();
+    for (int pin : HIGH_PINS) {
+        gpio_hold_dis(static_cast<gpio_num_t>(pin));
+    }
+
     pinMode(LED_CONFIRM_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(MOSFET_PIN, OUTPUT);
