@@ -4,10 +4,22 @@
 #include "PunchCard.h"
 #include "Buzzer.h"
 
+#include <MFRC522v2.h>
+#include <MFRC522DriverSPI.h>
+#include <MFRC522DriverPinSimple.h>
+
 //#define LOGGER
 #ifdef LOGGER
 #include "Logger.h"
 #endif
+
+namespace {
+
+MFRC522DriverPinSimple ss_pin = SS;
+MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
+MFRC522 mfrc522{driver};  // Create MFRC522 instance.
+
+} //namespace;
 
 Puncher::Puncher(Context &context)
     : _context{context}
