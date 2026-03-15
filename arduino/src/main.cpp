@@ -8,7 +8,8 @@
 #include "Network.h"
 #include "OutMux.h"
 #include <esp_sleep.h>
-#include "driver/gpio.h"
+#include <driver/gpio.h>
+#include <SPI.h>
 
 #define uS_TO_S_FACTOR 1000000  // Conversion factor for micro seconds to seconds
 #define TIME_TO_SLEEP 10        // Time ESP32 will sleep (in seconds)
@@ -19,7 +20,7 @@ Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
 
-unsigned long long activityTimeout = 10ul * 1 * 1000;
+unsigned long long activityTimeout = 60ul * 1 * 1000;
 unsigned long long prevCardTime = 0;
 
 enum OperationMode
@@ -113,8 +114,6 @@ void setup()
         gpio_hold_dis(static_cast<gpio_num_t>(pin));
     }
 
-    pinMode(LED_CONFIRM_PIN, OUTPUT);
-    pinMode(BUZZER_PIN, OUTPUT);
     pinMode(MOSFET_PIN, OUTPUT);
     pinMode(WAKEUP_PIN, INPUT_PULLUP);
 
