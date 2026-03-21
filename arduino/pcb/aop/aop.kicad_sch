@@ -2603,6 +2603,16 @@
 	)
 	(wire
 		(pts
+			(xy 59.69 82.55) (xy 74.93 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "329f1289-6c42-4506-abee-deb6dffcdac7")
+	)
+	(wire
+		(pts
 			(xy 72.39 95.25) (xy 74.93 95.25)
 		)
 		(stroke
@@ -2730,16 +2740,6 @@
 			(type default)
 		)
 		(uuid "82f2b7f2-72e2-409d-97d4-53527a70d500")
-	)
-	(wire
-		(pts
-			(xy 59.69 82.55) (xy 74.93 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "87ccc412-97b1-4c95-a5ca-717fb7b990f5")
 	)
 	(wire
 		(pts
@@ -2889,7 +2889,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
 			(at 38.608 82.55 90)
 			(effects
 				(font
@@ -2923,7 +2923,7 @@
 			(uuid "901596b3-113e-4b35-9d17-73a42c3a229f")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "R3")
 					(unit 1)
@@ -2989,7 +2989,7 @@
 			(uuid "9ec1c142-d338-428d-9cb6-ca3d795fdcd7")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR011")
 					(unit 1)
@@ -3055,7 +3055,7 @@
 			(uuid "f616b59d-cbb8-48c7-bf29-eb3a2fad04b1")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR03")
 					(unit 1)
@@ -3354,7 +3354,7 @@
 			(uuid "e089fe2e-a399-437c-96bc-d295f84714b3")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "U1")
 					(unit 1)
@@ -3390,7 +3390,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
 			(at 123.952 91.44 90)
 			(effects
 				(font
@@ -3424,7 +3424,7 @@
 			(uuid "47e91dd3-43fe-4b86-9607-6bd5d07b88c5")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "R2")
 					(unit 1)
@@ -3490,7 +3490,7 @@
 			(uuid "8b50e454-b217-4104-8809-3dee011b4bef")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR08")
 					(unit 1)
@@ -3561,7 +3561,7 @@
 			(uuid "5e7c69be-92fc-4441-9701-af971a100f9d")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "BZ1")
 					(unit 1)
@@ -3595,7 +3595,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0414_L11.9mm_D4.5mm_P15.24mm_Horizontal"
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical"
 			(at 54.61 67.31 0)
 			(effects
 				(font
@@ -3629,7 +3629,7 @@
 			(uuid "9e2acd19-f9e9-4b19-8f3e-986a984111d4")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "SW1")
 					(unit 1)
@@ -3695,7 +3695,7 @@
 			(uuid "e93c37c1-4c3d-476d-bf06-e1f2c41c6259")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR01")
 					(unit 1)
@@ -3761,7 +3761,7 @@
 			(uuid "ce81a8a5-c138-48c4-ada7-406696f6872e")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR09")
 					(unit 1)
@@ -3829,7 +3829,7 @@
 			(uuid "344b90de-35b8-40c7-afcd-274ecef9794a")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "J1")
 					(unit 1)
@@ -3895,7 +3895,7 @@
 			(uuid "d582d2f7-a17e-452f-a85c-5f8f56657f8e")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR05")
 					(unit 1)
@@ -4084,7 +4084,7 @@
 			(uuid "3ff1a9dd-8f7b-4118-bc58-555e50f5385d")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "Q1")
 					(unit 1)
@@ -4150,7 +4150,7 @@
 			(uuid "1f1c9101-d881-49c3-a1bb-973f442f4b3d")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR012")
 					(unit 1)
@@ -4186,7 +4186,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RFID-RC522"
+		(property "Footprint" "RFID-RC522:RFID-RC522_1"
 			(at 143.51 120.65 0)
 			(effects
 				(font
@@ -4379,7 +4379,7 @@
 			(uuid "00dd0a68-b7ce-4a83-8d99-e3040925cfd8")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "M1")
 					(unit 1)
@@ -4415,7 +4415,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "LED_THT:LED_D3.0mm"
+		(property "Footprint" "LED_SMD:LED_1206_3216Metric"
 			(at 36.83 74.93 0)
 			(effects
 				(font
@@ -4458,7 +4458,7 @@
 			(uuid "054f8cfb-4b04-4579-bb57-bcd358c1101e")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "D1")
 					(unit 1)
@@ -4524,7 +4524,7 @@
 			(uuid "258f0d77-1c41-4781-bf1b-5a6cd855c910")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR04")
 					(unit 1)
@@ -4590,7 +4590,7 @@
 			(uuid "049847ad-d24d-40de-b114-7129a4abee4d")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR07")
 					(unit 1)
@@ -4656,7 +4656,7 @@
 			(uuid "f98bc730-3270-4664-b5c0-3d8284932f86")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "#PWR010")
 					(unit 1)
@@ -4690,7 +4690,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal"
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
 			(at 119.38 73.152 90)
 			(effects
 				(font
@@ -4724,7 +4724,7 @@
 			(uuid "4ef6f1ba-42c4-4574-a984-067a84db09de")
 		)
 		(instances
-			(project ""
+			(project "aop"
 				(path "/6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
 					(reference "R1")
 					(unit 1)
