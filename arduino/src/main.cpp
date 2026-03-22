@@ -21,7 +21,7 @@ Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
 
-unsigned long long activityTimeout = 60ul * 1 * 1000;
+unsigned long long activityTimeout = 60ul * 5 * 1000;
 unsigned long long prevCardTime = 0;
 
 enum OperationMode
