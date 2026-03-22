@@ -186,10 +186,12 @@ void loop()
     }*/
 
     if (res == ErrorCode::CARD_IS_FULL) {
+        prevCardTime = millis();
         buzzer.SignalCardFull();
     }
 
     if (res == ErrorCode::SERVICE_CARD) {
+        prevCardTime = millis();
         AdvanceOperationMode();
     }
 
