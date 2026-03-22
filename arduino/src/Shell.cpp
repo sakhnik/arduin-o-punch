@@ -98,6 +98,10 @@ void Shell::_Task()
                 taskYIELD();
             }
 
+            // Trim whitespace from the right
+            while (buffer.length() > 0 && (buffer.endsWith("\r") || buffer.endsWith("\n")))
+                buffer.remove(buffer.length() - 1);
+
             // Trim leading whitespace
             unsigned idx = 0;
             while (idx < buffer.length() &&
