@@ -2,7 +2,6 @@
 #include "Context.h"
 #include "Shell.h"
 #include "Buzzer.h"
-#include "CpuFreq.h"
 #include "Utils.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -83,72 +82,21 @@ void Network::Setup()
 
 void Network::SwitchOn()
 {
-    if (!_is_active) {
-        _Start();
-        _is_active = true;
-    }
+    assert(!_taskHandle);
+
+    _Start();
+
+    xTaskCreate(_TaskEntry, "wifi", 8192, this, 1, &_taskHandle);
 }
 
 void Network::SwitchOff()
 {
-    if (_is_active) {
-        _Stop();
-        _is_active = false;
-    }
-}
+    assert(_taskHandle);
 
-void Network::Tick()
-{
-    if (!_is_active) {
-        return;
-    }
+    _Stop();
 
-    // Signal with dit every second until connected to the network
-    if (WiFi.status() != WL_CONNECTED) {
-        _connection_signalled = false;
-        auto now = millis();
-        if (now - _last_connecting_dit > 1000) {
-            _last_connecting_dit = now;
-            _buzzer.SignalDit();
-        }
-        return;
-    }
-
-    // Confirm connection with dah
-    if (!_connection_signalled) {
-        _connection_signalled = true;
-        _buzzer.SignalPause();
-        _buzzer.SignalPause();
-        Serial.println("Connected");
-        Serial.print("Local IP: ");
-        Serial.println(WiFi.localIP());
-        _buzzer.SignalNumber(WiFi.localIP()[3]);
-        shellServer.begin();
-        webServer.begin();
-    }
-
-    if (!shellClient) {
-        shellClient = shellServer.available();
-        if (shellClient) {
-            _outMux.SetClient(this);
-        }
-    }
-    if (shellClient) {
-        if (!shellClient.connected()) {
-            shellClient.stop();
-            _outMux.SetClient(nullptr);
-        } else {
-            if (shellClient.available()) {
-                uint8_t buf[32];
-                int bytesRead = shellClient.read(buf, sizeof(buf));
-                if (bytesRead > 0) {
-                    _shell.ProcessInput(buf, bytesRead);
-                }
-            }
-        }
-    }
-
-    webServer.handleClient();
+    vTaskDelete(_taskHandle);
+    _taskHandle = nullptr;
 }
 
 bool Network::_Start()
@@ -176,6 +124,85 @@ bool Network::_Stop()
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     return false;
+}
+
+void Network::_TaskEntry(void* arg)
+{
+    static_cast<Network*>(arg)->_Task();
+}
+
+void Network::_Task()
+{
+    while (true) {
+
+        // -------------------------
+        // 1. WAIT FOR CONNECTION
+        // -------------------------
+        if (WiFi.status() != WL_CONNECTED) {
+
+            _connection_signalled = false;
+
+            if (millis() - _last_connecting_dit > 1000) {
+                _last_connecting_dit = millis();
+                _buzzer.SignalDit();
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(100));
+            continue;
+        }
+
+        // -------------------------
+        // 2. ON FIRST CONNECT
+        // -------------------------
+        if (!_connection_signalled) {
+            _connection_signalled = true;
+
+            _buzzer.SignalPause();
+            _buzzer.SignalPause();
+
+            Serial.println("Connected");
+            Serial.print("Local IP: ");
+            Serial.println(WiFi.localIP());
+
+            _buzzer.SignalNumber(WiFi.localIP()[3]);
+
+            shellServer.begin();
+            webServer.begin();
+        }
+
+        // -------------------------
+        // 3. TCP SHELL HANDLING
+        // -------------------------
+        if (!shellClient) {
+            shellClient = shellServer.available();
+            if (shellClient) {
+                _outMux.SetClient(this);
+            }
+        }
+
+        if (shellClient) {
+            if (!shellClient.connected()) {
+                shellClient.stop();
+                _outMux.SetClient(nullptr);
+            } else if (shellClient.available()) {
+                uint8_t buf[32];
+                int n = shellClient.read(buf, sizeof(buf));
+                if (n > 0) {
+                    _shell.ProcessInput(buf, n);
+                }
+            }
+        }
+
+        // -------------------------
+        // 4. HTTP SERVER
+        // -------------------------
+        webServer.handleClient();
+
+        // -------------------------
+        // 5. YIELD CPU
+        // -------------------------
+        vTaskDelay(pdMS_TO_TICKS(2));
+    }
 }
 
 void Network::Write(const uint8_t *buffer, size_t size)

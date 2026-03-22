@@ -1,6 +1,8 @@
 #pragma once
 
 #include "OutMux.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 class Context;
 class Shell;
@@ -15,16 +17,16 @@ public:
     void Setup();
     void SwitchOn();
     void SwitchOff();
-    void Tick();
 
 private:
     OutMux &_outMux;
     Context &_context;
     Shell &_shell;
     Buzzer &_buzzer;
-    bool _is_active = false;
     unsigned long _last_connecting_dit = 0;
     bool _connection_signalled = false;
+    TaskHandle_t _taskHandle = nullptr;
+    SemaphoreHandle_t _wakeSignal = nullptr;
 
     bool _Start();
     bool _Stop();
@@ -32,6 +34,8 @@ private:
     // MuxOut::IClient
     void Write(const uint8_t *buffer, size_t size) override;
 
+    static void _TaskEntry(void* arg);
+    void _Task();
     void _HandleGetSettings();
     void _HandleSettings();
     void _HandleRecord();

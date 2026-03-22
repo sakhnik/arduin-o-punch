@@ -195,8 +195,6 @@ void loop()
         AdvanceOperationMode();
     }
 
-    network.Tick();
-
     if (millis() - prevCardTime >= activityTimeout) {
         EnterSleep();
     }
