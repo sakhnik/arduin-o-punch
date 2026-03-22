@@ -4,6 +4,7 @@
 #include "RingBuffer.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
+#include <atomic>
 
 class Context;
 class Shell;
@@ -22,7 +23,7 @@ private:
     OutMux &_outMux;
     Context &_context;
     Shell &_shell;
-    bool _is_active = false;
+    std::atomic<bool> _stopRequested{false};
     AOP::RingBuffer<1024> _outBuffer;
     unsigned long _last_write_time = 0;
     SemaphoreHandle_t _txMutex = nullptr;

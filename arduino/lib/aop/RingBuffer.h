@@ -9,6 +9,12 @@ template <int capacity>
 class RingBuffer
 {
 public:
+    void Clear()
+    {
+        _head = 0;
+        _size = 0;
+    }
+
     int Size() const
     {
         return _size;

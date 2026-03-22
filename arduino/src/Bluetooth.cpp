@@ -78,18 +78,26 @@ void Bluetooth::Setup()
 
 void Bluetooth::SwitchOn()
 {
-    if (!_is_active) {
-        _Start();
-        _is_active = true;
-    }
+    assert(!_taskHandle);
+
+    _stopRequested.store(false);
+
+    _Start();
 }
 
 void Bluetooth::SwitchOff()
 {
-    if (_is_active) {
-        _Stop();
-        _is_active = false;
+    assert(_taskHandle);
+
+    _stopRequested.store(true);
+    xSemaphoreGive(_txSignal);
+
+    // wait for task to exit
+    while (_taskHandle) {
+        vTaskDelay(1);
     }
+
+    _Stop();
 }
 
 void Bluetooth::_TaskEntry(void* arg)
@@ -99,12 +107,12 @@ void Bluetooth::_TaskEntry(void* arg)
 
 void Bluetooth::_Task()
 {
-    while (_is_active) {
+    while (!_stopRequested.load()) {
 
         // Wait until there is something to send
         xSemaphoreTake(_txSignal, portMAX_DELAY);
 
-        while (_is_active) {
+        while (!_stopRequested.load()) {
 
             // --- get chunk safely ---
             xSemaphoreTake(_txMutex, portMAX_DELAY);
@@ -125,6 +133,7 @@ void Bluetooth::_Task()
         }
     }
 
+    _taskHandle = nullptr;
     vTaskDelete(nullptr);
 }
 
@@ -152,9 +161,9 @@ bool Bluetooth::_Start()
     adv->setName(localName);
     adv->start();
 
+    _outBuffer.Clear();
     _outMux.SetClient(this);
 
-    _is_active = true;
     xTaskCreate(_TaskEntry, "ble_tx", 4096, this, 2, &_taskHandle);
 
     Serial.println("BLE started");
@@ -163,13 +172,6 @@ bool Bluetooth::_Start()
 
 bool Bluetooth::_Stop()
 {
-    _is_active = false;
-
-    if (_taskHandle) {
-        vTaskDelete(_taskHandle);
-        _taskHandle = nullptr;
-    }
-
     _outMux.SetClient(nullptr);
 
     if (server) {
@@ -185,7 +187,7 @@ bool Bluetooth::_Stop()
 
 void Bluetooth::Write(const uint8_t *buffer, size_t size)
 {
-    if (!_is_active) {
+    if (_stopRequested.load() || !_taskHandle) {
         return;
     }
 
