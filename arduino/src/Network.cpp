@@ -153,7 +153,6 @@ void Network::Tick()
 
 bool Network::_Start()
 {
-    SetCpuFreq(80);
     char hostname[64] = "aop";
     *AOP::PrintNum(_context.GetId(), hostname + 3) = 0;
     Serial.print("hostname: ");
@@ -176,7 +175,6 @@ bool Network::_Stop()
     webServer.stop();
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
-    SetCpuFreq(10);
     return false;
 }
 

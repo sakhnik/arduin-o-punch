@@ -7,6 +7,7 @@
 #include "Bluetooth.h"
 #include "Network.h"
 #include "OutMux.h"
+#include "CpuFreq.h"
 #include <esp_sleep.h>
 #include <driver/gpio.h>
 #include <SPI.h>
@@ -51,13 +52,16 @@ void AdvanceOperationMode()
     operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
     switch (operation_mode) {
     case OM_NORMAL:
+        SetCpuFreq(10);
         buzzer.SignalOk();
         break;
     case OM_BLUETOOTH:
+        SetCpuFreq(80);
         buzzer.SignalBluetooth();
         bluetooth.SwitchOn();
         break;
     case OM_WIFI:
+        SetCpuFreq(80);
         // It takes a second or so to initialize WiFi. The CPU will be busy.
         // Play a confirmation melody only after that to avoid distortion.
         network.SwitchOn();

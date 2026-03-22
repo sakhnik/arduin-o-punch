@@ -1,7 +1,6 @@
 #include "Bluetooth.h"
 #include "Context.h"
 #include "Shell.h"
-#include "CpuFreq.h"
 #include "Utils.h"
 
 #include <Arduino.h>
@@ -112,8 +111,6 @@ void Bluetooth::Tick()
 
 bool Bluetooth::_Start()
 {
-    SetCpuFreq(80);
-
     NimBLEDevice::init("");
 
     *AOP::PrintNum(_context.GetId(), localName + 4) = 0;
@@ -130,8 +127,6 @@ bool Bluetooth::_Start()
     stdinCharacteristic = service->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
     stdoutCharacteristic = service->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
     stdinCharacteristic->setCallbacks(new StdinCallbacks(_shell));
-
-    service->start();
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
     adv->addServiceUUID(SERVICE_UUID);
@@ -155,7 +150,6 @@ bool Bluetooth::_Stop()
     NimBLEDevice::deinit(true);
 
     Serial.println("BLE stopped");
-    SetCpuFreq(10);
 
     return false;
 }
