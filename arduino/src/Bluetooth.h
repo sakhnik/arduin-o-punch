@@ -2,6 +2,8 @@
 
 #include "OutMux.h"
 #include "RingBuffer.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 class Context;
 class Shell;
@@ -15,7 +17,6 @@ public:
     void Setup();
     void SwitchOn();
     void SwitchOff();
-    void Tick();
 
 private:
     OutMux &_outMux;
@@ -24,7 +25,12 @@ private:
     bool _is_active = false;
     AOP::RingBuffer<1024> _outBuffer;
     unsigned long _last_write_time = 0;
+    SemaphoreHandle_t _txMutex = nullptr;
+    SemaphoreHandle_t _txSignal = nullptr;
+    TaskHandle_t _taskHandle = nullptr;
 
+    static void _TaskEntry(void *arg);
+    void _Task();
     bool _Start();
     bool _Stop();
 

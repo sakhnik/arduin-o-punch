@@ -72,6 +72,8 @@ Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
 void Bluetooth::Setup()
 {
     _last_write_time = millis();
+    _txMutex = xSemaphoreCreateMutex();
+    _txSignal = xSemaphoreCreateBinary();
 }
 
 void Bluetooth::SwitchOn()
@@ -90,23 +92,40 @@ void Bluetooth::SwitchOff()
     }
 }
 
-void Bluetooth::Tick()
+void Bluetooth::_TaskEntry(void* arg)
 {
-    if (!_is_active) {
-        return;
-    }
+    static_cast<Bluetooth*>(arg)->_Task();
+}
 
-    // TX pacing
-    auto now = millis();
-    if (now - _last_write_time > 1) {
-        _last_write_time = now;
+void Bluetooth::_Task()
+{
+    while (_is_active) {
 
-        auto chunk = _outBuffer.Get(CHARACTERISTIC_SIZE);
-        if (chunk.size && deviceConnected) {
-            stdoutCharacteristic->setValue(chunk.data, chunk.size);
-            stdoutCharacteristic->notify();
+        // Wait until there is something to send
+        xSemaphoreTake(_txSignal, portMAX_DELAY);
+
+        while (_is_active) {
+
+            // --- get chunk safely ---
+            xSemaphoreTake(_txMutex, portMAX_DELAY);
+            auto chunk = _outBuffer.Get(CHARACTERISTIC_SIZE);
+            xSemaphoreGive(_txMutex);
+
+            if (!chunk.size) {
+                break;
+            }
+
+            if (deviceConnected) {
+                stdoutCharacteristic->setValue(chunk.data, chunk.size);
+                stdoutCharacteristic->notify();
+            }
+
+            // pacing
+            vTaskDelay(pdMS_TO_TICKS(2));
         }
     }
+
+    vTaskDelete(nullptr);
 }
 
 bool Bluetooth::_Start()
@@ -135,12 +154,22 @@ bool Bluetooth::_Start()
 
     _outMux.SetClient(this);
 
+    _is_active = true;
+    xTaskCreate(_TaskEntry, "ble_tx", 4096, this, 2, &_taskHandle);
+
     Serial.println("BLE started");
     return true;
 }
 
 bool Bluetooth::_Stop()
 {
+    _is_active = false;
+
+    if (_taskHandle) {
+        vTaskDelete(_taskHandle);
+        _taskHandle = nullptr;
+    }
+
     _outMux.SetClient(nullptr);
 
     if (server) {
@@ -156,5 +185,13 @@ bool Bluetooth::_Stop()
 
 void Bluetooth::Write(const uint8_t *buffer, size_t size)
 {
+    if (!_is_active) {
+        return;
+    }
+
+    xSemaphoreTake(_txMutex, portMAX_DELAY);
     _outBuffer.Add(buffer, size);
+    xSemaphoreGive(_txMutex);
+
+    xSemaphoreGive(_txSignal);  // wake TX task
 }

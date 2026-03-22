@@ -195,7 +195,6 @@ void loop()
         AdvanceOperationMode();
     }
 
-    bluetooth.Tick();
     network.Tick();
 
     if (millis() - prevCardTime >= activityTimeout) {
