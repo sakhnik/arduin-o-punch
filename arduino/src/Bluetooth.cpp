@@ -5,10 +5,11 @@
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include <memory>
 
 namespace {
 
-static const char* SERVICE_UUID  = "16404bac-eab0-422c-955f-fb13799c00fa";
+static const char* SHELL_SERVICE_UUID  = "16404bac-eab0-422c-955f-fb13799c00fa";
 static const char* STDIN_UUID    = "16404bac-eab1-422c-955f-fb13799c00fa";
 static const char* STDOUT_UUID   = "16404bac-eab2-422c-955f-fb13799c00fa";
 
@@ -23,8 +24,6 @@ bool deviceConnected = false;
 
 char localName[16] = "AOP ";
 
-} // namespace
-
 class StdinCallbacks
     : public NimBLECharacteristicCallbacks
 {
@@ -35,10 +34,7 @@ public:
     {
         std::string value = c->getValue();
         if (!value.empty()) {
-            _shell.ProcessInput(
-                (const uint8_t*)value.data(),
-                value.size()
-            );
+            _shell.ProcessInput(reinterpret_cast<const uint8_t *>(value.data()), value.size());
         }
     }
 
@@ -61,6 +57,21 @@ public:
         NimBLEDevice::startAdvertising();
     }
 };
+
+struct BleContext
+{
+    ServerCallbacks serverCallbacks;
+    StdinCallbacks stdinCallbacks;
+
+    BleContext(Shell &shell)
+        : stdinCallbacks{shell}
+    {
+    }
+};
+
+std::unique_ptr<BleContext> bleContext;
+
+} // namespace
 
 Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
     : _outMux{outMux}
@@ -147,20 +158,22 @@ bool Bluetooth::_Start()
     NimBLEDevice::setDeviceName(localName);
     NimBLEDevice::setMTU(247);
 
-    server = NimBLEDevice::createServer();
-    server->setCallbacks(new ServerCallbacks());
+    bleContext.reset(new BleContext(_shell));
 
-    service = server->createService(SERVICE_UUID);
+    server = NimBLEDevice::createServer();
+    server->setCallbacks(&bleContext->serverCallbacks);
+
+    service = server->createService(SHELL_SERVICE_UUID);
 
     stdinCharacteristic = service->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
     stdinCharacteristic->createDescriptor("2901")->setValue("stdin");
-    stdinCharacteristic->setCallbacks(new StdinCallbacks(_shell));
+    stdinCharacteristic->setCallbacks(&bleContext->stdinCallbacks);
 
     stdoutCharacteristic = service->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
     stdoutCharacteristic->createDescriptor("2901")->setValue("stdout");
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
-    adv->addServiceUUID(SERVICE_UUID);
+    adv->addServiceUUID(SHELL_SERVICE_UUID);
     adv->setName(localName);
     adv->start();
 
@@ -182,6 +195,8 @@ bool Bluetooth::_Stop()
     }
 
     NimBLEDevice::deinit(true);
+
+    bleContext.reset();
 
     Serial.println("BLE stopped");
 
