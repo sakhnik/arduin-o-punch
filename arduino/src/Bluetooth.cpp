@@ -153,8 +153,11 @@ bool Bluetooth::_Start()
     service = server->createService(SERVICE_UUID);
 
     stdinCharacteristic = service->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
-    stdoutCharacteristic = service->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    stdinCharacteristic->createDescriptor("2901")->setValue("stdin");
     stdinCharacteristic->setCallbacks(new StdinCallbacks(_shell));
+
+    stdoutCharacteristic = service->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    stdoutCharacteristic->createDescriptor("2901")->setValue("stdout");
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
     adv->addServiceUUID(SERVICE_UUID);
