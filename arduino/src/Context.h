@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Recorder.h"
-#include <Arduino.h>
 #include <RTClib.h>
+#include <array>
 
 class Buzzer;
 
@@ -16,9 +16,10 @@ public:
     int8_t Setup();
 
     static constexpr const uint8_t KEY_SIZE = 6;
-    const uint8_t* GetKey() const { return _key; }
+    using KeyT = std::array<uint8_t, KEY_SIZE>;
+    const KeyT& GetKey() const { return _key; }
     bool IsKeyDefault() const;
-    void OnNewKey(const uint8_t *key);
+    void OnNewKey(const KeyT &key);
 
     DateTime GetDateTime() const;
     uint32_t GetClock(const DateTime *date_time) const;
@@ -43,7 +44,7 @@ private:
     Buzzer *_buzzer;
 
     uint8_t _id = 1;
-    uint8_t _key[KEY_SIZE] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     uint8_t _record_retain_days = 1;
     String _wifi_ssid;
     String _wifi_pass;

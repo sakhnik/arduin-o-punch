@@ -278,7 +278,7 @@ T ParseNum(const char *&str)
 
 void Shell::SetKey(const char *hex)
 {
-    uint8_t key[Context::KEY_SIZE] = {0};
+    Context::KeyT key = {0};
     for (uint8_t i = 0; i < sizeof(key); ++i) {
         auto d1 = FromHex(*hex++);
         if (d1 == -1)
@@ -293,10 +293,9 @@ void Shell::SetKey(const char *hex)
 
 void Shell::_PrintKey()
 {
-    const uint8_t *key = _context.GetKey();
-    for (uint8_t i = 0; i < Context::KEY_SIZE; ++i) {
+    for (uint8_t b : _context.GetKey()) {
         char buf[3];
-        sprintf(buf, "%02X", key[i]);
+        sprintf(buf, "%02X", static_cast<unsigned>(b));
         _outMux.print(buf);
     }
     _outMux.println();

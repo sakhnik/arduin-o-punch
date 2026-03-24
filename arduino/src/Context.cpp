@@ -52,7 +52,7 @@ int8_t Context::Setup()
 {
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
-    prefs.getBytes(PREF_KEY, _key, KEY_SIZE);
+    prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
     _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID);
     _wifi_pass = prefs.getString(PREF_WIFI_PASS);
@@ -82,11 +82,11 @@ bool Context::IsKeyDefault() const
     return true;
 }
 
-void Context::OnNewKey(const uint8_t *key)
+void Context::OnNewKey(const KeyT &key)
 {
-    memcpy(_key, key, sizeof(_key));
+    _key = key;
     prefs.begin(PREF_CONFIG, false);
-    prefs.putBytes(PREF_KEY, _key, KEY_SIZE);
+    prefs.putBytes(PREF_KEY, _key.data(), KEY_SIZE);
     prefs.end();
 }
 

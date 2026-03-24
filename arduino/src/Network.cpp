@@ -224,7 +224,7 @@ void Network::_HandleGetSettings()
         response += val;
     };
     addSetting("id", String{static_cast<unsigned>(_context.GetId())});
-    const uint8_t *key = _context.GetKey();
+    const auto &key = _context.GetKey();
     char buf[Context::KEY_SIZE * 2 + 1];
     for (int i = 0; i < Context::KEY_SIZE; ++i) {
         sprintf(buf + i*2, "%02X", static_cast<unsigned>(key[i]));

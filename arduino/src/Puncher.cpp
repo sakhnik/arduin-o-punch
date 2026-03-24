@@ -154,7 +154,7 @@ ErrorCode Puncher::Punch()
     } callback;
 
     MifareClassic mifareClassic{mfrc522};
-    AOP::PunchCard punchCard{&mifareClassic, _context.GetKey(), &callback};
+    AOP::PunchCard punchCard{&mifareClassic, _context.GetKey().data(), &callback};
     uint32_t timestamp = _context.GetClock(nullptr) / 1000;
     AOP::Punch punch{_context.GetId(), timestamp};
     auto res = punchCard.Punch(punch);
