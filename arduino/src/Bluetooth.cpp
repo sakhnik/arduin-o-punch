@@ -67,6 +67,10 @@ struct BleContext
         : stdinCallbacks{shell}
     {
     }
+
+    ~BleContext()
+    {
+    }
 };
 
 std::unique_ptr<BleContext> bleContext;
@@ -194,7 +198,13 @@ bool Bluetooth::_Stop()
         server->getAdvertising()->stop();
     }
 
+    if (server)
+        server->setCallbacks(nullptr);
+    if (stdinCharacteristic)
+        stdinCharacteristic->setCallbacks(nullptr);
+
     NimBLEDevice::deinit(true);
+    vTaskDelay(pdMS_TO_TICKS(50));  // Let NimBLE finishes its tasks
 
     bleContext.reset();
 
