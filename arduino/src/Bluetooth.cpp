@@ -120,7 +120,6 @@ Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
 void Bluetooth::Setup()
 {
     _last_write_time = millis();
-    _txMutex = xSemaphoreCreateMutex();
     _txSignal = xSemaphoreCreateBinary();
 }
 
@@ -162,11 +161,7 @@ void Bluetooth::_Task()
 
         while (!_stopRequested.load()) {
 
-            // --- get chunk safely ---
-            xSemaphoreTake(_txMutex, portMAX_DELAY);
-            auto chunk = _outBuffer.Get(CHARACTERISTIC_SIZE);
-            xSemaphoreGive(_txMutex);
-
+            auto chunk = (LockGuard{_txMutex}, _outBuffer.Get(CHARACTERISTIC_SIZE));
             if (!chunk.size) {
                 break;
             }
@@ -273,9 +268,7 @@ void Bluetooth::Write(const uint8_t *buffer, size_t size)
         return;
     }
 
-    xSemaphoreTake(_txMutex, portMAX_DELAY);
-    _outBuffer.Add(buffer, size);
-    xSemaphoreGive(_txMutex);
+    LockGuard{_txMutex}, _outBuffer.Add(buffer, size);
 
     xSemaphoreGive(_txSignal);  // wake TX task
 }

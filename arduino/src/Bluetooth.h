@@ -2,6 +2,7 @@
 
 #include "OutMux.h"
 #include "RingBuffer.h"
+#include "Mutex.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <atomic>
@@ -26,7 +27,7 @@ private:
     std::atomic<bool> _stopRequested{false};
     AOP::RingBuffer<1024> _outBuffer;
     unsigned long _last_write_time = 0;
-    SemaphoreHandle_t _txMutex = nullptr;
+    Mutex _txMutex;
     SemaphoreHandle_t _txSignal = nullptr;
     TaskHandle_t _taskHandle = nullptr;
 
