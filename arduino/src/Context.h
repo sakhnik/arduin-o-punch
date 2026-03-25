@@ -3,6 +3,8 @@
 #include "Recorder.h"
 #include <RTClib.h>
 #include <array>
+#include <functional>
+#include <string_view>
 
 class Buzzer;
 
@@ -35,21 +37,28 @@ public:
     void SetRecordRetainDays(uint8_t days);
 
     const char *GetWifiSsid() const { return _wifi_ssid.c_str(); }
-    void SetWifiSsid(const char *ssid);
+    void SetWifiSsid(std::string_view ssid);
 
     const char *GetWifiPass() const { return _wifi_pass.c_str(); }
     void SetWifiPass(const char *pass);
 
+    using OnChangeT = std::function<void(void)>;
+    size_t Subscribe(OnChangeT);
+    void Unsubscribe(size_t);
+
 private:
     Buzzer *_buzzer;
+    std::array<OnChangeT, 4> watchers = {};
 
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     uint8_t _record_retain_days = 1;
-    String _wifi_ssid;
-    String _wifi_pass;
+    std::string _wifi_ssid;
+    std::string _wifi_pass;
 
     AOP::Recorder _recorder;
+
+    void NotifyWatchers();
 
     friend struct RecorderAccess;
 };

@@ -54,8 +54,8 @@ int8_t Context::Setup()
     _id = prefs.getUChar(PREF_ID, 1);
     prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
     _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
-    _wifi_ssid = prefs.getString(PREF_WIFI_SSID);
-    _wifi_pass = prefs.getString(PREF_WIFI_PASS);
+    _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
+    _wifi_pass = prefs.getString(PREF_WIFI_PASS).c_str();
     prefs.end();
 
     // Restore current record
@@ -84,10 +84,13 @@ bool Context::IsKeyDefault() const
 
 void Context::OnNewKey(const KeyT &key)
 {
-    _key = key;
-    prefs.begin(PREF_CONFIG, false);
-    prefs.putBytes(PREF_KEY, _key.data(), KEY_SIZE);
-    prefs.end();
+    if (_key != key) {
+        _key = key;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putBytes(PREF_KEY, _key.data(), KEY_SIZE);
+        prefs.end();
+        NotifyWatchers();
+    }
 }
 
 DateTime Context::GetDateTime() const
@@ -137,32 +140,68 @@ void Context::SetDateTime(uint32_t timestamp)
 
 void Context::SetId(uint8_t id)
 {
-    _id = id;
-    prefs.begin(PREF_CONFIG, false);
-    prefs.putUChar(PREF_ID, _id);
-    prefs.end();
+    if (_id != id) {
+        _id = id;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putUChar(PREF_ID, _id);
+        prefs.end();
+        NotifyWatchers();
+    }
 }
 
 void Context::SetRecordRetainDays(uint8_t days)
 {
-    _record_retain_days = days;
-    prefs.begin(PREF_CONFIG, false);
-    prefs.putUChar(PREF_RECDAYS, days);
-    prefs.end();
+    if (_record_retain_days != days) {
+        _record_retain_days = days;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putUChar(PREF_RECDAYS, days);
+        prefs.end();
+        NotifyWatchers();
+    }
 }
 
-void Context::SetWifiSsid(const char *ssid)
+void Context::SetWifiSsid(std::string_view ssid)
 {
-    _wifi_ssid = ssid;
-    prefs.begin(PREF_CONFIG, false);
-    prefs.putString(PREF_WIFI_SSID, _wifi_ssid);
-    prefs.end();
+    if (_wifi_ssid != ssid) {
+        _wifi_ssid = ssid;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putString(PREF_WIFI_SSID, _wifi_ssid.c_str());
+        prefs.end();
+        NotifyWatchers();
+    }
 }
 
 void Context::SetWifiPass(const char *pass)
 {
-    _wifi_pass = pass;
-    prefs.begin(PREF_CONFIG, false);
-    prefs.putString(PREF_WIFI_PASS, _wifi_pass);
-    prefs.end();
+    if (_wifi_pass != pass) {
+        _wifi_pass = pass;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putString(PREF_WIFI_PASS, _wifi_pass.c_str());
+        prefs.end();
+        NotifyWatchers();
+    }
+}
+
+size_t Context::Subscribe(OnChangeT on_change)
+{
+    auto it = std::find_if(watchers.begin(), watchers.end(), [](OnChangeT w) { return !w; });
+    if (it != watchers.end()) {
+        *it = on_change;
+    }
+    return it - watchers.begin();
+}
+
+void Context::Unsubscribe(size_t idx)
+{
+    if (idx < watchers.size())
+        watchers[idx] = {};
+}
+
+void Context::NotifyWatchers()
+{
+    for (const auto &w : watchers) {
+        if (w) {
+            w();
+        }
+    }
 }
