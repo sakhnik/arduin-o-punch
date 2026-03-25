@@ -9,20 +9,41 @@
 
 namespace {
 
-static const char* SHELL_SERVICE_UUID  = "16404bac-eab0-422c-955f-fb13799c00fa";
-static const char* STDIN_UUID    = "16404bac-eab1-422c-955f-fb13799c00fa";
-static const char* STDOUT_UUID   = "16404bac-eab2-422c-955f-fb13799c00fa";
+static const char *SHELL_SERVICE_UUID  = "16404bac-eab0-422c-955f-fb13799c00fa";
+static const char *STDIN_UUID    = "16404bac-eab1-422c-955f-fb13799c00fa";
+static const char *STDOUT_UUID   = "16404bac-eab2-422c-955f-fb13799c00fa";
+
+static const char *CONFIG_SERVICE_UUID  = "26404bac-eab0-422c-955f-fb13799c00fa";
+static const char *CONFIG_ID_UUID       = "26404bac-eab1-422c-955f-fb13799c00fa";
+static const char *CONFIG_KEY_UUID      = "26404bac-eab2-422c-955f-fb13799c00fa";
+static const char *CONFIG_WIFISSID_UUID = "26404bac-eab3-422c-955f-fb13799c00fa";
+static const char *CONFIG_WIFIPASS_UUID = "26404bac-eab4-422c-955f-fb13799c00fa";
 
 constexpr const int CHARACTERISTIC_SIZE = 32;
 
-NimBLEServer* server = nullptr;
-NimBLEService* service = nullptr;
-NimBLECharacteristic* stdinCharacteristic = nullptr;
-NimBLECharacteristic* stdoutCharacteristic = nullptr;
+NimBLEServer *server = nullptr;
+NimBLECharacteristic *stdinCharacteristic = nullptr;
+NimBLECharacteristic *stdoutCharacteristic = nullptr;
 
 bool deviceConnected = false;
 
 char localName[16] = "AOP ";
+
+class ServerCallbacks
+    : public NimBLEServerCallbacks
+{
+public:
+    void onConnect(NimBLEServer *server, NimBLEConnInfo &connInfo) override
+    {
+        deviceConnected = true;
+    }
+
+    void onDisconnect(NimBLEServer *server, NimBLEConnInfo &connInfo, int reason) override
+    {
+        deviceConnected = false;
+        NimBLEDevice::startAdvertising();
+    }
+};
 
 class StdinCallbacks
     : public NimBLECharacteristicCallbacks
@@ -42,34 +63,46 @@ private:
     Shell &_shell;
 };
 
-class ServerCallbacks
-    : public NimBLEServerCallbacks
+class ConfigIdCallbacks
+    : public NimBLECharacteristicCallbacks
 {
 public:
-    void onConnect(NimBLEServer *server, NimBLEConnInfo &connInfo) override
+    ConfigIdCallbacks(Context &context) : _context(context) {}
+
+    void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &) override
     {
-        deviceConnected = true;
+        _context.SetId(c->getValue<uint8_t>());
     }
 
-    void onDisconnect(NimBLEServer *server, NimBLEConnInfo &connInfo, int reason) override
+private:
+    Context &_context;
+};
+
+class ConfigKeyCallbacks
+    : public NimBLECharacteristicCallbacks
+{
+public:
+    ConfigKeyCallbacks(Context &context) : _context(context) {}
+
+    void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &) override
     {
-        deviceConnected = false;
-        NimBLEDevice::startAdvertising();
+        std::string value = c->getValue();
+        _context.OnNewKey(value);
     }
+
+private:
+    Context &_context;
 };
 
 struct BleContext
 {
     ServerCallbacks serverCallbacks;
-    StdinCallbacks stdinCallbacks;
+    std::vector<std::unique_ptr<NimBLECharacteristicCallbacks>> characteristicCallbacks;
 
-    BleContext(Shell &shell)
-        : stdinCallbacks{shell}
+    NimBLECharacteristicCallbacks* Manage(std::unique_ptr<NimBLECharacteristicCallbacks> c)
     {
-    }
-
-    ~BleContext()
-    {
+        characteristicCallbacks.emplace_back(std::move(c));
+        return characteristicCallbacks.back().get();
     }
 };
 
@@ -162,22 +195,48 @@ bool Bluetooth::_Start()
     NimBLEDevice::setDeviceName(localName);
     NimBLEDevice::setMTU(247);
 
-    bleContext.reset(new BleContext(_shell));
+    bleContext.reset(new BleContext());
 
     server = NimBLEDevice::createServer();
     server->setCallbacks(&bleContext->serverCallbacks);
 
-    service = server->createService(SHELL_SERVICE_UUID);
-
-    stdinCharacteristic = service->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
+    // Shell service
+    NimBLEService *shellService = server->createService(SHELL_SERVICE_UUID);
+    stdinCharacteristic = shellService->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::WRITE);
     stdinCharacteristic->createDescriptor("2901")->setValue("stdin");
-    stdinCharacteristic->setCallbacks(&bleContext->stdinCallbacks);
-
-    stdoutCharacteristic = service->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    stdinCharacteristic->setCallbacks(bleContext->Manage(std::make_unique<StdinCallbacks>(_shell)));
+    stdoutCharacteristic = shellService->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::NOTIFY);
     stdoutCharacteristic->createDescriptor("2901")->setValue("stdout");
+
+    // Configuration service
+    NimBLEService *configService = server->createService(CONFIG_SERVICE_UUID);
+    auto *idCharacteristic = configService->createCharacteristic(CONFIG_ID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    idCharacteristic->createDescriptor("2901")->setValue("id");
+    {
+        BLE2904 *desc = new BLE2904();
+        desc->setFormat(BLE2904::FORMAT_UINT8);
+        desc->setUnit(0x2700);
+        idCharacteristic->addDescriptor(desc);
+    }
+    idCharacteristic->setValue(_context.GetId());
+    idCharacteristic->setCallbacks(bleContext->Manage(std::make_unique<ConfigIdCallbacks>(_context)));
+
+    auto* keyCharacteristic = configService->createCharacteristic(CONFIG_KEY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    keyCharacteristic->createDescriptor("2901")->setValue("key");
+
+    auto key = _context.GetKey();
+    keyCharacteristic->setValue(key.data(), key.size());
+    keyCharacteristic->setCallbacks(bleContext->Manage(std::make_unique<ConfigKeyCallbacks>(_context)));
+
+    _context.Subscribe([&]() {
+        idCharacteristic->setValue(_context.GetId());
+        auto key = _context.GetKey();
+        keyCharacteristic->setValue(key.data(), key.size());
+    });
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
     adv->addServiceUUID(SHELL_SERVICE_UUID);
+    adv->addServiceUUID(CONFIG_SERVICE_UUID);
     adv->setName(localName);
     adv->start();
 
@@ -197,11 +256,6 @@ bool Bluetooth::_Stop()
     if (server) {
         server->getAdvertising()->stop();
     }
-
-    if (server)
-        server->setCallbacks(nullptr);
-    if (stdinCharacteristic)
-        stdinCharacteristic->setCallbacks(nullptr);
 
     NimBLEDevice::deinit(true);
     vTaskDelay(pdMS_TO_TICKS(50));  // Let NimBLE finishes its tasks

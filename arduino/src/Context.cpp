@@ -82,8 +82,10 @@ bool Context::IsKeyDefault() const
     return true;
 }
 
-void Context::OnNewKey(const KeyT &key)
+void Context::OnNewKey(std::string_view skey)
 {
+    KeyT key = {};
+    memcpy(key.data(), skey.data(), std::min(KEY_SIZE, skey.size()));
     if (_key != key) {
         _key = key;
         prefs.begin(PREF_CONFIG, false);

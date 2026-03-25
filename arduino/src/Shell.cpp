@@ -278,15 +278,15 @@ T ParseNum(const char *&str)
 
 void Shell::SetKey(const char *hex)
 {
-    Context::KeyT key = {0};
-    for (uint8_t i = 0; i < sizeof(key); ++i) {
+    std::string key;
+    for (uint8_t i = 0; ; ++i) {
         auto d1 = FromHex(*hex++);
         if (d1 == -1)
             break;
         auto d2 = FromHex(*hex++);
         if (d2 == -1)
             break;
-        key[i] = (d1 << 4) | d2;
+        key.push_back((d1 << 4) | d2);
     }
     _context.OnNewKey(key);
 }

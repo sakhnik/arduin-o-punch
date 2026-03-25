@@ -17,11 +17,11 @@ public:
 
     int8_t Setup();
 
-    static constexpr const uint8_t KEY_SIZE = 6;
+    static constexpr const size_t KEY_SIZE = 6;
     using KeyT = std::array<uint8_t, KEY_SIZE>;
     const KeyT& GetKey() const { return _key; }
     bool IsKeyDefault() const;
-    void OnNewKey(const KeyT &key);
+    void OnNewKey(std::string_view key);
 
     DateTime GetDateTime() const;
     uint32_t GetClock(const DateTime *date_time) const;
