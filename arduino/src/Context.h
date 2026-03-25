@@ -40,7 +40,7 @@ public:
     void SetWifiSsid(std::string_view ssid);
 
     const char *GetWifiPass() const { return _wifi_pass.c_str(); }
-    void SetWifiPass(const char *pass);
+    void SetWifiPass(std::string_view pass);
 
     using OnChangeT = std::function<void(void)>;
     size_t Subscribe(OnChangeT);

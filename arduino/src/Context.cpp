@@ -173,7 +173,7 @@ void Context::SetWifiSsid(std::string_view ssid)
     }
 }
 
-void Context::SetWifiPass(const char *pass)
+void Context::SetWifiPass(std::string_view pass)
 {
     if (_wifi_pass != pass) {
         _wifi_pass = pass;
