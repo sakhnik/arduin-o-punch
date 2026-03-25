@@ -45,53 +45,21 @@ public:
     }
 };
 
-class StdinCallbacks
+class Callbacks
     : public NimBLECharacteristicCallbacks
 {
 public:
-    StdinCallbacks(Shell &shell) : _shell(shell) {}
+    using FuncT = std::function<void(void)>;
 
-    void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &connInfo) override
+    Callbacks(FuncT func) : _func{func} {}
+
+    void onWrite(NimBLECharacteristic *, NimBLEConnInfo &) override
     {
-        std::string value = c->getValue();
-        if (!value.empty()) {
-            _shell.ProcessInput(reinterpret_cast<const uint8_t *>(value.data()), value.size());
-        }
+        _func();
     }
 
 private:
-    Shell &_shell;
-};
-
-class ConfigIdCallbacks
-    : public NimBLECharacteristicCallbacks
-{
-public:
-    ConfigIdCallbacks(Context &context) : _context(context) {}
-
-    void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &) override
-    {
-        _context.SetId(c->getValue<uint8_t>());
-    }
-
-private:
-    Context &_context;
-};
-
-class ConfigKeyCallbacks
-    : public NimBLECharacteristicCallbacks
-{
-public:
-    ConfigKeyCallbacks(Context &context) : _context(context) {}
-
-    void onWrite(NimBLECharacteristic *c, NimBLEConnInfo &) override
-    {
-        std::string value = c->getValue();
-        _context.OnNewKey(value);
-    }
-
-private:
-    Context &_context;
+    FuncT _func;
 };
 
 struct BleContext
@@ -195,11 +163,20 @@ bool Bluetooth::_Start()
     server = NimBLEDevice::createServer();
     server->setCallbacks(&bleContext->serverCallbacks);
 
+    auto setCb = [&](NimBLECharacteristic *c, auto func) {
+        c->setCallbacks(bleContext->Manage(std::make_unique<Callbacks>([=]() { func(); })));
+    };
+
     // Shell service
     NimBLEService *shellService = server->createService(SHELL_SERVICE_UUID);
     stdinCharacteristic = shellService->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::WRITE);
     stdinCharacteristic->createDescriptor("2901")->setValue("stdin");
-    stdinCharacteristic->setCallbacks(bleContext->Manage(std::make_unique<StdinCallbacks>(_shell)));
+    setCb(stdinCharacteristic, [&]() {
+        std::string value = stdinCharacteristic->getValue();
+        if (!value.empty()) {
+            _shell.ProcessInput(reinterpret_cast<const uint8_t *>(value.data()), value.size());
+        }
+    });
     stdoutCharacteristic = shellService->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::NOTIFY);
     stdoutCharacteristic->createDescriptor("2901")->setValue("stdout");
 
@@ -214,14 +191,19 @@ bool Bluetooth::_Start()
         idCharacteristic->addDescriptor(desc);
     }
     idCharacteristic->setValue(_context.GetId());
-    idCharacteristic->setCallbacks(bleContext->Manage(std::make_unique<ConfigIdCallbacks>(_context)));
+    setCb(idCharacteristic, [&]() {
+        _context.SetId(idCharacteristic->getValue<uint8_t>());
+    });
 
     auto* keyCharacteristic = configService->createCharacteristic(CONFIG_KEY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
     keyCharacteristic->createDescriptor("2901")->setValue("key");
 
     auto key = _context.GetKey();
     keyCharacteristic->setValue(key.data(), key.size());
-    keyCharacteristic->setCallbacks(bleContext->Manage(std::make_unique<ConfigKeyCallbacks>(_context)));
+    setCb(keyCharacteristic, [&]() {
+        std::string value = keyCharacteristic->getValue();
+        _context.OnNewKey(value);
+    });
 
     _context.Subscribe([&]() {
         idCharacteristic->setValue(_context.GetId());
