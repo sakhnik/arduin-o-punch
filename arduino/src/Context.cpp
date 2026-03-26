@@ -186,6 +186,7 @@ void Context::SetWifiPass(std::string_view pass)
 
 size_t Context::Subscribe(OnChangeT on_change)
 {
+    LockGuard lock{_watchersMx};
     auto it = std::find_if(watchers.begin(), watchers.end(), [](OnChangeT w) { return !w; });
     if (it != watchers.end()) {
         *it = on_change;
@@ -195,12 +196,14 @@ size_t Context::Subscribe(OnChangeT on_change)
 
 void Context::Unsubscribe(size_t idx)
 {
+    LockGuard lock{_watchersMx};
     if (idx < watchers.size())
         watchers[idx] = {};
 }
 
 void Context::NotifyWatchers()
 {
+    LockGuard lock{_watchersMx};
     for (const auto &w : watchers) {
         if (w) {
             w();

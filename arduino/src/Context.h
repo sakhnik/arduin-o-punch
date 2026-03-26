@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Recorder.h"
+#include "Mutex.h"
+
 #include <RTClib.h>
 #include <array>
 #include <functional>
@@ -48,6 +50,7 @@ public:
 
 private:
     Buzzer *_buzzer;
+    Mutex _watchersMx;
     std::array<OnChangeT, 4> watchers = {};
 
     uint8_t _id = 1;
