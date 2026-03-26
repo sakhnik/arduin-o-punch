@@ -9,9 +9,9 @@
 
 namespace {
 
-static const char *SHELL_SERVICE_UUID  = "16404bac-eab0-422c-955f-fb13799c00fa";
-static const char *STDIN_UUID    = "16404bac-eab1-422c-955f-fb13799c00fa";
-static const char *STDOUT_UUID   = "16404bac-eab2-422c-955f-fb13799c00fa";
+static const char *SHELL_SERVICE_UUID   = "16404bac-eab0-422c-955f-fb13799c00fa";
+static const char *SHELL_STDIN_UUID     = "16404bac-eab1-422c-955f-fb13799c00fa";
+static const char *SHELL_STDOUT_UUID    = "16404bac-eab2-422c-955f-fb13799c00fa";
 
 static const char *CONFIG_SERVICE_UUID  = "26404bac-eab0-422c-955f-fb13799c00fa";
 static const char *CONFIG_ID_UUID       = "26404bac-eab1-422c-955f-fb13799c00fa";
@@ -19,11 +19,11 @@ static const char *CONFIG_KEY_UUID      = "26404bac-eab2-422c-955f-fb13799c00fa"
 static const char *CONFIG_WIFISSID_UUID = "26404bac-eab3-422c-955f-fb13799c00fa";
 static const char *CONFIG_WIFIPASS_UUID = "26404bac-eab4-422c-955f-fb13799c00fa";
 
-constexpr const int CHARACTERISTIC_SIZE = 32;
+constexpr const int CHUNK_SIZE = 32;
 
 NimBLEServer *server = nullptr;
-NimBLECharacteristic *stdinCharacteristic = nullptr;
-NimBLECharacteristic *stdoutCharacteristic = nullptr;
+NimBLECharacteristic *stdinChr = nullptr;
+NimBLECharacteristic *stdoutChr = nullptr;
 
 bool deviceConnected = false;
 
@@ -129,14 +129,14 @@ void Bluetooth::_Task()
 
         while (!_stopRequested.load()) {
 
-            auto chunk = (LockGuard{_txMutex}, _outBuffer.Get(CHARACTERISTIC_SIZE));
+            auto chunk = (LockGuard{_txMutex}, _outBuffer.Get(CHUNK_SIZE));
             if (!chunk.size) {
                 break;
             }
 
             if (deviceConnected) {
-                stdoutCharacteristic->setValue(chunk.data, chunk.size);
-                stdoutCharacteristic->notify();
+                stdoutChr->setValue(chunk.data, chunk.size);
+                stdoutChr->notify();
             }
 
             // pacing
@@ -168,47 +168,64 @@ bool Bluetooth::_Start()
     };
 
     // Shell service
-    NimBLEService *shellService = server->createService(SHELL_SERVICE_UUID);
-    stdinCharacteristic = shellService->createCharacteristic(STDIN_UUID, NIMBLE_PROPERTY::WRITE);
-    stdinCharacteristic->createDescriptor("2901")->setValue("stdin");
-    setCb(stdinCharacteristic, [&]() {
-        std::string value = stdinCharacteristic->getValue();
+    NimBLEService *shellSvc = server->createService(SHELL_SERVICE_UUID);
+    stdinChr = shellSvc->createCharacteristic(SHELL_STDIN_UUID, NIMBLE_PROPERTY::WRITE);
+    stdinChr->createDescriptor("2901")->setValue("stdin");
+    setCb(stdinChr, [&]() {
+        std::string value = stdinChr->getValue();
         if (!value.empty()) {
             _shell.ProcessInput(reinterpret_cast<const uint8_t *>(value.data()), value.size());
         }
     });
-    stdoutCharacteristic = shellService->createCharacteristic(STDOUT_UUID, NIMBLE_PROPERTY::NOTIFY);
-    stdoutCharacteristic->createDescriptor("2901")->setValue("stdout");
+    stdoutChr = shellSvc->createCharacteristic(SHELL_STDOUT_UUID, NIMBLE_PROPERTY::NOTIFY);
+    stdoutChr->createDescriptor("2901")->setValue("stdout");
 
     // Configuration service
-    NimBLEService *configService = server->createService(CONFIG_SERVICE_UUID);
-    auto *idCharacteristic = configService->createCharacteristic(CONFIG_ID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    idCharacteristic->createDescriptor("2901")->setValue("id");
+    NimBLEService *configSvc = server->createService(CONFIG_SERVICE_UUID);
+    auto *idChr = configSvc->createCharacteristic(CONFIG_ID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    idChr->createDescriptor("2901")->setValue("id");
     {
         BLE2904 *desc = new BLE2904();
         desc->setFormat(BLE2904::FORMAT_UINT8);
         desc->setUnit(0x2700);
-        idCharacteristic->addDescriptor(desc);
+        idChr->addDescriptor(desc);
     }
-    idCharacteristic->setValue(_context.GetId());
-    setCb(idCharacteristic, [&]() {
-        _context.SetId(idCharacteristic->getValue<uint8_t>());
+    idChr->setValue(_context.GetId());
+    setCb(idChr, [&]() {
+        _context.SetId(idChr->getValue<uint8_t>());
     });
 
-    auto* keyCharacteristic = configService->createCharacteristic(CONFIG_KEY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    keyCharacteristic->createDescriptor("2901")->setValue("key");
-
+    auto* keyChr = configSvc->createCharacteristic(CONFIG_KEY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    keyChr->createDescriptor("2901")->setValue("key");
     auto key = _context.GetKey();
-    keyCharacteristic->setValue(key.data(), key.size());
-    setCb(keyCharacteristic, [&]() {
-        std::string value = keyCharacteristic->getValue();
+    keyChr->setValue(key.data(), key.size());
+    setCb(keyChr, [&]() {
+        std::string value = keyChr->getValue();
         _context.OnNewKey(value);
     });
 
+    auto* wifissidChr = configSvc->createCharacteristic(CONFIG_WIFISSID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    wifissidChr->createDescriptor("2901")->setValue("WiFi SSID");
+    wifissidChr->setValue(_context.GetWifiSsid());
+    setCb(wifissidChr, [&]() {
+        std::string value = wifissidChr->getValue();
+        _context.SetWifiSsid(value);
+    });
+
+    auto* wifipassChr = configSvc->createCharacteristic(CONFIG_WIFIPASS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    wifipassChr->createDescriptor("2901")->setValue("WiFi pass");
+    wifipassChr->setValue(_context.GetWifiPass());
+    setCb(wifipassChr, [&]() {
+        std::string value = wifipassChr->getValue();
+        _context.SetWifiPass(value);
+    });
+
     _context.Subscribe([&]() {
-        idCharacteristic->setValue(_context.GetId());
+        idChr->setValue(_context.GetId());
         auto key = _context.GetKey();
-        keyCharacteristic->setValue(key.data(), key.size());
+        keyChr->setValue(key.data(), key.size());
+        wifissidChr->setValue(_context.GetWifiSsid());
+        wifipassChr->setValue(_context.GetWifiPass());
     });
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
