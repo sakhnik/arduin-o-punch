@@ -65,12 +65,22 @@ private:
 struct BleContext
 {
     ServerCallbacks serverCallbacks;
-    std::vector<std::unique_ptr<NimBLECharacteristicCallbacks>> characteristicCallbacks;
+    std::vector<NimBLECharacteristic *> chrs;
+    std::vector<std::unique_ptr<NimBLECharacteristicCallbacks>> chrCallbacks;
 
-    NimBLECharacteristicCallbacks* Manage(std::unique_ptr<NimBLECharacteristicCallbacks> c)
+    NimBLECharacteristicCallbacks* ManageCb(NimBLECharacteristic *c, std::unique_ptr<NimBLECharacteristicCallbacks> cb)
     {
-        characteristicCallbacks.emplace_back(std::move(c));
-        return characteristicCallbacks.back().get();
+        chrs.push_back(c);
+        chrCallbacks.emplace_back(std::move(cb));
+        return chrCallbacks.back().get();
+    }
+
+    ~BleContext()
+    {
+        // Heap corruption if we don't reset callbacks
+        for (size_t i = 0; i < chrs.size(); ++i) {
+            chrs[i]->setCallbacks(nullptr);
+        }
     }
 };
 
@@ -164,7 +174,7 @@ bool Bluetooth::_Start()
     server->setCallbacks(&bleContext->serverCallbacks);
 
     auto setCb = [&](NimBLECharacteristic *c, auto func) {
-        c->setCallbacks(bleContext->Manage(std::make_unique<Callbacks>([=]() { func(); })));
+        c->setCallbacks(bleContext->ManageCb(c, std::make_unique<Callbacks>([=]() { func(); })));
     };
 
     // Shell service
@@ -249,6 +259,7 @@ bool Bluetooth::_Stop()
 
     if (server) {
         server->getAdvertising()->stop();
+        server->setCallbacks(nullptr);
     }
 
     NimBLEDevice::deinit(true);
