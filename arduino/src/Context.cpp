@@ -153,48 +153,88 @@ void Context::SetDateTime(uint32_t timestamp)
     rtc.setTime(adjusted.unixtime());
 }
 
+uint8_t Context::GetId()
+{
+    LockGuard lock{_dataMx};
+    return _id;
+}
+
 void Context::SetId(uint8_t id)
 {
-    if (_id != id) {
+    {
+        LockGuard lock{_dataMx};
+        if (_id == id)
+            return;
         _id = id;
         prefs.begin(PREF_CONFIG, false);
         prefs.putUChar(PREF_ID, _id);
         prefs.end();
-        NotifyWatchers();
     }
+
+    NotifyWatchers();
+}
+
+int8_t Context::GetRecordRetainDays()
+{
+    LockGuard lock{_dataMx};
+    return _record_retain_days;
 }
 
 void Context::SetRecordRetainDays(uint8_t days)
 {
-    if (_record_retain_days != days) {
+    {
+        LockGuard lock{_dataMx};
+        if (_record_retain_days == days)
+            return;
         _record_retain_days = days;
         prefs.begin(PREF_CONFIG, false);
         prefs.putUChar(PREF_RECDAYS, days);
         prefs.end();
-        NotifyWatchers();
     }
+
+    NotifyWatchers();
+}
+
+std::string Context::GetWifiSsid()
+{
+    LockGuard lock{_dataMx};
+    return _wifi_ssid;
 }
 
 void Context::SetWifiSsid(std::string_view ssid)
 {
-    if (_wifi_ssid != ssid) {
+    {
+        LockGuard lock{_dataMx};
+        if (_wifi_ssid == ssid)
+            return;
         _wifi_ssid = ssid;
         prefs.begin(PREF_CONFIG, false);
         prefs.putString(PREF_WIFI_SSID, _wifi_ssid.c_str());
         prefs.end();
-        NotifyWatchers();
     }
+
+    NotifyWatchers();
+}
+
+std::string Context::GetWifiPass()
+{
+    LockGuard lock{_dataMx};
+    return _wifi_pass;
 }
 
 void Context::SetWifiPass(std::string_view pass)
 {
-    if (_wifi_pass != pass) {
+    {
+        LockGuard lock{_dataMx};
+        if (_wifi_pass == pass)
+            return;
         _wifi_pass = pass;
         prefs.begin(PREF_CONFIG, false);
         prefs.putString(PREF_WIFI_PASS, _wifi_pass.c_str());
         prefs.end();
-        NotifyWatchers();
     }
+
+    NotifyWatchers();
 }
 
 size_t Context::Subscribe(OnChangeT on_change)

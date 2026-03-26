@@ -30,18 +30,18 @@ public:
     void SetClock(uint32_t clock);
     void SetDateTime(uint32_t timestamp);
 
-    uint8_t GetId() const { return _id; }
+    uint8_t GetId();
     void SetId(uint8_t id);
 
     AOP::Recorder& GetRecorder() { return _recorder; }
 
-    int8_t GetRecordRetainDays() const { return _record_retain_days; }
+    int8_t GetRecordRetainDays();
     void SetRecordRetainDays(uint8_t days);
 
-    const char *GetWifiSsid() const { return _wifi_ssid.c_str(); }
+    std::string GetWifiSsid();
     void SetWifiSsid(std::string_view ssid);
 
-    const char *GetWifiPass() const { return _wifi_pass.c_str(); }
+    std::string GetWifiPass();
     void SetWifiPass(std::string_view pass);
 
     using OnChangeT = std::function<void(void)>;

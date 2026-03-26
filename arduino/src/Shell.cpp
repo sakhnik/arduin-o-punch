@@ -430,7 +430,7 @@ void Shell::_SetWifiSsid(const char *str)
 
 void Shell::_PrintWifiSsid()
 {
-    _outMux.println(_context.GetWifiSsid());
+    _outMux.println(_context.GetWifiSsid().c_str());
 }
 
 void Shell::_SetWifiPass(const char *str)
@@ -441,5 +441,5 @@ void Shell::_SetWifiPass(const char *str)
 
 void Shell::_PrintWifiPass()
 {
-    _outMux.println(_context.GetWifiPass());
+    _outMux.println(_context.GetWifiPass().c_str());
 }

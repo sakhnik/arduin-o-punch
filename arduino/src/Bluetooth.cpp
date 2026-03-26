@@ -216,6 +216,12 @@ bool Bluetooth::_Start()
 
     auto* wifissidChr = configSvc->createCharacteristic(CONFIG_WIFISSID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
     wifissidChr->createDescriptor("2901")->setValue("WiFi SSID");
+    {
+        BLE2904 *desc = new BLE2904();
+        desc->setFormat(BLE2904::FORMAT_UTF8);
+        desc->setUnit(0x2700);
+        wifissidChr->addDescriptor(desc);
+    }
     wifissidChr->setValue(_context.GetWifiSsid());
     setCb(wifissidChr, [&]() {
         std::string value = wifissidChr->getValue();
@@ -224,6 +230,12 @@ bool Bluetooth::_Start()
 
     auto* wifipassChr = configSvc->createCharacteristic(CONFIG_WIFIPASS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
     wifipassChr->createDescriptor("2901")->setValue("WiFi pass");
+    {
+        BLE2904 *desc = new BLE2904();
+        desc->setFormat(BLE2904::FORMAT_UTF8);
+        desc->setUnit(0x2700);
+        wifipassChr->addDescriptor(desc);
+    }
     wifipassChr->setValue(_context.GetWifiPass());
     setCb(wifipassChr, [&]() {
         std::string value = wifipassChr->getValue();
