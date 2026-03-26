@@ -68,7 +68,7 @@ struct CliMifare : AOP::IMifare
 
 int main()
 {
-    std::array<uint8_t, AOP::IMifare::KEY_SIZE> key;
+    AOP::IMifare::KeyT key;
 
     std::string line;
     while (getline(std::cin, line)) {
@@ -86,7 +86,7 @@ int main()
             uint32_t timestamp;
             iss >> stationId >> timestamp;
             CliMifare mifare;
-            AOP::PunchCard punchCard{&mifare, key.data()};
+            AOP::PunchCard punchCard{&mifare, key};
             if (auto res = punchCard.Punch(AOP::Punch{static_cast<uint8_t>(stationId), timestamp})) {
                 std::cout << "ERR " << static_cast<unsigned>(res) << std::endl;
             } else {
@@ -96,7 +96,7 @@ int main()
         }
         if (cmd == "CLEAR") {
             CliMifare mifare;
-            AOP::PunchCard punchCard{&mifare, key.data()};
+            AOP::PunchCard punchCard{&mifare, key};
             if (auto res = punchCard.Clear()) {
                 std::cout << "ERR " << static_cast<unsigned>(res) << std::endl;
             } else {

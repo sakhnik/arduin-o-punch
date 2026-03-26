@@ -21,9 +21,9 @@ public:
 
     static constexpr const size_t KEY_SIZE = 6;
     using KeyT = std::array<uint8_t, KEY_SIZE>;
-    const KeyT& GetKey() const { return _key; }
-    bool IsKeyDefault() const;
-    void OnNewKey(std::string_view key);
+    KeyT GetKey();
+    void SetKey(std::string_view key);
+    bool IsKeyDefault();
 
     DateTime GetDateTime() const;
     uint32_t GetClock(const DateTime *date_time) const;
@@ -53,6 +53,7 @@ private:
     Mutex _watchersMx;
     std::array<OnChangeT, 4> watchers = {};
 
+    Mutex _dataMx;
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     uint8_t _record_retain_days = 1;

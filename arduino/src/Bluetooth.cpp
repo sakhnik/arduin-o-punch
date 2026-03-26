@@ -201,7 +201,7 @@ bool Bluetooth::_Start()
     keyChr->setValue(key.data(), key.size());
     setCb(keyChr, [&]() {
         std::string value = keyChr->getValue();
-        _context.OnNewKey(value);
+        _context.SetKey(value);
     });
 
     auto* wifissidChr = configSvc->createCharacteristic(CONFIG_WIFISSID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);

@@ -3,9 +3,7 @@
 #include "IMifare.h"
 #include "ErrorCode.h"
 
-#if defined(BUILD_TEST) || defined(BUILD_WA)
-# include <vector>
-#endif
+#include <vector>
 
 namespace AOP {
 
@@ -68,7 +66,7 @@ public:
         return (IMifare::BLOCK_COUNT / 4 * 3 - 2) * PUNCHES_PER_BLOCK;
     }
 
-    PunchCard(IMifare *, const uint8_t *key, ICallback *callback = nullptr);
+    PunchCard(IMifare *, IMifare::KeyT key, ICallback *callback = nullptr);
 
     // Punch a card with the given information about station and timestamp
     ErrorCode Punch(Punch punch);
@@ -76,17 +74,15 @@ public:
     // Clear previous punches from a card without changing the format information
     ErrorCode Clear();
 
-#if defined(BUILD_TEST) || defined(BUILD_WA)
     ErrorCode Format(uint16_t id, uint8_t startSector = 255);
 
     using PunchesT = std::vector<AOP::Punch>;
     uint8_t ReadOut(PunchesT &);
     void _ReadPunchesFromBlock(uint8_t count, const uint8_t *data, PunchesT &);
-#endif
 
 private:
     IMifare *_mifare;
-    const uint8_t *_key;
+    IMifare::KeyT _key;
     ICallback *_callback;
     uint8_t _auth_sector = 0xff;
 

@@ -288,7 +288,7 @@ void Shell::SetKey(const char *hex)
             break;
         key.push_back((d1 << 4) | d2);
     }
-    _context.OnNewKey(key);
+    _context.SetKey(key);
 }
 
 void Shell::_PrintKey()

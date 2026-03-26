@@ -9,9 +9,9 @@
 
 namespace AOP {
 
-PunchCard::PunchCard(IMifare *mifare, const uint8_t *key, ICallback *callback)
+PunchCard::PunchCard(IMifare *mifare, IMifare::KeyT key, ICallback *callback)
     : _mifare{mifare}
-    , _key{key}
+    , _key{std::move(key)}
     , _callback{callback}
 {
 }
@@ -138,8 +138,6 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
     return 0;
 }
 
-#if defined(BUILD_TEST) || defined(BUILD_WA)
-
 ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
 {
     if (startSector >= _mifare->SECTOR_COUNT) {
@@ -147,7 +145,7 @@ ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
     }
 
     for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
-        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT)) {
+        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT.data())) {
             return res;
         }
         _auth_sector = sector;
@@ -157,9 +155,9 @@ ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
         if (auto res = _mifare->ReadBlock(blockIndex, trailer, dataSize)) {
             return res;
         }
-        memcpy(trailer, _key, IMifare::KEY_SIZE);
+        memcpy(trailer, _key.data(), IMifare::KEY_SIZE);
         // Restore default access bits to use KeyB for data
-        memcpy(trailer + 6, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE);
+        memcpy(trailer + IMifare::KEY_SIZE, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE);
         // Write card ID to KeyB
         trailer[ID_OFFSET] = id & 0xff;
         trailer[ID_OFFSET + 1] = (id >> 8) & 0xff;
@@ -234,12 +232,10 @@ void PunchCard::_ReadPunchesFromBlock(uint8_t count, const uint8_t *data, Punche
     }
 }
 
-#endif //BUILD_TEST
-
 uint8_t PunchCard::_Authenticate(uint8_t sector)
 {
     if (sector != _auth_sector) {
-        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, _key))
+        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, _key.data()))
             return res;
         _auth_sector = sector;
     }

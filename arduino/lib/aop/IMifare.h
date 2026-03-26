@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include <array>
 
 namespace AOP {
 
@@ -12,7 +13,8 @@ struct IMifare
     static constexpr uint8_t BLOCK_COUNT = SECTOR_COUNT * BLOCKS_PER_SECTOR;
 
     static constexpr uint8_t KEY_SIZE = 6;
-    static const uint8_t KEY_DEFAULT[KEY_SIZE];
+    using KeyT = std::array<uint8_t, KEY_SIZE>;
+    static const KeyT KEY_DEFAULT;
     // Default access bits that allow using KeyB for data
     static constexpr uint8_t ACCESS_BITS_SIZE = 3;
     static const uint8_t ACCESS_BITS[ACCESS_BITS_SIZE];

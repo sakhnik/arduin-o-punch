@@ -34,7 +34,7 @@ struct TestMifare : AOP::IMifare
         for (auto &block : blocks)
             block.fill(0);
         for (int sector = 0; sector < 16; ++sector)
-            memcpy(blocks[sector * 4 + 3].data(), IMifare::KEY_DEFAULT, IMifare::KEY_SIZE);
+            memcpy(blocks[sector * 4 + 3].data(), IMifare::KEY_DEFAULT.data(), IMifare::KEY_SIZE);
         blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::SECTOR_OFFSET] = startSector;
     }
 

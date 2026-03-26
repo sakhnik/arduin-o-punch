@@ -73,8 +73,9 @@ int8_t Context::Setup()
     return 0;
 }
 
-bool Context::IsKeyDefault() const
+bool Context::IsKeyDefault()
 {
+    LockGuard lock{_dataMx};
     for (int i = 0; i < KEY_SIZE; ++i) {
         if (_key[i] != 0xff)
             return false;
@@ -82,17 +83,29 @@ bool Context::IsKeyDefault() const
     return true;
 }
 
-void Context::OnNewKey(std::string_view skey)
+Context::KeyT Context::GetKey()
+{
+    LockGuard lock{_dataMx};
+    Serial.println();
+    return _key;
+}
+
+void Context::SetKey(std::string_view skey)
 {
     KeyT key = {};
     memcpy(key.data(), skey.data(), std::min(KEY_SIZE, skey.size()));
-    if (_key != key) {
+
+    {
+        LockGuard lock{_dataMx};
+        if (_key == key)
+            return;
         _key = key;
         prefs.begin(PREF_CONFIG, false);
         prefs.putBytes(PREF_KEY, _key.data(), KEY_SIZE);
         prefs.end();
-        NotifyWatchers();
     }
+
+    NotifyWatchers();
 }
 
 DateTime Context::GetDateTime() const
