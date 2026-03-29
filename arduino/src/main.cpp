@@ -8,12 +8,12 @@
 #include "Network.h"
 #include "OutMux.h"
 #include "CpuFreq.h"
+#include "ActivityCounter.h"
 #include <esp_sleep.h>
 #include <driver/gpio.h>
 #include <SPI.h>
 
-#define uS_TO_S_FACTOR 1000000  // Conversion factor for micro seconds to seconds
-#define TIME_TO_SLEEP 10        // Time ESP32 will sleep (in seconds)
+constexpr const int TIME_TO_SLEEP_MS = 500;
 
 Buzzer buzzer;
 Context context{buzzer};
@@ -78,9 +78,8 @@ static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PI
 
 static void EnterSleep()
 {
-    //esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000);
+    esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
     esp_deep_sleep_enable_gpio_wakeup(1ULL << WAKEUP_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
-    Serial.println("Going to deep sleep");
 
     // stop buses
     SPI.end();
@@ -134,7 +133,7 @@ void setup()
 
     if (context.Setup()) {
         while (true) {
-            vTaskDelay(1000);
+            vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.println(F("Failed to initialize"));
         }
     }
@@ -167,32 +166,43 @@ void setup()
     }
 }
 
-// Don't loop here to make sure serialEvent() is processed.
 void loop()
 {
     digitalWrite(MOSFET_PIN, LOW);
 
-    auto res = puncher.Punch();
-    if (!res) {
-        buzzer.ConfirmPunch();
-        prevCardTime = millis();
-    } /*else {
-        if (res == ErrorCode::NO_CARD) {
-            Serial.print('.');
-        } else {
-            Serial.println((int)res);
-        }
-        Serial.flush();
-    }*/
+    for (int i = 0; i < 2; ++i) {
+        auto res = puncher.Punch();
+        if (!res) {
+            buzzer.ConfirmPunch();
+            prevCardTime = millis();
+        } /*else {
+            if (res == ErrorCode::NO_CARD) {
+                Serial.print('.');
+            } else {
+                Serial.println((int)res);
+            }
+            Serial.flush();
+        }*/
 
-    if (res == ErrorCode::CARD_IS_FULL) {
-        prevCardTime = millis();
-        buzzer.SignalCardFull();
+        if (res == ErrorCode::CARD_IS_FULL) {
+            prevCardTime = millis();
+            buzzer.SignalCardFull();
+        }
+
+        if (res == ErrorCode::SERVICE_CARD) {
+            prevCardTime = millis();
+            AdvanceOperationMode();
+        }
     }
 
-    if (res == ErrorCode::SERVICE_CARD) {
-        prevCardTime = millis();
-        AdvanceOperationMode();
+    if (operation_mode == OM_NORMAL && !ActivityCounter::Instance().IsBusy()) {
+        digitalWrite(MOSFET_PIN, HIGH);
+        //Serial.flush();
+        esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_MS * 1000ull);
+        esp_light_sleep_start();
+        digitalWrite(MOSFET_PIN, LOW);
+        vTaskDelay(pdMS_TO_TICKS(50));
+        puncher.Setup();
     }
 
     if (millis() - prevCardTime >= activityTimeout) {

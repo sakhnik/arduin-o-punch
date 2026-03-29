@@ -1,5 +1,6 @@
 #include "Buzzer.h"
 #include "defs.h"
+#include "ActivityCounter.h"
 #include <Arduino.h>
 
 Buzzer::Buzzer()
@@ -42,6 +43,8 @@ void Buzzer::TaskLoop()
         // Wait for first melody
         if (xQueueReceive(_queue, &melody, portMAX_DELAY) != pdTRUE)
             continue;
+
+        ActivityCounter::Scoped activity;
 
         uint8_t idx = 0;
         uint8_t state = HIGH;
