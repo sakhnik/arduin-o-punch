@@ -242,7 +242,7 @@ bool Bluetooth::_Start()
         _context.SetWifiPass(value);
     });
 
-    _context.Subscribe([&]() {
+    _subscription_handle = _context.Subscribe([&]() {
         idChr->setValue(_context.GetId());
         auto key = _context.GetKey();
         keyChr->setValue(key.data(), key.size());
@@ -268,6 +268,8 @@ bool Bluetooth::_Start()
 bool Bluetooth::_Stop()
 {
     _outMux.SetClient(nullptr);
+    _context.Unsubscribe(_subscription_handle);
+    _subscription_handle = -1;
 
     if (server) {
         server->getAdvertising()->stop();

@@ -30,6 +30,7 @@ private:
     Mutex _txMutex;
     SemaphoreHandle_t _txSignal = nullptr;
     TaskHandle_t _taskHandle = nullptr;
+    size_t _subscription_handle = -1;
 
     static void _TaskEntry(void *arg);
     void _Task();
