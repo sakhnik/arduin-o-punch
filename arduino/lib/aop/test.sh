@@ -4,7 +4,7 @@ cd $(dirname "${BASH_SOURCE[0]}")
 
 build_dir=/tmp/aop-build
 
-cmake -B "$build_dir" -DCMAKE_BUILD_TYPE=Debug .
+cmake -B "$build_dir" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POLICY_VERSION_MINIMUM=3.5 .
 cmake --build "$build_dir"
 if [[ "$1" != "--skip-tests" ]]; then
     ctest -V --test-dir "$build_dir"
