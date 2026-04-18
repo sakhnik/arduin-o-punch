@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Eco mode after inactivity period
 - Deep sleep after inactivity period, wake up on shake
 
 ### Changed

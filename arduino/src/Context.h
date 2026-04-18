@@ -33,6 +33,16 @@ public:
     uint8_t GetId();
     void SetId(uint8_t id);
 
+    // Active polling time before going to the light sleep eco mode
+    uint16_t GetTActS();
+    void SetTActS(uint16_t seconds);
+    uint32_t GetTActMs();
+
+    // Polling with light sleep before going to the deep sleep
+    uint32_t GetTEcoS();
+    void SetTEcoS(uint32_t seconds);
+    uint32_t GetTEcoMs();
+
     AOP::Recorder& GetRecorder() { return _recorder; }
 
     int8_t GetRecordRetainDays();
@@ -56,6 +66,12 @@ private:
     Mutex _dataMx;
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    static constexpr const uint16_t DEFAULT_ACTIVE_SECONDS = 10 * 60;
+    uint16_t _active_seconds = DEFAULT_ACTIVE_SECONDS;
+    uint32_t _active_ms = _active_seconds * 1000;
+    static constexpr const uint32_t DEFAULT_ECO_SECONDS = 3 * 60 * 60;
+    uint32_t _eco_seconds = DEFAULT_ECO_SECONDS;
+    uint32_t _eco_ms = _eco_seconds * 1000;
     uint8_t _record_retain_days = 1;
     std::string _wifi_ssid;
     std::string _wifi_pass;

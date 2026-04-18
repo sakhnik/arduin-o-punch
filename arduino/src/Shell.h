@@ -20,7 +20,9 @@ public:
     void ProcessInput(const uint8_t *data, int size);
     void PutChar(char ch);
 
-    void SetId(const char *param);
+    void SetId(const char *str);
+    void SetActive(const char *str);
+    void SetEco(const char *str);
     void SetKey(const char *hex);
     void RecorderFormat(const char *str);
     void SetRecordRetainDays(const char *str);
@@ -38,6 +40,8 @@ private:
     void _PrintPrompt();
     void _Process(const String &);
     void _PrintId();
+    void _PrintActive();
+    void _PrintEco();
     void _PrintKey();
     void _SetClock(const char *str);
     void _PrintClock(const DateTime &time);

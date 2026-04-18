@@ -34,6 +34,8 @@ struct EepromImpl : AOP::Recorder::IEeprom
 constexpr const char *const PREF_CONFIG = "config";
 constexpr const char *const PREF_ID = "id";
 constexpr const char *const PREF_KEY = "key";
+constexpr const char *const PREF_T_ACT_S = "t-act";
+constexpr const char *const PREF_T_ECO_S = "t-eco";
 constexpr const char *const PREF_RECDAYS = "recdays";
 constexpr const char *const PREF_WIFI_SSID = "wifi-ssid";
 constexpr const char *const PREF_WIFI_PASS = "wifi-pass";
@@ -53,6 +55,10 @@ int8_t Context::Setup()
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
     prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
+    _active_seconds = prefs.getUShort(PREF_T_ACT_S, DEFAULT_ACTIVE_SECONDS);
+    _active_ms = _active_seconds * 1000;
+    _eco_seconds = prefs.getULong(PREF_T_ECO_S, DEFAULT_ECO_SECONDS);
+    _eco_ms = _eco_seconds * 1000;
     _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
     _wifi_pass = prefs.getString(PREF_WIFI_PASS).c_str();
@@ -168,6 +174,62 @@ void Context::SetId(uint8_t id)
         _id = id;
         prefs.begin(PREF_CONFIG, false);
         prefs.putUChar(PREF_ID, _id);
+        prefs.end();
+    }
+
+    NotifyWatchers();
+}
+
+uint16_t Context::GetTActS()
+{
+    LockGuard lock{_dataMx};
+    return _active_seconds;
+}
+
+uint32_t Context::GetTActMs()
+{
+    LockGuard lock{_dataMx};
+    return _active_ms;
+}
+
+void Context::SetTActS(uint16_t seconds)
+{
+    {
+        LockGuard lock{_dataMx};
+        if (_active_seconds == seconds)
+            return;
+        _active_seconds = seconds;
+        _active_ms = _active_seconds * 1000;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putUShort(PREF_T_ACT_S, _active_seconds);
+        prefs.end();
+    }
+
+    NotifyWatchers();
+}
+
+uint32_t Context::GetTEcoS()
+{
+    LockGuard lock{_dataMx};
+    return _eco_seconds;
+}
+
+uint32_t Context::GetTEcoMs()
+{
+    LockGuard lock{_dataMx};
+    return _eco_ms;
+}
+
+void Context::SetTEcoS(uint32_t seconds)
+{
+    {
+        LockGuard lock{_dataMx};
+        if (_eco_seconds == seconds)
+            return;
+        _eco_seconds = seconds;
+        _eco_ms = _eco_seconds * 1000;
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putULong(PREF_T_ECO_S, _eco_seconds);
         prefs.end();
     }
 

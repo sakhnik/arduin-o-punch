@@ -150,6 +150,10 @@ void Shell::_Process(const String &buffer)
         _outMux.println(AOP::PunchCard::FINISH_STATION);
         _outMux.println(F("key               Key"));
         _outMux.println(F("key 112233445566  Set key"));
+        _outMux.println(F("t-act             Active timeout (s)"));
+        _outMux.println(F("t-act 600         Set active timeout (s)"));
+        _outMux.println(F("t-eco             Eco timeout (s)"));
+        _outMux.println(F("t-eco 10800       Set eco timeout (s)"));
         _outMux.println(F("clock             Clock reading (ms)"));
         _outMux.println(F("clock 12345000    Set clock (ms)"));
         _outMux.println(F("date              Current date"));
@@ -173,6 +177,10 @@ void Shell::_Process(const String &buffer)
         _outMux.println(GIT_REVISION);
         _outMux.print(F("id="));
         _PrintId();
+        _outMux.print(F("t-act="));
+        _PrintActive();
+        _outMux.print(F("t-eco="));
+        _PrintEco();
         auto now = _context.GetDateTime();
         _outMux.print(F("date="));
         _PrintDate(now);
@@ -192,6 +200,16 @@ void Shell::_Process(const String &buffer)
         _PrintId();
     } else if (buffer.startsWith(F("id"))) {
         _PrintId();
+    } else if (buffer.startsWith(F("t-act "))) {
+        SetActive(buffer.c_str() + 6);
+        _PrintActive();
+    } else if (buffer.startsWith(F("t-act"))) {
+        _PrintActive();
+    } else if (buffer.startsWith(F("t-eco "))) {
+        SetEco(buffer.c_str() + 6);
+        _PrintEco();
+    } else if (buffer.startsWith(F("t-eco"))) {
+        _PrintEco();
     } else if (buffer.startsWith(F("key "))) {
         SetKey(buffer.c_str() + 4);
         _PrintKey();
@@ -357,6 +375,26 @@ void Shell::_PrintId()
 void Shell::SetId(const char *str)
 {
     _context.SetId(ParseNum<uint8_t>(str));
+}
+
+void Shell::_PrintActive()
+{
+    _outMux.println(_context.GetTActS());
+}
+
+void Shell::SetActive(const char *str)
+{
+    _context.SetTActS(ParseNum<uint16_t>(str));
+}
+
+void Shell::_PrintEco()
+{
+    _outMux.println(_context.GetTEcoS());
+}
+
+void Shell::SetEco(const char *str)
+{
+    _context.SetTEcoS(ParseNum<uint32_t>(str));
 }
 
 void Shell::RecorderFormat(const char *str)

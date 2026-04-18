@@ -21,25 +21,44 @@ Puncher puncher{context};
 OutMux outMux;
 Shell shell{outMux, context, buzzer};
 
-unsigned long long activityTimeout = 60ul * 5 * 1000;
-unsigned long long prevCardTime = 0;
+unsigned long long prevCardTimeMs = 0;
 
 enum OperationMode
 {
-    OM_NORMAL = 0,
+    OM_ACTIVE = 0,
+    OM_ECO,
     OM_BLUETOOTH,
     OM_WIFI,
 
     OM_MODE_COUNT
 };
-OperationMode operation_mode = OM_NORMAL;
+OperationMode operation_mode = OM_ECO;
 
 Bluetooth bluetooth {outMux, context, shell};
 Network network {outMux, context, shell, buzzer};
 
-void AdvanceOperationMode()
+OperationMode GetNextOpMode(OperationMode mode)
 {
     switch (operation_mode) {
+    case OM_ACTIVE:
+    case OM_ECO:
+        return OM_BLUETOOTH;
+    case OM_BLUETOOTH:
+        return OM_WIFI;
+    case OM_WIFI:
+        return OM_ECO;
+    default:
+        break;
+    }
+    return OM_ECO;
+}
+
+void TransitionOperationMode(OperationMode next_mode)
+{
+    switch (operation_mode) {
+    case OM_ACTIVE:
+    case OM_ECO:
+        break;
     case OM_BLUETOOTH:
         bluetooth.SwitchOff();
         break;
@@ -49,9 +68,12 @@ void AdvanceOperationMode()
     default:
         break;
     }
-    operation_mode = static_cast<OperationMode>((operation_mode + 1) % OM_MODE_COUNT);
+
+    operation_mode = next_mode;
+
     switch (operation_mode) {
-    case OM_NORMAL:
+    case OM_ACTIVE:
+    case OM_ECO:
         SetCpuFreq(10);
         buzzer.SignalOk();
         break;
@@ -107,7 +129,7 @@ static void EnterSleep()
     delay(100);
     esp_deep_sleep_start();
     // Should never reach!
-    prevCardTime = millis();
+    prevCardTimeMs = millis();
 }
 
 void setup()
@@ -159,7 +181,7 @@ void setup()
         }
     );
 
-    prevCardTime = millis();
+    prevCardTimeMs = millis();
 
     if (initialization_ok) {
         buzzer.SignalOk();
@@ -173,8 +195,11 @@ void loop()
     for (int i = 0; i < 2; ++i) {
         auto res = puncher.Punch();
         if (!res) {
+            if (operation_mode == OM_ECO) {
+                operation_mode = OM_ACTIVE;
+            }
             buzzer.ConfirmPunch();
-            prevCardTime = millis();
+            prevCardTimeMs = millis();
         } /*else {
             if (res == ErrorCode::NO_CARD) {
                 Serial.print('.');
@@ -185,17 +210,17 @@ void loop()
         }*/
 
         if (res == ErrorCode::CARD_IS_FULL) {
-            prevCardTime = millis();
+            prevCardTimeMs = millis();
             buzzer.SignalCardFull();
         }
 
         if (res == ErrorCode::SERVICE_CARD) {
-            prevCardTime = millis();
-            AdvanceOperationMode();
+            prevCardTimeMs = millis();
+            TransitionOperationMode(GetNextOpMode(operation_mode));
         }
     }
 
-    if (operation_mode == OM_NORMAL && !ActivityCounter::Instance().IsBusy()) {
+    if (operation_mode == OM_ECO && !ActivityCounter::Instance().IsBusy()) {
         digitalWrite(MOSFET_PIN, HIGH);
         //Serial.flush();
         esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_MS * 1000ull);
@@ -205,7 +230,12 @@ void loop()
         puncher.Setup();
     }
 
-    if (millis() - prevCardTime >= activityTimeout) {
+    if (operation_mode == OM_ACTIVE && millis() - prevCardTimeMs >= context.GetTActMs()) {
+        operation_mode = OM_ECO;
+        prevCardTimeMs = millis();
+    }
+
+    if (operation_mode == OM_ECO && millis() - prevCardTimeMs >= context.GetTEcoMs()) {
         EnterSleep();
     }
 }
