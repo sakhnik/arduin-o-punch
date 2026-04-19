@@ -668,7 +668,7 @@
       {
         "filename": "aop.kicad_sch",
         "name": "aop",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c"
       }
     ],
     "used_designators": "",
@@ -677,7 +677,7 @@
   "sheets": [
     [
       "6c2f9cd3-2815-4cb2-b88c-9d452fcffe7c",
-      "Root"
+      "aop"
     ]
   ],
   "text_variables": {},

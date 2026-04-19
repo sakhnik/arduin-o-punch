@@ -2827,7 +2827,7 @@
 				)
 			)
 		)
-		(attr through_hole)
+		(attr through_hole dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 4.5 -12.65)
@@ -3224,8 +3224,8 @@
 		(embedded_fonts no)
 	)
 	(gr_line
-		(start 69.5 73.5)
-		(end 114.5 73.5)
+		(start 69.5 73)
+		(end 114.5 73)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -3235,7 +3235,7 @@
 	)
 	(gr_line
 		(start 69.5 95.5)
-		(end 69.5 73.5)
+		(end 69.5 73)
 		(stroke
 			(width 0.05)
 			(type default)
@@ -3274,7 +3274,7 @@
 		(uuid "b250520b-88b4-4182-8190-679604b736dc")
 	)
 	(gr_line
-		(start 114.5 73.5)
+		(start 114.5 73)
 		(end 114.5 128)
 		(stroke
 			(width 0.05)
