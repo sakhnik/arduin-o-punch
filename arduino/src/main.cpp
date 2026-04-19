@@ -230,12 +230,12 @@ void loop()
         puncher.Setup();
     }
 
-    if (operation_mode == OM_ACTIVE && millis() - prevCardTimeMs >= context.GetTActMs()) {
+    if (operation_mode == OM_ACTIVE && millis() - prevCardTimeMs >= context.GetActiveMs()) {
         operation_mode = OM_ECO;
         prevCardTimeMs = millis();
     }
 
-    if (operation_mode == OM_ECO && millis() - prevCardTimeMs >= context.GetTEcoMs()) {
+    if (operation_mode == OM_ECO && millis() - prevCardTimeMs >= context.GetEcoMs()) {
         EnterSleep();
     }
 }

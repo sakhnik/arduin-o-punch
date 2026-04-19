@@ -34,8 +34,8 @@ struct EepromImpl : AOP::Recorder::IEeprom
 constexpr const char *const PREF_CONFIG = "config";
 constexpr const char *const PREF_ID = "id";
 constexpr const char *const PREF_KEY = "key";
-constexpr const char *const PREF_T_ACT_S = "t-act";
-constexpr const char *const PREF_T_ECO_S = "t-eco";
+constexpr const char *const PREF_T_ACT_M = "t-act";
+constexpr const char *const PREF_T_ECO_M = "t-eco";
 constexpr const char *const PREF_RECDAYS = "recdays";
 constexpr const char *const PREF_WIFI_SSID = "wifi-ssid";
 constexpr const char *const PREF_WIFI_PASS = "wifi-pass";
@@ -55,10 +55,10 @@ int8_t Context::Setup()
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
     prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
-    _active_seconds = prefs.getUShort(PREF_T_ACT_S, DEFAULT_ACTIVE_SECONDS);
-    _active_ms = _active_seconds * 1000;
-    _eco_seconds = prefs.getULong(PREF_T_ECO_S, DEFAULT_ECO_SECONDS);
-    _eco_ms = _eco_seconds * 1000;
+    _active_minutes = prefs.getULong(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
+    _active_ms = 60000ul * _active_minutes;
+    _eco_minutes = prefs.getULong(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
+    _eco_ms = 60000ul * _eco_minutes;
     _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
     _wifi_pass = prefs.getString(PREF_WIFI_PASS).c_str();
@@ -180,56 +180,56 @@ void Context::SetId(uint8_t id)
     NotifyWatchers();
 }
 
-uint16_t Context::GetTActS()
+uint32_t Context::GetActiveMinutes()
 {
     LockGuard lock{_dataMx};
-    return _active_seconds;
+    return _active_minutes;
 }
 
-uint32_t Context::GetTActMs()
+uint32_t Context::GetActiveMs()
 {
     LockGuard lock{_dataMx};
     return _active_ms;
 }
 
-void Context::SetTActS(uint16_t seconds)
+void Context::SetActiveMinutes(uint32_t minutes)
 {
     {
         LockGuard lock{_dataMx};
-        if (_active_seconds == seconds)
+        if (_active_minutes == minutes)
             return;
-        _active_seconds = seconds;
-        _active_ms = _active_seconds * 1000;
+        _active_minutes = minutes;
+        _active_ms = 60000ul * _active_minutes;
         prefs.begin(PREF_CONFIG, false);
-        prefs.putUShort(PREF_T_ACT_S, _active_seconds);
+        prefs.putUShort(PREF_T_ACT_M, _active_minutes);
         prefs.end();
     }
 
     NotifyWatchers();
 }
 
-uint32_t Context::GetTEcoS()
+uint32_t Context::GetEcoMinutes()
 {
     LockGuard lock{_dataMx};
-    return _eco_seconds;
+    return _eco_minutes;
 }
 
-uint32_t Context::GetTEcoMs()
+uint32_t Context::GetEcoMs()
 {
     LockGuard lock{_dataMx};
     return _eco_ms;
 }
 
-void Context::SetTEcoS(uint32_t seconds)
+void Context::SetEcoMinutes(uint32_t minutes)
 {
     {
         LockGuard lock{_dataMx};
-        if (_eco_seconds == seconds)
+        if (_eco_minutes == minutes)
             return;
-        _eco_seconds = seconds;
-        _eco_ms = _eco_seconds * 1000;
+        _eco_minutes = minutes;
+        _eco_ms = 60000ul * _eco_minutes;
         prefs.begin(PREF_CONFIG, false);
-        prefs.putULong(PREF_T_ECO_S, _eco_seconds);
+        prefs.putULong(PREF_T_ECO_M, _eco_minutes);
         prefs.end();
     }
 

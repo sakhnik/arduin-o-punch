@@ -231,8 +231,8 @@ void Network::_HandleGetSettings()
     }
     buf[Context::KEY_SIZE * 2] = 0;
     addSetting("key", buf);
-    addSetting("t-act", String{_context.GetTActS()});
-    addSetting("t-eco", String{_context.GetTEcoS()});
+    addSetting("t-act", String{_context.GetActiveMinutes()});
+    addSetting("t-eco", String{_context.GetEcoMinutes()});
     addSetting("rec-size", String{_context.GetRecorder().GetSize()});
     addSetting("rec-bits", String{_context.GetRecorder().GetBitsPerRecord()});
     addSetting("rec-days", String{_context.GetRecordRetainDays()});

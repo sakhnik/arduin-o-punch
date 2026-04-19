@@ -34,14 +34,14 @@ public:
     void SetId(uint8_t id);
 
     // Active polling time before going to the light sleep eco mode
-    uint16_t GetTActS();
-    void SetTActS(uint16_t seconds);
-    uint32_t GetTActMs();
+    uint32_t GetActiveMinutes();
+    void SetActiveMinutes(uint32_t minutes);
+    uint32_t GetActiveMs();
 
     // Polling with light sleep before going to the deep sleep
-    uint32_t GetTEcoS();
-    void SetTEcoS(uint32_t seconds);
-    uint32_t GetTEcoMs();
+    uint32_t GetEcoMinutes();
+    void SetEcoMinutes(uint32_t minutes);
+    uint32_t GetEcoMs();
 
     AOP::Recorder& GetRecorder() { return _recorder; }
 
@@ -66,12 +66,14 @@ private:
     Mutex _dataMx;
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-    static constexpr const uint16_t DEFAULT_ACTIVE_SECONDS = 10 * 60;
-    uint16_t _active_seconds = DEFAULT_ACTIVE_SECONDS;
-    uint32_t _active_ms = _active_seconds * 1000;
-    static constexpr const uint32_t DEFAULT_ECO_SECONDS = 3 * 60 * 60;
-    uint32_t _eco_seconds = DEFAULT_ECO_SECONDS;
-    uint32_t _eco_ms = _eco_seconds * 1000;
+
+    static constexpr const uint32_t DEFAULT_ACTIVE_MINUTES = 10;
+    uint32_t _active_minutes = DEFAULT_ACTIVE_MINUTES;
+    uint32_t _active_ms = 60000ul * _active_minutes;
+    static constexpr const uint32_t DEFAULT_ECO_MINUTES = 3 * 60;
+    uint32_t _eco_minutes = DEFAULT_ECO_MINUTES;
+    uint32_t _eco_ms = 60000ul * _eco_minutes;
+
     uint8_t _record_retain_days = 1;
     std::string _wifi_ssid;
     std::string _wifi_pass;

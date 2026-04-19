@@ -150,10 +150,10 @@ void Shell::_Process(const String &buffer)
         _outMux.println(AOP::PunchCard::FINISH_STATION);
         _outMux.println(F("key               Key"));
         _outMux.println(F("key 112233445566  Set key"));
-        _outMux.println(F("t-act             Active timeout (s)"));
-        _outMux.println(F("t-act 600         Set active timeout (s)"));
-        _outMux.println(F("t-eco             Eco timeout (s)"));
-        _outMux.println(F("t-eco 10800       Set eco timeout (s)"));
+        _outMux.println(F("t-act             Active timeout (min)"));
+        _outMux.println(F("t-act 600         Set active timeout (min)"));
+        _outMux.println(F("t-eco             Eco timeout (min)"));
+        _outMux.println(F("t-eco 10800       Set eco timeout (min)"));
         _outMux.println(F("clock             Clock reading (ms)"));
         _outMux.println(F("clock 12345000    Set clock (ms)"));
         _outMux.println(F("date              Current date"));
@@ -379,22 +379,22 @@ void Shell::SetId(const char *str)
 
 void Shell::_PrintActive()
 {
-    _outMux.println(_context.GetTActS());
+    _outMux.println(_context.GetActiveMinutes());
 }
 
 void Shell::SetActive(const char *str)
 {
-    _context.SetTActS(ParseNum<uint16_t>(str));
+    _context.SetActiveMinutes(ParseNum<uint32_t>(str));
 }
 
 void Shell::_PrintEco()
 {
-    _outMux.println(_context.GetTEcoS());
+    _outMux.println(_context.GetEcoMinutes());
 }
 
 void Shell::SetEco(const char *str)
 {
-    _context.SetTEcoS(ParseNum<uint32_t>(str));
+    _context.SetEcoMinutes(ParseNum<uint32_t>(str));
 }
 
 void Shell::RecorderFormat(const char *str)
