@@ -231,6 +231,8 @@ void Network::_HandleGetSettings()
     }
     buf[Context::KEY_SIZE * 2] = 0;
     addSetting("key", buf);
+    addSetting("t-act", String{_context.GetTActS()});
+    addSetting("t-eco", String{_context.GetTEcoS()});
     addSetting("rec-size", String{_context.GetRecorder().GetSize()});
     addSetting("rec-bits", String{_context.GetRecorder().GetBitsPerRecord()});
     addSetting("rec-days", String{_context.GetRecordRetainDays()});
@@ -244,6 +246,8 @@ void Network::_HandleSettings()
     if (webServer.method() == HTTP_POST) {
         _shell.SetId(webServer.arg("id").c_str());
         _shell.SetKey(webServer.arg("key").c_str());
+        _shell.SetActive(webServer.arg("t-act").c_str());
+        _shell.SetEco(webServer.arg("t-eco").c_str());
         String recorder = webServer.arg("rec-size") + " " + webServer.arg("rec-bits");
         _shell.RecorderFormat(recorder.c_str());
         _shell.SetRecordRetainDays(webServer.arg("rec-days").c_str());
