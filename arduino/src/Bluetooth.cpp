@@ -16,8 +16,10 @@ static const char *SHELL_STDOUT_UUID    = "16404bac-eab2-422c-955f-fb13799c00fa"
 static const char *CONFIG_SERVICE_UUID  = "26404bac-eab0-422c-955f-fb13799c00fa";
 static const char *CONFIG_ID_UUID       = "26404bac-eab1-422c-955f-fb13799c00fa";
 static const char *CONFIG_KEY_UUID      = "26404bac-eab2-422c-955f-fb13799c00fa";
-static const char *CONFIG_WIFISSID_UUID = "26404bac-eab3-422c-955f-fb13799c00fa";
-static const char *CONFIG_WIFIPASS_UUID = "26404bac-eab4-422c-955f-fb13799c00fa";
+static const char *CONFIG_ACT_UUID      = "26404bac-eab3-422c-955f-fb13799c00fa";
+static const char *CONFIG_ECO_UUID      = "26404bac-eab4-422c-955f-fb13799c00fa";
+static const char *CONFIG_WIFISSID_UUID = "26404bac-eab5-422c-955f-fb13799c00fa";
+static const char *CONFIG_WIFIPASS_UUID = "26404bac-eab6-422c-955f-fb13799c00fa";
 
 constexpr const int CHUNK_SIZE = 32;
 
@@ -212,6 +214,32 @@ bool Bluetooth::_Start()
     setCb(keyChr, [&]() {
         std::string value = keyChr->getValue();
         _context.SetKey(value);
+    });
+
+    auto *tActChr = configSvc->createCharacteristic(CONFIG_ACT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    tActChr->createDescriptor("2901")->setValue("t-act");
+    {
+        BLE2904 *desc = new BLE2904();
+        desc->setFormat(BLE2904::FORMAT_UINT16);
+        desc->setUnit(0x2760);
+        tActChr->addDescriptor(desc);
+    }
+    tActChr->setValue(_context.GetActiveMinutes());
+    setCb(tActChr, [&]() {
+        _context.SetActiveMinutes(tActChr->getValue<uint16_t>());
+    });
+
+    auto *tEcoChr = configSvc->createCharacteristic(CONFIG_ECO_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+    tEcoChr->createDescriptor("2901")->setValue("t-act");
+    {
+        BLE2904 *desc = new BLE2904();
+        desc->setFormat(BLE2904::FORMAT_UINT16);
+        desc->setUnit(0x2760);
+        tEcoChr->addDescriptor(desc);
+    }
+    tEcoChr->setValue(_context.GetEcoMinutes());
+    setCb(tEcoChr, [&]() {
+        _context.SetEcoMinutes(tEcoChr->getValue<uint16_t>());
     });
 
     auto* wifissidChr = configSvc->createCharacteristic(CONFIG_WIFISSID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);

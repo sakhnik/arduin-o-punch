@@ -55,9 +55,9 @@ int8_t Context::Setup()
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
     prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
-    _active_minutes = prefs.getULong(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
+    _active_minutes = prefs.getUShort(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
     _active_ms = 60000ul * _active_minutes;
-    _eco_minutes = prefs.getULong(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
+    _eco_minutes = prefs.getUShort(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
     _eco_ms = 60000ul * _eco_minutes;
     _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
@@ -229,7 +229,7 @@ void Context::SetEcoMinutes(uint32_t minutes)
         _eco_minutes = minutes;
         _eco_ms = 60000ul * _eco_minutes;
         prefs.begin(PREF_CONFIG, false);
-        prefs.putULong(PREF_T_ECO_M, _eco_minutes);
+        prefs.putUShort(PREF_T_ECO_M, _eco_minutes);
         prefs.end();
     }
 

@@ -67,11 +67,11 @@ private:
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-    static constexpr const uint32_t DEFAULT_ACTIVE_MINUTES = 10;
-    uint32_t _active_minutes = DEFAULT_ACTIVE_MINUTES;
+    static constexpr const uint16_t DEFAULT_ACTIVE_MINUTES = 10;
+    uint16_t _active_minutes = DEFAULT_ACTIVE_MINUTES;
     uint32_t _active_ms = 60000ul * _active_minutes;
-    static constexpr const uint32_t DEFAULT_ECO_MINUTES = 3 * 60;
-    uint32_t _eco_minutes = DEFAULT_ECO_MINUTES;
+    static constexpr const uint16_t DEFAULT_ECO_MINUTES = 3 * 60;
+    uint16_t _eco_minutes = DEFAULT_ECO_MINUTES;
     uint32_t _eco_ms = 60000ul * _eco_minutes;
 
     uint8_t _record_retain_days = 1;
