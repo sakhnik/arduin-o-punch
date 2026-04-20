@@ -7,6 +7,10 @@
 		(legacy_teardrops no)
 	)
 	(paper "A4")
+	(title_block
+		(title "AOP")
+		(rev "v0.2")
+	)
 	(layers
 		(0 "F.Cu" signal)
 		(2 "B.Cu" signal)
@@ -123,7 +127,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "/home/sakhnik/work/orienteering/arduin-o-punch/arduino/pcb/aop/0_1/")
+			(outputdirectory "/home/sakhnik/work/orienteering/arduin-o-punch/arduino/pcb/aop/0_2/")
 		)
 	)
 	(footprint "RFID-RC522:RFID-RC522_1"
@@ -3293,8 +3297,8 @@
 		(layer "Edge.Cuts")
 		(uuid "33227ff2-aa00-45e8-b336-764b252d4936")
 	)
-	(gr_text "AOP v0.2"
-		(at 98 106 0)
+	(gr_text "${TITLE} ${REVISION}"
+		(at 96.5 105.5 0)
 		(layer "F.SilkS")
 		(uuid "44793bfa-d9ec-488d-8a4a-cd0ab4146adb")
 		(effects

@@ -250,7 +250,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": ""
+      "sch_revision": "v0.2"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -536,7 +536,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "/home/sakhnik/work/orienteering/arduin-o-punch/arduino/pcb/aop/0_1/",
+      "plot": "/home/sakhnik/work/orienteering/arduin-o-punch/arduino/pcb/aop/0_2/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "aop.step",
