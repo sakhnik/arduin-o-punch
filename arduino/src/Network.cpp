@@ -125,7 +125,6 @@ bool Network::_Start()
     ArduinoOTA.onError([](ota_error_t error) {
         Serial.printf("Error[%u]\n", error);
     });
-    ArduinoOTA.begin();
 
     _last_connecting_dit = millis();
     _connection_signalled = false;
@@ -138,6 +137,7 @@ bool Network::_Stop()
     shellClient.stop();
     shellServer.end();
     webServer.stop();
+    ArduinoOTA.end();
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     return false;
@@ -185,6 +185,7 @@ void Network::_Task()
 
             shellServer.begin();
             webServer.begin();
+            ArduinoOTA.begin();
         }
 
         // -------------------------
