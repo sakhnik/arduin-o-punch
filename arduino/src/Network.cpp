@@ -7,6 +7,7 @@
 #include <ESPmDNS.h>
 #include <WebServer.h>
 #include <Update.h>
+#include <ArduinoOTA.h>
 
 WiFiServer shellServer{23};
 WiFiClient shellClient;
@@ -110,6 +111,22 @@ bool Network::_Start()
     WiFi.mode(WIFI_AP_STA);
     WiFi.begin(_context.GetWifiSsid().c_str(), _context.GetWifiPass().c_str());
     WiFi.softAP(hostname);
+
+    ArduinoOTA.setHostname(hostname);
+    ArduinoOTA.onStart([]() {
+        Serial.println("OTA Start");
+    });
+    ArduinoOTA.onEnd([]() {
+        Serial.println("\nOTA End");
+    });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+        Serial.printf("Progress: %u%%\r", (progress * 100) / total);
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+        Serial.printf("Error[%u]\n", error);
+    });
+    ArduinoOTA.begin();
+
     _last_connecting_dit = millis();
     _connection_signalled = false;
     return true;
@@ -193,14 +210,9 @@ void Network::_Task()
             }
         }
 
-        // -------------------------
-        // 4. HTTP SERVER
-        // -------------------------
         webServer.handleClient();
+        ArduinoOTA.handle();
 
-        // -------------------------
-        // 5. YIELD CPU
-        // -------------------------
         vTaskDelay(pdMS_TO_TICKS(2));
     }
 }

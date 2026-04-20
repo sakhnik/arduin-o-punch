@@ -1,3 +1,3 @@
 all:
 	./build.sh
-	pio run
+	pio run -e esp32c3
