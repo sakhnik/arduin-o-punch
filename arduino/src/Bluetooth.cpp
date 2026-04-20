@@ -270,10 +270,12 @@ bool Bluetooth::_Start()
         _context.SetWifiPass(value);
     });
 
-    _subscription_handle = _context.Subscribe([&]() {
+    _subscription_handle = _context.Subscribe([=]() {
         idChr->setValue(_context.GetId());
         auto key = _context.GetKey();
         keyChr->setValue(key.data(), key.size());
+        tActChr->setValue(_context.GetActiveMinutes());
+        tEcoChr->setValue(_context.GetEcoMinutes());
         wifissidChr->setValue(_context.GetWifiSsid());
         wifipassChr->setValue(_context.GetWifiPass());
     });
