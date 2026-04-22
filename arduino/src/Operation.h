@@ -14,6 +14,7 @@ public:
     Operation(Buzzer &, Settings &, Bluetooth &, Network &);
 
     void Setup();
+    void SetupLate();
 
     enum class Mode
     {
@@ -41,7 +42,7 @@ private:
     // Start in the sleep mode to record the sleep time
     Mode mode = Mode::Sleep;
     Mutex mutex;
-    unsigned long long prevCardTimeMs = 0;
+    uint32_t prevCardTimeMs = 0;
     uint32_t prevTransitionTime = 0;
     std::array<uint32_t, static_cast<size_t>(Mode::Count)> timeStats = {};
 

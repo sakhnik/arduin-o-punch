@@ -83,6 +83,12 @@ void Operation::Setup()
     prevCardTimeMs = millis();
 }
 
+void Operation::SetupLate()
+{
+    // Stay up 2 minutes unless a card has been punched
+    prevCardTimeMs = millis() + 2 * 60000 - settings.GetEcoMs();
+}
+
 Operation::Mode Operation::GetNextMode()
 {
     switch (mode) {
@@ -211,21 +217,22 @@ void Operation::TransitionToActive()
 
 void Operation::TransitionToNext()
 {
-    prevCardTimeMs = millis();
     TransitionTo(GetNextMode());
 }
 
 bool Operation::CheckSnooze()
 {
-    if (mode == Mode::Eco && millis() - prevCardTimeMs >= settings.GetEcoMs()) {
+    auto millisNow = millis();
+
+    if (mode == Mode::Eco && millisNow - prevCardTimeMs >= settings.GetEcoMs()) {
         TransitionTo(Mode::Sleep);
         // Never reached
         return false;
     }
 
-    if (mode == Mode::Active && millis() - prevCardTimeMs >= settings.GetActiveMs()) {
+    if (mode == Mode::Active && millisNow - prevCardTimeMs >= settings.GetActiveMs()) {
         TransitionTo(Mode::Eco, /*silent=*/true);
-        prevCardTimeMs = millis();
+        prevCardTimeMs = millisNow;
         return false;
     }
 

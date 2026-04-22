@@ -55,6 +55,8 @@ void setup()
         }
     );
 
+    operation.SetupLate();
+
     if (initialization_ok) {
         buzzer.SignalOk();
     }
