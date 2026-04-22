@@ -7,8 +7,6 @@
 #include "Network.h"
 #include "OutMux.h"
 #include "Operation.h"
-#include <esp_sleep.h>
-#include <driver/gpio.h>
 
 Buzzer buzzer;
 Settings settings{buzzer};
@@ -25,8 +23,8 @@ void setup()
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
 
-    operation.Setup();
     buzzer.Setup();
+    operation.Setup();
 
     if (settings.Setup()) {
         while (true) {
@@ -44,6 +42,7 @@ void setup()
 
     puncher.Setup();
     shell.Setup();
+    shell.SetOperation(&operation);
     bluetooth.Setup();
     network.Setup();
 

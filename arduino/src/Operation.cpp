@@ -7,11 +7,28 @@
 #include "defs.h"
 #include "ActivityCounter.h"
 #include <SPI.h>
+#include <esp_sleep.h>
+#include <driver/gpio.h>
+#include <ESP32Time.h>
+#include <Preferences.h>
+
+extern ESP32Time rtc;
+
+namespace {
+
+Preferences prefs;
 
 // Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
 static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN};
 
 constexpr const int TIME_TO_SLEEP_MS = 500;
+
+constexpr const char *const PREF_STATS = "stats";
+constexpr const char *const PREF_PREV_TRANSITION = "prev-trans";
+constexpr const char *const PREF_PREV_MODE = "prev-mode";
+constexpr const char *const PREF_TIMES = "times";
+
+} //namespace;
 
 Operation::Operation(Buzzer &buzzer, Settings &settings, Bluetooth &bluetooth, Network &network)
     : buzzer{buzzer}
@@ -40,60 +57,104 @@ void Operation::Setup()
     // Power on the RFID reader
     digitalWrite(MOSFET_PIN, LOW);
 
+    if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_GPIO) {
+        // When waking up from the sleep, restore the stats to continue :w
+        prefs.begin(PREF_STATS, true);
+        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, rtc.getEpoch());
+        prefs.getBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));
+        prefs.end();
+    } else if (esp_reset_reason() != ESP_RST_POWERON) {
+        // Restore the previous mode to preserve the accurate statistics
+        prefs.begin(PREF_STATS, true);
+        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, rtc.getEpoch());
+        auto prevMode = prefs.getInt(PREF_PREV_MODE, static_cast<int>(Mode::Sleep));
+        if (prevMode < static_cast<int>(Mode::Count)) {
+            mode = static_cast<Mode>(prevMode);
+        }
+        prefs.getBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));
+        prefs.end();
+    } else {
+        prevTransitionTime = rtc.getEpoch();
+    }
+
+    // Transition to the default mode and record the time in the sleep/previous mode
+    TransitionTo(Mode::Eco, /*silent=*/true);
+
     prevCardTimeMs = millis();
 }
 
 Operation::Mode Operation::GetNextMode()
 {
     switch (mode) {
-    case Mode::ACTIVE:
-    case Mode::ECO:
+    case Mode::Active:
+    case Mode::Eco:
         return Mode::BLE;
     case Mode::BLE:
-        return Mode::WIFI;
-    case Mode::WIFI:
-        return Mode::ECO;
+        return Mode::WiFi;
+    case Mode::WiFi:
+        return Mode::Eco;
     default:
         break;
     }
-    return Mode::ECO;
+    return Mode::Eco;
 }
 
-void Operation::TransitionTo(Mode nextMode)
+void Operation::TransitionTo(Mode nextMode, bool silent)
 {
     switch (mode) {
-    case Mode::ACTIVE:
-    case Mode::ECO:
+    case Mode::Active:
+    case Mode::Eco:
         break;
     case Mode::BLE:
         bluetooth.SwitchOff();
         break;
-    case Mode::WIFI:
+    case Mode::WiFi:
         network.SwitchOff();
         break;
     default:
         break;
     }
 
+    // Record the time spent in the previous mode
+    auto now = rtc.getEpoch();
+    {
+        LockGuard lock{mutex};
+        timeStats[static_cast<size_t>(mode)] += now - prevTransitionTime;
+        prevTransitionTime = now;
+        prefs.begin(PREF_STATS, false);
+        prefs.putULong(PREF_PREV_TRANSITION, now);
+        prefs.putInt(PREF_PREV_MODE, static_cast<int>(nextMode));
+        prefs.end();
+    }
+
     mode = nextMode;
 
     switch (mode) {
-    case Mode::ACTIVE:
-    case Mode::ECO:
+    case Mode::Active:
+    case Mode::Eco:
         SetCpuFreq(10);
-        buzzer.SignalOk();
+        if (!silent) {
+            buzzer.SignalOk();
+        }
         break;
     case Mode::BLE:
         SetCpuFreq(80);
-        buzzer.SignalBluetooth();
+        if (!silent) {
+            buzzer.SignalBluetooth();
+        }
         bluetooth.SwitchOn();
         break;
-    case Mode::WIFI:
+    case Mode::WiFi:
         SetCpuFreq(80);
         // It takes a second or so to initialize WiFi. The CPU will be busy.
         // Play a confirmation melody only after that to avoid distortion.
         network.SwitchOn();
-        buzzer.SignalWifi();
+        if (!silent) {
+            buzzer.SignalWifi();
+        }
+        break;
+    case Mode::Sleep:
+        EnterSleep();
         break;
     default:
         // Shouldn't be reached
@@ -103,6 +164,11 @@ void Operation::TransitionTo(Mode nextMode)
 
 void Operation::EnterSleep()
 {
+    prefs.begin(PREF_STATS, false);
+    prefs.putULong(PREF_PREV_TRANSITION, prevTransitionTime);
+    prefs.putBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));
+    prefs.end();
+
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
     esp_deep_sleep_enable_gpio_wakeup(1ULL << WAKEUP_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
 
@@ -137,8 +203,8 @@ void Operation::EnterSleep()
 
 void Operation::TransitionToActive()
 {
-    if (mode == Mode::ECO) {
-        mode = Mode::ACTIVE;
+    if (mode == Mode::Eco) {
+        TransitionTo(Mode::Active, /*silent=*/true);
     }
     prevCardTimeMs = millis();
 }
@@ -151,19 +217,19 @@ void Operation::TransitionToNext()
 
 bool Operation::CheckSnooze()
 {
-    if (mode == Mode::ECO && millis() - prevCardTimeMs >= settings.GetEcoMs()) {
-        EnterSleep();
+    if (mode == Mode::Eco && millis() - prevCardTimeMs >= settings.GetEcoMs()) {
+        TransitionTo(Mode::Sleep);
         // Never reached
         return false;
     }
 
-    if (mode == Mode::ACTIVE && millis() - prevCardTimeMs >= settings.GetActiveMs()) {
-        mode = Mode::ECO;
+    if (mode == Mode::Active && millis() - prevCardTimeMs >= settings.GetActiveMs()) {
+        TransitionTo(Mode::Eco, /*silent=*/true);
         prevCardTimeMs = millis();
         return false;
     }
 
-    if (mode == Mode::ECO && !ActivityCounter::Instance().IsBusy()) {
+    if (mode == Mode::Eco && !ActivityCounter::Instance().IsBusy()) {
         digitalWrite(MOSFET_PIN, HIGH);
         //Serial.flush();
         esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_MS * 1000ull);
@@ -175,4 +241,65 @@ bool Operation::CheckSnooze()
     }
 
     return false;
+}
+
+void Operation::ResetStats()
+{
+    LockGuard lock{mutex};
+    prevTransitionTime = rtc.getEpoch();
+    timeStats.fill(0);
+}
+
+std::string Operation::DumpStats()
+{
+    auto toMAH = [](uint32_t s, float current)  {
+        return current * s / (60 * 60);
+    };
+
+    auto getCurrent = [](Mode m) -> float {
+        switch (m) {
+        case Mode::Active: return 20.f;
+        case Mode::Eco: return 10.f;
+        case Mode::BLE: return 100.f;
+        case Mode::WiFi: return 100.f;
+        case Mode::Sleep: return 0.05f;
+        default: return 0.f;
+        }
+    };
+
+    uint32_t totalTime = 0;
+    float totalEnergy = 0;
+
+    auto getLine = [&, this](uint32_t time, float current) -> std::string {
+        totalTime += time;
+        auto mah = toMAH(time, current);
+        totalEnergy += mah;
+        char line[64];
+        sprintf(line, "%8d (%4d:%02d:%02d) %6.1f mAh", time, time / (60 * 60), (time / 60) % 60, time % 60, mah);
+        return line;
+    };
+
+    decltype(timeStats) snapshot;
+    auto now = rtc.getEpoch();
+    {
+        LockGuard lock{mutex};
+        snapshot = timeStats;
+        // Account the ongoing mode
+        snapshot[static_cast<size_t>(mode)] += now - prevTransitionTime;
+    }
+
+    std::string s;
+    s += "Active: " + getLine(snapshot[static_cast<size_t>(Mode::Active)], 20.f) + "\n";
+    s += "Eco:    " + getLine(snapshot[static_cast<size_t>(Mode::Eco)], 10.f) + "\n";
+    s += "BLE:    " + getLine(snapshot[static_cast<size_t>(Mode::BLE)], 100.f) + "\n";
+    s += "WiFi:   " + getLine(snapshot[static_cast<size_t>(Mode::WiFi)], 100.f) + "\n";
+    s += "Sleep:  " + getLine(snapshot[static_cast<size_t>(Mode::Sleep)], 0.05f) + "\n\n";
+    auto avgCur = totalEnergy * (60 * 60) / totalTime;
+    s += "Total:  " + getLine(totalTime, avgCur) + "  I ~ ";
+    char buf[32];
+    sprintf(buf, "%.2f", avgCur);
+    s += buf;
+    s += " mA\n";
+
+    return s;
 }

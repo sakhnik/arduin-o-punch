@@ -3,6 +3,7 @@
 #include "Buzzer.h"
 #include "OutMux.h"
 #include "PunchCard.h"
+#include "Operation.h"
 #include <RTClib.h>
 
 namespace {
@@ -27,6 +28,11 @@ void Shell::Setup()
 
     _outMux.println();
     _PrintPrompt();
+}
+
+void Shell::SetOperation(Operation *operation)
+{
+    _operation = operation;
 }
 
 void Shell::ProcessInput(const uint8_t *data, int size)
@@ -170,6 +176,10 @@ void Shell::_Process(const String &buffer)
         _outMux.println(F("wifissid ssid     Set WiFi SSID to connect to"));
         _outMux.println(F("wifipass          Print WiFi password"));
         _outMux.println(F("wifipass pass     Set WiFi password"));
+        if (_operation) {
+            _outMux.println(F("stats             Print energy consumption stats"));
+            _outMux.println(F("stats-reset       Reset energy consumption stats"));
+        }
     } else if (buffer.startsWith(F("info"))) {
         _outMux.print(F("version="));
         _outMux.print(PROJECT_VERSION);
@@ -249,6 +259,11 @@ void Shell::_Process(const String &buffer)
         _SetWifiPass(buffer.c_str() + 9);
     } else if (buffer.startsWith("wifipass")) {
         _PrintWifiPass();
+    } else if (_operation && buffer.startsWith("stats-reset")) {
+        _operation->ResetStats();
+        _outMux.println(_operation->DumpStats().c_str());
+    } else if (_operation && buffer.startsWith("stats")) {
+        _outMux.println(_operation->DumpStats().c_str());
     } else {
         if (buffer[0] != '\r' && buffer[0] != '\n') {
             _outMux.print(F("Unknown command: "));

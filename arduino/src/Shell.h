@@ -7,6 +7,7 @@
 
 class Settings;
 class Buzzer;
+class Operation;
 class DateTime;
 class OutMux;
 
@@ -16,6 +17,7 @@ public:
     Shell(OutMux &, Settings &, Buzzer &);
 
     void Setup();
+    void SetOperation(Operation *);
 
     void ProcessInput(const uint8_t *data, int size);
     void PutChar(char ch);
@@ -31,6 +33,7 @@ private:
     OutMux &_outMux;
     Settings &_settings;
     Buzzer &_buzzer;
+    Operation *_operation = nullptr;
 
     QueueHandle_t _rxQueue;
 

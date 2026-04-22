@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Mutex.h"
+#include <array>
+
 class Buzzer;
 class Bluetooth;
 class Network;
@@ -14,25 +17,35 @@ public:
 
     enum class Mode
     {
-        ACTIVE = 0,
-        ECO,
+        Active = 0,
+        Eco,
         BLE,
-        WIFI,
+        WiFi,
+        Sleep,
+
+        Count
     };
 
     void TransitionToActive();
     void TransitionToNext();
     bool CheckSnooze();
 
+    void ResetStats();
+    std::string DumpStats();
+
 private:
     Buzzer &buzzer;
     Settings &settings;
     Bluetooth &bluetooth;
     Network &network;
-    Mode mode;
+    // Start in the sleep mode to record the sleep time
+    Mode mode = Mode::Sleep;
+    Mutex mutex;
     unsigned long long prevCardTimeMs = 0;
+    uint32_t prevTransitionTime = 0;
+    std::array<uint32_t, static_cast<size_t>(Mode::Count)> timeStats = {};
 
-    void TransitionTo(Mode);
+    void TransitionTo(Mode, bool silent = false);
     Mode GetNextMode();
     void EnterSleep();
 };
