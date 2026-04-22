@@ -1,5 +1,5 @@
 #include "Shell.h"
-#include "Context.h"
+#include "Settings.h"
 #include "Buzzer.h"
 #include "OutMux.h"
 #include "PunchCard.h"
@@ -11,9 +11,9 @@ const uint8_t MAX_SIZE = 32;
 
 } // namespace;
 
-Shell::Shell(OutMux &_outMux, Context &context, Buzzer &buzzer)
+Shell::Shell(OutMux &_outMux, Settings &settings, Buzzer &buzzer)
     : _outMux{_outMux}
-    , _context{context}
+    , _settings{settings}
     , _buzzer{buzzer}
 {
 }
@@ -181,15 +181,15 @@ void Shell::_Process(const String &buffer)
         _PrintActive();
         _outMux.print(F("t-eco="));
         _PrintEco();
-        auto now = _context.GetDateTime();
+        auto now = _settings.GetDateTime();
         _outMux.print(F("date="));
         _PrintDate(now);
         _outMux.print(F("time="));
         _PrintTime(now);
         _outMux.print(F("rec="));
-        _outMux.print(_context.GetRecorder().GetSize());
+        _outMux.print(_settings.GetRecorder().GetSize());
         _outMux.print(F(" x "));
-        _outMux.print(static_cast<int>(_context.GetRecorder().GetBitsPerRecord()));
+        _outMux.print(static_cast<int>(_settings.GetRecorder().GetBitsPerRecord()));
         _outMux.println(F(" bpr"));
         _outMux.print(F("recdays="));
         _PrintRecordRetainDays();
@@ -218,17 +218,17 @@ void Shell::_Process(const String &buffer)
         _PrintKey();
     } else if (buffer.startsWith(F("clock "))) {
         _SetClock(buffer.c_str() + 6);
-        _PrintClock(_context.GetDateTime());
+        _PrintClock(_settings.GetDateTime());
     } else if (buffer.startsWith(F("clock"))) {
-        _PrintClock(_context.GetDateTime());
+        _PrintClock(_settings.GetDateTime());
     } else if (buffer.startsWith(F("timestamp "))) {
         _SetTimestamp(buffer.c_str() + 10);
     } else if (buffer.startsWith(F("timestamp"))) {
         _PrintTimestamp();
     } else if (buffer.startsWith(F("time"))) {
-        _PrintTime(_context.GetDateTime());
+        _PrintTime(_settings.GetDateTime());
     } else if (buffer.startsWith(F("date"))) {
-        _PrintDate(_context.GetDateTime());
+        _PrintDate(_settings.GetDateTime());
     } else if (buffer.startsWith(F("recfmt "))) {
         RecorderFormat(buffer.c_str() + 7);
     } else if (buffer.startsWith(F("recclr "))) {
@@ -306,12 +306,12 @@ void Shell::SetKey(const char *hex)
             break;
         key.push_back((d1 << 4) | d2);
     }
-    _context.SetKey(key);
+    _settings.SetKey(key);
 }
 
 void Shell::_PrintKey()
 {
-    for (uint8_t b : _context.GetKey()) {
+    for (uint8_t b : _settings.GetKey()) {
         char buf[3];
         sprintf(buf, "%02X", static_cast<unsigned>(b));
         _outMux.print(buf);
@@ -321,23 +321,23 @@ void Shell::_PrintKey()
 
 void Shell::_SetClock(const char *str)
 {
-    _context.SetClock(ParseNum<uint32_t>(str));
+    _settings.SetClock(ParseNum<uint32_t>(str));
 }
 
 void Shell::_PrintClock(const DateTime &time)
 {
-    _outMux.println(_context.GetClock(&time));
+    _outMux.println(_settings.GetClock(&time));
 }
 
 void Shell::_SetTimestamp(const char *str)
 {
-    _context.SetDateTime(ParseNum<uint32_t>(str));
+    _settings.SetDateTime(ParseNum<uint32_t>(str));
     _PrintTimestamp();
 }
 
 void Shell::_PrintTimestamp()
 {
-    _outMux.println(_context.GetDateTime().unixtime());
+    _outMux.println(_settings.GetDateTime().unixtime());
 }
 
 void Shell::_PrintDD(uint8_t d)
@@ -369,32 +369,32 @@ void Shell::_PrintTime(const DateTime &time)
 
 void Shell::_PrintId()
 {
-    _outMux.println(_context.GetId());
+    _outMux.println(_settings.GetId());
 }
 
 void Shell::SetId(const char *str)
 {
-    _context.SetId(ParseNum<uint8_t>(str));
+    _settings.SetId(ParseNum<uint8_t>(str));
 }
 
 void Shell::_PrintActive()
 {
-    _outMux.println(_context.GetActiveMinutes());
+    _outMux.println(_settings.GetActiveMinutes());
 }
 
 void Shell::SetActive(const char *str)
 {
-    _context.SetActiveMinutes(ParseNum<uint32_t>(str));
+    _settings.SetActiveMinutes(ParseNum<uint32_t>(str));
 }
 
 void Shell::_PrintEco()
 {
-    _outMux.println(_context.GetEcoMinutes());
+    _outMux.println(_settings.GetEcoMinutes());
 }
 
 void Shell::SetEco(const char *str)
 {
-    _context.SetEcoMinutes(ParseNum<uint32_t>(str));
+    _settings.SetEcoMinutes(ParseNum<uint32_t>(str));
 }
 
 void Shell::RecorderFormat(const char *str)
@@ -402,37 +402,37 @@ void Shell::RecorderFormat(const char *str)
     uint16_t count = ParseNum<uint16_t>(str);
     uint8_t bits_per_record = ParseNum<uint8_t>(str);
 
-    auto res = _context.GetRecorder().Format(count, bits_per_record, _context.GetDateTime().unixtime());
+    auto res = _settings.GetRecorder().Format(count, bits_per_record, _settings.GetDateTime().unixtime());
     if (res < 0) {
         _outMux.print(F("Error "));
         _outMux.println(-res);
     } else {
         _outMux.println(F("OK"));
         _outMux.print(F("count="));
-        _outMux.print(_context.GetRecorder().GetSize());
+        _outMux.print(_settings.GetRecorder().GetSize());
         _outMux.print(F(" bits_per_record="));
-        _outMux.println(_context.GetRecorder().GetBitsPerRecord());
+        _outMux.println(_settings.GetRecorder().GetBitsPerRecord());
     }
 }
 
 void Shell::_RecorderCheck(const char *str)
 {
     uint16_t card_id = ParseNum<uint16_t>(str);
-    uint16_t punch_count = _context.GetRecorder().GetRecordCount(card_id);
+    uint16_t punch_count = _settings.GetRecorder().GetRecordCount(card_id);
     _outMux.println(punch_count);
 }
 
 void Shell::_RecorderClear(const char *str)
 {
     uint16_t card_id = ParseNum<uint16_t>(str);
-    auto ok = _context.GetRecorder().Record(card_id, -1);
+    auto ok = _settings.GetRecorder().Record(card_id, -1);
     _outMux.println(ok ? F("FAIL") : F("OK"));
 }
 
 void Shell::_RecorderList()
 {
     _outMux.print(F("Size="));
-    _outMux.println(_context.GetRecorder().GetSize());
+    _outMux.println(_settings.GetRecorder().GetSize());
     struct Printer : AOP::Recorder::IVisitor
     {
         OutMux &_outMux;
@@ -446,38 +446,38 @@ void Shell::_RecorderList()
             _outMux.print(static_cast<uint16_t>(count));
         }
     } printer{_outMux};
-    _context.GetRecorder().List(printer, &printer);
+    _settings.GetRecorder().List(printer, &printer);
     _outMux.println();
 }
 
 void Shell::_PrintRecordRetainDays()
 {
-    _outMux.println(_context.GetRecordRetainDays());
+    _outMux.println(_settings.GetRecordRetainDays());
 }
 
 void Shell::SetRecordRetainDays(const char *str)
 {
-    _context.SetRecordRetainDays(ParseNum<uint8_t>(str));
+    _settings.SetRecordRetainDays(ParseNum<uint8_t>(str));
 }
 
 void Shell::_SetWifiSsid(const char *str)
 {
-    _context.SetWifiSsid(str);
+    _settings.SetWifiSsid(str);
     _PrintWifiSsid();
 }
 
 void Shell::_PrintWifiSsid()
 {
-    _outMux.println(_context.GetWifiSsid().c_str());
+    _outMux.println(_settings.GetWifiSsid().c_str());
 }
 
 void Shell::_SetWifiPass(const char *str)
 {
-    _context.SetWifiPass(str);
+    _settings.SetWifiPass(str);
     _PrintWifiPass();
 }
 
 void Shell::_PrintWifiPass()
 {
-    _outMux.println(_context.GetWifiPass().c_str());
+    _outMux.println(_settings.GetWifiPass().c_str());
 }

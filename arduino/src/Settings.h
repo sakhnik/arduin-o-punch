@@ -10,10 +10,10 @@
 
 class Buzzer;
 
-class Context
+class Settings
 {
 public:
-    Context(Buzzer &buzzer);
+    Settings(Buzzer &buzzer);
 
     Buzzer& GetBuzzer() const { return *_buzzer; }
 

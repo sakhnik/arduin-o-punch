@@ -5,7 +5,7 @@
 #include <freertos/queue.h>
 #include <freertos/task.h>
 
-class Context;
+class Settings;
 class Buzzer;
 class DateTime;
 class OutMux;
@@ -13,7 +13,7 @@ class OutMux;
 class Shell
 {
 public:
-    Shell(OutMux &, Context &, Buzzer &);
+    Shell(OutMux &, Settings &, Buzzer &);
 
     void Setup();
 
@@ -29,7 +29,7 @@ public:
 
 private:
     OutMux &_outMux;
-    Context &_context;
+    Settings &_settings;
     Buzzer &_buzzer;
 
     QueueHandle_t _rxQueue;

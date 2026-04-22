@@ -1,5 +1,5 @@
 #include "Bluetooth.h"
-#include "Context.h"
+#include "Settings.h"
 #include "Shell.h"
 #include "Utils.h"
 
@@ -90,9 +90,9 @@ std::unique_ptr<BleContext> bleContext;
 
 } // namespace
 
-Bluetooth::Bluetooth(OutMux &outMux, Context &context, Shell &shell)
+Bluetooth::Bluetooth(OutMux &outMux, Settings &settings, Shell &shell)
     : _outMux{outMux}
-    , _context{context}
+    , _settings{settings}
     , _shell{shell}
 {
 }
@@ -164,7 +164,7 @@ bool Bluetooth::_Start()
 {
     NimBLEDevice::init("");
 
-    *AOP::PrintNum(_context.GetId(), localName + 4) = 0;
+    *AOP::PrintNum(_settings.GetId(), localName + 4) = 0;
     Serial.println(localName);
 
     NimBLEDevice::setDeviceName(localName);
@@ -202,18 +202,18 @@ bool Bluetooth::_Start()
         desc->setUnit(0x2700);
         idChr->addDescriptor(desc);
     }
-    idChr->setValue(_context.GetId());
+    idChr->setValue(_settings.GetId());
     setCb(idChr, [&]() {
-        _context.SetId(idChr->getValue<uint8_t>());
+        _settings.SetId(idChr->getValue<uint8_t>());
     });
 
     auto* keyChr = configSvc->createCharacteristic(CONFIG_KEY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
     keyChr->createDescriptor("2901")->setValue("key");
-    auto key = _context.GetKey();
+    auto key = _settings.GetKey();
     keyChr->setValue(key.data(), key.size());
     setCb(keyChr, [&]() {
         std::string value = keyChr->getValue();
-        _context.SetKey(value);
+        _settings.SetKey(value);
     });
 
     auto *tActChr = configSvc->createCharacteristic(CONFIG_ACT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
@@ -224,9 +224,9 @@ bool Bluetooth::_Start()
         desc->setUnit(0x2760);
         tActChr->addDescriptor(desc);
     }
-    tActChr->setValue(_context.GetActiveMinutes());
+    tActChr->setValue(_settings.GetActiveMinutes());
     setCb(tActChr, [&]() {
-        _context.SetActiveMinutes(tActChr->getValue<uint16_t>());
+        _settings.SetActiveMinutes(tActChr->getValue<uint16_t>());
     });
 
     auto *tEcoChr = configSvc->createCharacteristic(CONFIG_ECO_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
@@ -237,9 +237,9 @@ bool Bluetooth::_Start()
         desc->setUnit(0x2760);
         tEcoChr->addDescriptor(desc);
     }
-    tEcoChr->setValue(_context.GetEcoMinutes());
+    tEcoChr->setValue(_settings.GetEcoMinutes());
     setCb(tEcoChr, [&]() {
-        _context.SetEcoMinutes(tEcoChr->getValue<uint16_t>());
+        _settings.SetEcoMinutes(tEcoChr->getValue<uint16_t>());
     });
 
     auto* wifissidChr = configSvc->createCharacteristic(CONFIG_WIFISSID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
@@ -250,10 +250,10 @@ bool Bluetooth::_Start()
         desc->setUnit(0x2700);
         wifissidChr->addDescriptor(desc);
     }
-    wifissidChr->setValue(_context.GetWifiSsid());
+    wifissidChr->setValue(_settings.GetWifiSsid());
     setCb(wifissidChr, [&]() {
         std::string value = wifissidChr->getValue();
-        _context.SetWifiSsid(value);
+        _settings.SetWifiSsid(value);
     });
 
     auto* wifipassChr = configSvc->createCharacteristic(CONFIG_WIFIPASS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
@@ -264,20 +264,20 @@ bool Bluetooth::_Start()
         desc->setUnit(0x2700);
         wifipassChr->addDescriptor(desc);
     }
-    wifipassChr->setValue(_context.GetWifiPass());
+    wifipassChr->setValue(_settings.GetWifiPass());
     setCb(wifipassChr, [&]() {
         std::string value = wifipassChr->getValue();
-        _context.SetWifiPass(value);
+        _settings.SetWifiPass(value);
     });
 
-    _subscription_handle = _context.Subscribe([=]() {
-        idChr->setValue(_context.GetId());
-        auto key = _context.GetKey();
+    _subscription_handle = _settings.Subscribe([=]() {
+        idChr->setValue(_settings.GetId());
+        auto key = _settings.GetKey();
         keyChr->setValue(key.data(), key.size());
-        tActChr->setValue(_context.GetActiveMinutes());
-        tEcoChr->setValue(_context.GetEcoMinutes());
-        wifissidChr->setValue(_context.GetWifiSsid());
-        wifipassChr->setValue(_context.GetWifiPass());
+        tActChr->setValue(_settings.GetActiveMinutes());
+        tEcoChr->setValue(_settings.GetEcoMinutes());
+        wifissidChr->setValue(_settings.GetWifiSsid());
+        wifipassChr->setValue(_settings.GetWifiPass());
     });
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
@@ -298,7 +298,7 @@ bool Bluetooth::_Start()
 bool Bluetooth::_Stop()
 {
     _outMux.SetClient(nullptr);
-    _context.Unsubscribe(_subscription_handle);
+    _settings.Unsubscribe(_subscription_handle);
     _subscription_handle = -1;
 
     if (server) {

@@ -3,12 +3,12 @@
 class Buzzer;
 class Bluetooth;
 class Network;
-class Context;
+class Settings;
 
 class Operation
 {
 public:
-    Operation(Buzzer &, Context &, Bluetooth &, Network &);
+    Operation(Buzzer &, Settings &, Bluetooth &, Network &);
 
     void Setup();
 
@@ -26,7 +26,7 @@ public:
 
 private:
     Buzzer &buzzer;
-    Context &context;
+    Settings &settings;
     Bluetooth &bluetooth;
     Network &network;
     Mode mode;

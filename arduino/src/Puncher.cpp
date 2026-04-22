@@ -1,5 +1,5 @@
 #include "Puncher.h"
-#include "Context.h"
+#include "Settings.h"
 #include "IMifare.h"
 #include "PunchCard.h"
 #include "Buzzer.h"
@@ -21,8 +21,8 @@ MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
 } //namespace;
 
-Puncher::Puncher(Context &context)
-    : _context{context}
+Puncher::Puncher(Settings &settings)
+    : _settings{settings}
 {
 }
 
@@ -118,7 +118,7 @@ ErrorCode Puncher::Punch()
 {
     // Soft reset the RFID chip periodically when the buzzer is silent to avoid distraction
     static int loopCount = 0;
-    if (++loopCount > 100 && _context.GetBuzzer().IsIdle()) {
+    if (++loopCount > 100 && _settings.GetBuzzer().IsIdle()) {
         loopCount = 0;
         mfrc522.PCD_Reset();
         mfrc522.PCD_Init();
@@ -154,13 +154,13 @@ ErrorCode Puncher::Punch()
     } callback;
 
     MifareClassic mifareClassic{mfrc522};
-    AOP::PunchCard punchCard{&mifareClassic, _context.GetKey(), &callback};
-    uint32_t timestamp = _context.GetClock(nullptr) / 1000;
-    AOP::Punch punch{_context.GetId(), timestamp};
+    AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey(), &callback};
+    uint32_t timestamp = _settings.GetClock(nullptr) / 1000;
+    AOP::Punch punch{_settings.GetId(), timestamp};
     auto res = punchCard.Punch(punch);
     if (res == ErrorCode::OK) {
         // If the punch was successful, record the card id.
-        _context.GetRecorder().Record(callback.card_id);
+        _settings.GetRecorder().Record(callback.card_id);
     }
     // The station could be configured to clear a card
     //auto res = punchCard.Clear();

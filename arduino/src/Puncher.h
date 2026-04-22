@@ -2,12 +2,12 @@
 
 #include "ErrorCode.h"
 
-class Context;
+class Settings;
 
 class Puncher
 {
 public:
-    Puncher(Context &context);
+    Puncher(Settings &);
     void Setup();
     ErrorCode Punch();
 
@@ -15,5 +15,5 @@ public:
     void AntennaOn();
 
 private:
-    Context &_context;
+    Settings &_settings;
 };

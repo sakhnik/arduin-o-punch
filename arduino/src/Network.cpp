@@ -1,5 +1,5 @@
 #include "Network.h"
-#include "Context.h"
+#include "Settings.h"
 #include "Shell.h"
 #include "Buzzer.h"
 #include "Utils.h"
@@ -13,9 +13,9 @@ WiFiServer shellServer{23};
 WiFiClient shellClient;
 WebServer webServer{80};
 
-Network::Network(OutMux &outMux, Context &context, Shell &shell, Buzzer &buzzer)
+Network::Network(OutMux &outMux, Settings &settings, Shell &shell, Buzzer &buzzer)
     : _outMux{outMux}
-    , _context{context}
+    , _settings{settings}
     , _shell{shell}
     , _buzzer{buzzer}
 {
@@ -103,13 +103,13 @@ void Network::SwitchOff()
 bool Network::_Start()
 {
     char hostname[64] = "aop";
-    *AOP::PrintNum(_context.GetId(), hostname + 3) = 0;
+    *AOP::PrintNum(_settings.GetId(), hostname + 3) = 0;
     Serial.print("hostname: ");
     Serial.println(hostname);
     MDNS.begin(hostname);
     WiFi.setHostname(hostname);
     WiFi.mode(WIFI_AP_STA);
-    WiFi.begin(_context.GetWifiSsid().c_str(), _context.GetWifiPass().c_str());
+    WiFi.begin(_settings.GetWifiSsid().c_str(), _settings.GetWifiPass().c_str());
     WiFi.softAP(hostname);
 
     ArduinoOTA.setHostname(hostname);
@@ -236,19 +236,19 @@ void Network::_HandleGetSettings()
         response += "=";
         response += val;
     };
-    addSetting("id", String{static_cast<unsigned>(_context.GetId())});
-    const auto &key = _context.GetKey();
-    char buf[Context::KEY_SIZE * 2 + 1];
-    for (int i = 0; i < Context::KEY_SIZE; ++i) {
+    addSetting("id", String{static_cast<unsigned>(_settings.GetId())});
+    const auto &key = _settings.GetKey();
+    char buf[Settings::KEY_SIZE * 2 + 1];
+    for (int i = 0; i < Settings::KEY_SIZE; ++i) {
         sprintf(buf + i*2, "%02X", static_cast<unsigned>(key[i]));
     }
-    buf[Context::KEY_SIZE * 2] = 0;
+    buf[Settings::KEY_SIZE * 2] = 0;
     addSetting("key", buf);
-    addSetting("t-act", String{_context.GetActiveMinutes()});
-    addSetting("t-eco", String{_context.GetEcoMinutes()});
-    addSetting("rec-size", String{_context.GetRecorder().GetSize()});
-    addSetting("rec-bits", String{_context.GetRecorder().GetBitsPerRecord()});
-    addSetting("rec-days", String{_context.GetRecordRetainDays()});
+    addSetting("t-act", String{_settings.GetActiveMinutes()});
+    addSetting("t-eco", String{_settings.GetEcoMinutes()});
+    addSetting("rec-size", String{_settings.GetRecorder().GetSize()});
+    addSetting("rec-bits", String{_settings.GetRecorder().GetBitsPerRecord()});
+    addSetting("rec-days", String{_settings.GetRecordRetainDays()});
     webServer.send(200, "text/plain", response);
 }
 
@@ -289,7 +289,7 @@ void Network::_HandleRecord()
                 buffer += static_cast<uint16_t>(count);
             }
         } collector;
-        _context.GetRecorder().List(collector, &collector);
+        _settings.GetRecorder().List(collector, &collector);
         webServer.send(200, "text/plain", collector.buffer);
     } else {
         webServer.send(405);
@@ -300,7 +300,7 @@ void Network::_HandleClock()
 {
     if (webServer.method() == HTTP_GET) {
         char buf[64];
-        sprintf(buf, "%d", _context.GetDateTime().unixtime());
+        sprintf(buf, "%d", _settings.GetDateTime().unixtime());
         webServer.send(200, "text/plain", buf);
     } else if (webServer.method() == HTTP_POST) {
         if (!webServer.hasArg("plain")) {
@@ -310,7 +310,7 @@ void Network::_HandleClock()
         auto body = webServer.arg("plain");
         uint32_t datetime{};
         sscanf(body.c_str(), "%d", &datetime);
-        _context.SetDateTime(datetime);
+        _settings.SetDateTime(datetime);
         webServer.send(200, "text/plain", body);
     } else {
         webServer.send(405);

@@ -1,4 +1,4 @@
-#include "Context.h"
+#include "Settings.h"
 #include "Buzzer.h"
 #include <ESP32Time.h>
 #include <flex_DST.h>
@@ -42,15 +42,15 @@ constexpr const char *const PREF_WIFI_PASS = "wifi-pass";
 
 } //namespace;
 
-#define ADDROF(field) (Context::ADDRESS + offsetof(Context::_Data, field))
+#define ADDROF(field) (Settings::ADDRESS + offsetof(Settings::_Data, field))
 
-Context::Context(Buzzer &buzzer)
+Settings::Settings(Buzzer &buzzer)
     : _buzzer{&buzzer}
     , _recorder{eeprom_impl}
 {
 }
 
-int8_t Context::Setup()
+int8_t Settings::Setup()
 {
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
@@ -79,7 +79,7 @@ int8_t Context::Setup()
     return 0;
 }
 
-bool Context::IsKeyDefault()
+bool Settings::IsKeyDefault()
 {
     LockGuard lock{_dataMx};
     for (int i = 0; i < KEY_SIZE; ++i) {
@@ -89,14 +89,14 @@ bool Context::IsKeyDefault()
     return true;
 }
 
-Context::KeyT Context::GetKey()
+Settings::KeyT Settings::GetKey()
 {
     LockGuard lock{_dataMx};
     Serial.println();
     return _key;
 }
 
-void Context::SetKey(std::string_view skey)
+void Settings::SetKey(std::string_view skey)
 {
     KeyT key = {};
     memcpy(key.data(), skey.data(), std::min(KEY_SIZE, skey.size()));
@@ -114,12 +114,12 @@ void Context::SetKey(std::string_view skey)
     NotifyWatchers();
 }
 
-DateTime Context::GetDateTime() const
+DateTime Settings::GetDateTime() const
 {
     return dst.calculateTime(DateTime{rtc.getEpoch()});
 }
 
-uint32_t Context::GetClock(const DateTime *date_time) const
+uint32_t Settings::GetClock(const DateTime *date_time) const
 {
     if (!date_time) {
         auto now = GetDateTime();
@@ -134,7 +134,7 @@ uint32_t Context::GetClock(const DateTime *date_time) const
     return clock * 1000 + millis() % 1000;
 }
 
-void Context::SetClock(uint32_t clock)
+void Settings::SetClock(uint32_t clock)
 {
     auto now = GetDateTime();
     //auto ms = clock % 1000;
@@ -150,7 +150,7 @@ void Context::SetClock(uint32_t clock)
     rtc.setTime(adjusted.unixtime());
 }
 
-void Context::SetDateTime(uint32_t timestamp)
+void Settings::SetDateTime(uint32_t timestamp)
 {
     DateTime adjusted{timestamp};
     if (dst.checkDST(adjusted)) {
@@ -159,13 +159,13 @@ void Context::SetDateTime(uint32_t timestamp)
     rtc.setTime(adjusted.unixtime());
 }
 
-uint8_t Context::GetId()
+uint8_t Settings::GetId()
 {
     LockGuard lock{_dataMx};
     return _id;
 }
 
-void Context::SetId(uint8_t id)
+void Settings::SetId(uint8_t id)
 {
     {
         LockGuard lock{_dataMx};
@@ -180,19 +180,19 @@ void Context::SetId(uint8_t id)
     NotifyWatchers();
 }
 
-uint32_t Context::GetActiveMinutes()
+uint32_t Settings::GetActiveMinutes()
 {
     LockGuard lock{_dataMx};
     return _active_minutes;
 }
 
-uint32_t Context::GetActiveMs()
+uint32_t Settings::GetActiveMs()
 {
     LockGuard lock{_dataMx};
     return _active_ms;
 }
 
-void Context::SetActiveMinutes(uint32_t minutes)
+void Settings::SetActiveMinutes(uint32_t minutes)
 {
     {
         LockGuard lock{_dataMx};
@@ -208,19 +208,19 @@ void Context::SetActiveMinutes(uint32_t minutes)
     NotifyWatchers();
 }
 
-uint32_t Context::GetEcoMinutes()
+uint32_t Settings::GetEcoMinutes()
 {
     LockGuard lock{_dataMx};
     return _eco_minutes;
 }
 
-uint32_t Context::GetEcoMs()
+uint32_t Settings::GetEcoMs()
 {
     LockGuard lock{_dataMx};
     return _eco_ms;
 }
 
-void Context::SetEcoMinutes(uint32_t minutes)
+void Settings::SetEcoMinutes(uint32_t minutes)
 {
     {
         LockGuard lock{_dataMx};
@@ -236,13 +236,13 @@ void Context::SetEcoMinutes(uint32_t minutes)
     NotifyWatchers();
 }
 
-int8_t Context::GetRecordRetainDays()
+int8_t Settings::GetRecordRetainDays()
 {
     LockGuard lock{_dataMx};
     return _record_retain_days;
 }
 
-void Context::SetRecordRetainDays(uint8_t days)
+void Settings::SetRecordRetainDays(uint8_t days)
 {
     {
         LockGuard lock{_dataMx};
@@ -257,13 +257,13 @@ void Context::SetRecordRetainDays(uint8_t days)
     NotifyWatchers();
 }
 
-std::string Context::GetWifiSsid()
+std::string Settings::GetWifiSsid()
 {
     LockGuard lock{_dataMx};
     return _wifi_ssid;
 }
 
-void Context::SetWifiSsid(std::string_view ssid)
+void Settings::SetWifiSsid(std::string_view ssid)
 {
     {
         LockGuard lock{_dataMx};
@@ -278,13 +278,13 @@ void Context::SetWifiSsid(std::string_view ssid)
     NotifyWatchers();
 }
 
-std::string Context::GetWifiPass()
+std::string Settings::GetWifiPass()
 {
     LockGuard lock{_dataMx};
     return _wifi_pass;
 }
 
-void Context::SetWifiPass(std::string_view pass)
+void Settings::SetWifiPass(std::string_view pass)
 {
     {
         LockGuard lock{_dataMx};
@@ -299,7 +299,7 @@ void Context::SetWifiPass(std::string_view pass)
     NotifyWatchers();
 }
 
-size_t Context::Subscribe(OnChangeT on_change)
+size_t Settings::Subscribe(OnChangeT on_change)
 {
     LockGuard lock{_watchersMx};
     auto it = std::find_if(watchers.begin(), watchers.end(), [](OnChangeT w) { return !w; });
@@ -309,14 +309,14 @@ size_t Context::Subscribe(OnChangeT on_change)
     return it - watchers.begin();
 }
 
-void Context::Unsubscribe(size_t idx)
+void Settings::Unsubscribe(size_t idx)
 {
     LockGuard lock{_watchersMx};
     if (idx < watchers.size())
         watchers[idx] = {};
 }
 
-void Context::NotifyWatchers()
+void Settings::NotifyWatchers()
 {
     LockGuard lock{_watchersMx};
     for (const auto &w : watchers) {

@@ -1,6 +1,6 @@
 
 #include "Buzzer.h"
-#include "Context.h"
+#include "Settings.h"
 #include "Puncher.h"
 #include "Shell.h"
 #include "Bluetooth.h"
@@ -11,14 +11,14 @@
 #include <driver/gpio.h>
 
 Buzzer buzzer;
-Context context{buzzer};
-Puncher puncher{context};
+Settings settings{buzzer};
+Puncher puncher{settings};
 OutMux outMux;
-Shell shell{outMux, context, buzzer};
+Shell shell{outMux, settings, buzzer};
 
-Bluetooth bluetooth{outMux, context, shell};
-Network network {outMux, context, shell, buzzer};
-Operation operation{buzzer, context, bluetooth, network};
+Bluetooth bluetooth{outMux, settings, shell};
+Network network {outMux, settings, shell, buzzer};
+Operation operation{buzzer, settings, bluetooth, network};
 
 void setup()
 {
@@ -28,7 +28,7 @@ void setup()
     operation.Setup();
     buzzer.Setup();
 
-    if (context.Setup()) {
+    if (settings.Setup()) {
         while (true) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.println(F("Failed to initialize"));
@@ -37,7 +37,7 @@ void setup()
 
     bool initialization_ok = true;
 
-    if (context.IsKeyDefault()) {
+    if (settings.IsKeyDefault()) {
         buzzer.SignalDefaultKey();
         initialization_ok = false;
     }

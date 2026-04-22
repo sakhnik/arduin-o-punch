@@ -1,6 +1,6 @@
 #include "Operation.h"
 #include "Buzzer.h"
-#include "Context.h"
+#include "Settings.h"
 #include "Bluetooth.h"
 #include "Network.h"
 #include "CpuFreq.h"
@@ -13,9 +13,9 @@ static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PI
 
 constexpr const int TIME_TO_SLEEP_MS = 500;
 
-Operation::Operation(Buzzer &buzzer, Context &context, Bluetooth &bluetooth, Network &network)
+Operation::Operation(Buzzer &buzzer, Settings &settings, Bluetooth &bluetooth, Network &network)
     : buzzer{buzzer}
-    , context{context}
+    , settings{settings}
     , bluetooth{bluetooth}
     , network{network}
 {
@@ -151,13 +151,13 @@ void Operation::TransitionToNext()
 
 bool Operation::CheckSnooze()
 {
-    if (mode == Mode::ECO && millis() - prevCardTimeMs >= context.GetEcoMs()) {
+    if (mode == Mode::ECO && millis() - prevCardTimeMs >= settings.GetEcoMs()) {
         EnterSleep();
         // Never reached
         return false;
     }
 
-    if (mode == Mode::ACTIVE && millis() - prevCardTimeMs >= context.GetActiveMs()) {
+    if (mode == Mode::ACTIVE && millis() - prevCardTimeMs >= settings.GetActiveMs()) {
         mode = Mode::ECO;
         prevCardTimeMs = millis();
         return false;

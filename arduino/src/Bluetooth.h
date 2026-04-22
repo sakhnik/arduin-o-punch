@@ -7,14 +7,14 @@
 #include <freertos/semphr.h>
 #include <atomic>
 
-class Context;
+class Settings;
 class Shell;
 
 class Bluetooth
     : private OutMux::IClient
 {
 public:
-    Bluetooth(OutMux &, Context &, Shell &);
+    Bluetooth(OutMux &, Settings &, Shell &);
 
     void Setup();
     void SwitchOn();
@@ -22,7 +22,7 @@ public:
 
 private:
     OutMux &_outMux;
-    Context &_context;
+    Settings &_settings;
     Shell &_shell;
     std::atomic<bool> _stopRequested{false};
     AOP::RingBuffer<1024> _outBuffer;

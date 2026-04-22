@@ -4,7 +4,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
-class Context;
+class Settings;
 class Shell;
 class Buzzer;
 
@@ -12,7 +12,7 @@ class Network
     : private OutMux::IClient
 {
 public:
-    Network(OutMux &, Context &, Shell &, Buzzer &);
+    Network(OutMux &, Settings &, Shell &, Buzzer &);
 
     void Setup();
     void SwitchOn();
@@ -20,7 +20,7 @@ public:
 
 private:
     OutMux &_outMux;
-    Context &_context;
+    Settings &_settings;
     Shell &_shell;
     Buzzer &_buzzer;
     unsigned long _last_connecting_dit = 0;
