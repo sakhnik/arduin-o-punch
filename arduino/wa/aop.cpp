@@ -100,16 +100,20 @@ public:
 
 struct KeyHolder
 {
-    std::string _keyA;
+    AOP::IMifare::KeyT _keyA{};
 
-    KeyHolder(const std::string &key)
-        : _keyA{key}
+    KeyHolder(const std::string &s)
     {
+        if (s.size() >= _keyA.size()) {
+            std::copy_n(s.begin(), _keyA.size(), _keyA.begin());
+        } else {
+            std::copy(s.begin(), s.end(), _keyA.begin());
+        }
     }
 
-    const uint8_t *GetKeyA()
+    AOP::IMifare::KeyT GetKeyA()
     {
-        return reinterpret_cast<const uint8_t *>(_keyA.data());
+        return _keyA;
     }
 };
 
