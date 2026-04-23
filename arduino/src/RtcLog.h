@@ -7,7 +7,8 @@ struct RtcLog
 public:
     static void Init()
     {
-        if (magic != 0xCAFEBABE) {
+        isRTCReliable = magic == 0xCAFEBABE;
+        if (!isRTCReliable) {
             bootCount = 0;
             magic = 0xCAFEBABE;
         }
@@ -16,7 +17,12 @@ public:
         lastReset = esp_reset_reason();
     }
 
+    static bool IsReliable() { return isRTCReliable; }
+
     static RTC_DATA_ATTR uint32_t magic;
     static RTC_DATA_ATTR uint32_t bootCount;
     static RTC_DATA_ATTR uint32_t lastReset;
+
+private:
+    static bool isRTCReliable;
 };
