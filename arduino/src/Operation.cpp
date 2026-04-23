@@ -58,7 +58,7 @@ void Operation::Setup()
     digitalWrite(MOSFET_PIN, LOW);
 
     if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_GPIO) {
-        // When waking up from the sleep, restore the stats to continue :w
+        // When waking up from the sleep, restore the stats to continue
         prefs.begin(PREF_STATS, true);
         prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, rtc.getEpoch());
         prefs.getBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));

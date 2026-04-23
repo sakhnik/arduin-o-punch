@@ -7,6 +7,7 @@
 #include "Network.h"
 #include "OutMux.h"
 #include "Operation.h"
+#include "RtcLog.h"
 
 Buzzer buzzer;
 Settings settings{buzzer};
@@ -20,6 +21,8 @@ Operation operation{buzzer, settings, bluetooth, network};
 
 void setup()
 {
+    RtcLog::Init();
+
     // 9600 allows for reliable communication with automated scripts like sync-clock.py
     Serial.begin(9600);
 
