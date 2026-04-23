@@ -109,6 +109,7 @@ bool Network::_Start()
     MDNS.begin(hostname);
     WiFi.setHostname(hostname);
     WiFi.mode(WIFI_AP_STA);
+    WiFi.setTxPower(WIFI_POWER_8_5dBm);
     WiFi.begin(_settings.GetWifiSsid().c_str(), _settings.GetWifiPass().c_str());
     WiFi.softAP(hostname);
 

@@ -37,6 +37,7 @@ class ServerCallbacks
 public:
     void onConnect(NimBLEServer *server, NimBLEConnInfo &connInfo) override
     {
+        NimBLEDevice::setMTU(247);
         deviceConnected = true;
     }
 
@@ -163,6 +164,7 @@ void Bluetooth::_Task()
 bool Bluetooth::_Start()
 {
     NimBLEDevice::init("");
+    esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P6);
 
     *AOP::PrintNum(_settings.GetId(), localName + 4) = 0;
     Serial.println(localName);
