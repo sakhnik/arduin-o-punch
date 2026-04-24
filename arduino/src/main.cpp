@@ -11,13 +11,13 @@
 
 Buzzer buzzer;
 Settings settings{buzzer};
-Puncher puncher{settings};
 OutMux outMux;
 Shell shell{outMux, settings, buzzer};
 
 Bluetooth bluetooth{outMux, settings, shell};
 Network network {outMux, settings, shell, buzzer};
 Operation operation{buzzer, settings, bluetooth, network};
+Puncher puncher{settings, operation};
 
 void setup()
 {
@@ -84,10 +84,10 @@ void loop()
         if (res == ErrorCode::CARD_IS_FULL) {
             operation.TransitionToActive();
             buzzer.SignalCardFull();
-        }
-
-        if (res == ErrorCode::SERVICE_CARD) {
+        } else if (res == ErrorCode::SERVICE_CARD) {
             operation.TransitionToNext();
+        } else if (res == ErrorCode::DEBUG_CARD) {
+            buzzer.ConfirmDebug();
         }
     }
 

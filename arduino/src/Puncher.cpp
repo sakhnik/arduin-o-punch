@@ -3,10 +3,13 @@
 #include "IMifare.h"
 #include "PunchCard.h"
 #include "Buzzer.h"
+#include "Operation.h"
+#include "RtcLog.h"
 
 #include <MFRC522v2.h>
 #include <MFRC522DriverSPI.h>
 #include <MFRC522DriverPinSimple.h>
+#include <endian.h>
 
 //#define LOGGER
 #ifdef LOGGER
@@ -21,8 +24,9 @@ MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
 } //namespace;
 
-Puncher::Puncher(Settings &settings)
+Puncher::Puncher(Settings &settings, Operation &operation)
     : _settings{settings}
+    , _operation{operation}
 {
 }
 
@@ -112,6 +116,16 @@ struct MifareClassic : AOP::IMifare
     }
 };
 
+#pragma pack(push, 1)
+struct DebugInfo
+{
+    uint8_t version = 0;
+    uint16_t bootCount;
+    uint8_t lastResetReason;
+    uint32_t timeStats[static_cast<size_t>(Operation::Mode::Count)];
+};
+#pragma pack(pop)
+
 } //namespace;
 
 ErrorCode Puncher::Punch()
@@ -143,15 +157,39 @@ ErrorCode Puncher::Punch()
     logger.Clear();
     Serial.println(F("----"));
 #endif
+
     struct Callback : AOP::PunchCard::ICallback
     {
+        Operation &operation;
         uint16_t card_id{};
+
+        Callback(Operation &operation)
+            : operation{operation}
+        {
+        }
 
         void OnCardId(uint16_t card_id) override
         {
             this->card_id = card_id;
         }
-    } callback;
+
+        std::string GetDebugInfo() override
+        {
+            DebugInfo info;
+            info.bootCount = RtcLog::bootCount;
+            info.lastResetReason = RtcLog::lastReset;
+            auto stats = operation.GetStats();
+            static_assert(stats.size() == std::size(info.timeStats));
+            for (size_t i = 0; i < stats.size(); ++i) {
+                info.timeStats[i] = htole32(stats[i]);
+            }
+            return std::string(reinterpret_cast<const char *>(&info), sizeof(DebugInfo));
+        }
+
+        void ConfirmDebugInfo(size_t) override
+        {
+        }
+    } callback{_operation};
 
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey(), &callback};
@@ -180,8 +218,6 @@ ErrorCode Puncher::Punch()
 
     if (res == ErrorCode::DUPLICATE_PUNCH)
         res = ErrorCode::OK;
-    if (res == ErrorCode::OK && callback.card_id == 0)
-        res = ErrorCode::SERVICE_CARD;
     return res;
 }
 

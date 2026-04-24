@@ -30,6 +30,7 @@ public:
     bool IsIdle();
 
     void ConfirmPunch();
+    void ConfirmDebug();
     void SignalDefaultKey();
     void SignalCardFull();
     void SignalOk();

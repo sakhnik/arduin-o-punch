@@ -12,7 +12,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(DocTest)
 include_directories(${doctest_SOURCE_DIR})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DBUILD_TEST)
 add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")

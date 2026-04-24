@@ -1,6 +1,5 @@
 #ifdef BUILD_TEST
 
-#include "doctest/doctest.h"
 #include "PunchCard.h"
 #include <array>
 #include <string>  // std::to_string()
@@ -8,6 +7,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <cassert>
+
+#include <doctest/doctest.h>
 
 using namespace AOP;
 
@@ -29,12 +30,14 @@ struct TestMifare : AOP::IMifare
     int failWrites = 0;
     int failDelay = 0;
 
-    TestMifare(uint8_t startSector)
+    TestMifare(uint16_t cardId, uint8_t startSector)
     {
         for (auto &block : blocks)
             block.fill(0);
         for (int sector = 0; sector < 16; ++sector)
             memcpy(blocks[sector * 4 + 3].data(), IMifare::KEY_DEFAULT.data(), IMifare::KEY_SIZE);
+        blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::ID_OFFSET] = cardId & 0xff;
+        blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::ID_OFFSET + 1] = (cardId >> 8) & 0xff;
         blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::SECTOR_OFFSET] = startSector;
     }
 
@@ -126,7 +129,7 @@ template<> struct StringMaker<std::vector<AOP::Punch>>
 
 TEST_CASE("PunchCard Punch")
 {
-    TestMifare mifare(2);
+    TestMifare mifare(123, 2);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> readOut;
@@ -148,7 +151,7 @@ TEST_CASE("PunchCard Punch")
 
 TEST_CASE("PunchCard Punch asynchronous")
 {
-    TestMifare mifare(3);
+    TestMifare mifare(123, 3);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> readOut;
@@ -171,7 +174,7 @@ TEST_CASE("PunchCard Punch asynchronous")
 
 TEST_CASE("PunchCard max punches")
 {
-    TestMifare mifare(14);
+    TestMifare mifare(123, 14);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     auto testPunch = [](int i) {
@@ -195,7 +198,7 @@ TEST_CASE("PunchCard max punches")
 
 TEST_CASE("PunchCard max repeated punches")
 {
-    TestMifare mifare(13);
+    TestMifare mifare(123, 13);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     auto testPunch = [](int i) {
@@ -236,7 +239,7 @@ TEST_CASE("PunchCard max repeated punches")
 
 TEST_CASE("PunchCard Clear")
 {
-    TestMifare mifare(7);
+    TestMifare mifare(123, 7);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130)};
@@ -255,7 +258,7 @@ TEST_CASE("PunchCard Clear")
 
 TEST_CASE("PunchCard Clear at Start")
 {
-    TestMifare mifare(12);
+    TestMifare mifare(123, 12);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::START_STATION, 150)};
@@ -274,7 +277,7 @@ TEST_CASE("PunchCard Recover from failed write")
     // Some cheap cards may lose data when timeout occurs. The puncher should
     // be resilient and never lose ability to continue punching even after
     // occasional data loss in one block because of unsuccessful write operation.
-    TestMifare mifare(7);
+    TestMifare mifare(123, 7);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
     auto testPunch = [](int i) {

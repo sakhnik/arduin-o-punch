@@ -252,6 +252,19 @@ void Operation::ResetStats()
     timeStats.fill(0);
 }
 
+Operation::StatsT Operation::GetStats()
+{
+    decltype(timeStats) snapshot;
+    auto now = rtc.getEpoch();
+    {
+        LockGuard lock{mutex};
+        snapshot = timeStats;
+        // Account the ongoing mode
+        snapshot[static_cast<size_t>(mode)] += now - prevTransitionTime;
+    }
+    return snapshot;
+}
+
 std::string Operation::DumpStats()
 {
     auto toMAH = [](uint32_t s, float current)  {
@@ -281,14 +294,7 @@ std::string Operation::DumpStats()
         return line;
     };
 
-    decltype(timeStats) snapshot;
-    auto now = rtc.getEpoch();
-    {
-        LockGuard lock{mutex};
-        snapshot = timeStats;
-        // Account the ongoing mode
-        snapshot[static_cast<size_t>(mode)] += now - prevTransitionTime;
-    }
+    auto snapshot = GetStats();
 
     std::string s;
     s += "Active: " + getLine(snapshot[static_cast<size_t>(Mode::Active)], 20.f) + "\n";

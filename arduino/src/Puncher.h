@@ -3,11 +3,12 @@
 #include "ErrorCode.h"
 
 class Settings;
+class Operation;
 
 class Puncher
 {
 public:
-    Puncher(Settings &);
+    Puncher(Settings &, Operation &);
     void Setup();
     ErrorCode Punch();
 
@@ -16,4 +17,5 @@ public:
 
 private:
     Settings &_settings;
+    Operation &_operation;
 };

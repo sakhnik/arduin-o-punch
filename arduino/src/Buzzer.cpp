@@ -99,6 +99,10 @@ const Buzzer::Melody KEY_DEF{KEY_DEF_SEQUENCE, 255};
 const uint8_t CONFIRM_SEQUENCE[] = {START, DIT, P, DAH, P, 0};
 const Buzzer::Melody CONFIRM{CONFIRM_SEQUENCE, 2};  // allow interrupting after the dot
 
+// D = -..
+const uint8_t DEBUG_SEQUENCE[] = {START, DAH, P, DIT, P, DIT, P, 0};
+const Buzzer::Melody DEBUG{DEBUG_SEQUENCE, 255};
+
 // F = ..-.
 const uint8_t CARD_FULL_SEQUENCE[] = {START, DIT, P, DIT, P, DAH, P, DIT, P, 0};
 const Buzzer::Melody CARD_FULL{CARD_FULL_SEQUENCE, 255};
@@ -160,6 +164,11 @@ void Buzzer::SignalDefaultKey()
 void Buzzer::ConfirmPunch()
 {
     Play(Morse::CONFIRM);
+}
+
+void Buzzer::ConfirmDebug()
+{
+    Play(Morse::DEBUG);
 }
 
 void Buzzer::SignalCardFull()

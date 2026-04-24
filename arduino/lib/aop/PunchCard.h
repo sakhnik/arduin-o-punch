@@ -4,6 +4,7 @@
 #include "ErrorCode.h"
 
 #include <vector>
+#include <string>
 
 namespace AOP {
 
@@ -13,6 +14,9 @@ public:
     static constexpr const uint8_t CHECK_STATION = 1;
     static constexpr const uint8_t START_STATION = 10;
     static constexpr const uint8_t FINISH_STATION = 255;
+
+    static constexpr const uint16_t SERVICE_CARD = 0;
+    static constexpr const uint16_t DEBUG_CARD = 0xffff;
 
     // Keep in sync with Android's Puncher
     //
@@ -58,6 +62,8 @@ public:
     {
         // Notify about the card ID when punched successfully
         virtual void OnCardId(uint16_t card) = 0;
+        virtual std::string GetDebugInfo() { return ""; }
+        virtual void ConfirmDebugInfo(size_t) { }
     };
 
     static int GetMaxPunches()
@@ -114,6 +120,7 @@ private:
     };
     _Address _GetPunchAddr(uint8_t index);
     uint8_t _GetPunchBlock(uint8_t index, uint8_t startSector);
+    std::pair<uint8_t, size_t> _WriteString(uint8_t startBlock, const std::string &str);
 };
 
 } //namespace AOP;

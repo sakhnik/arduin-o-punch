@@ -21,6 +21,7 @@ struct ErrorCode
         CARD_IS_FULL,
         DUPLICATE_PUNCH,
         SERVICE_CARD,
+        DEBUG_CARD,
     };
 
     uint8_t code;

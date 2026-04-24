@@ -29,13 +29,16 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     uint8_t startSector = header[SECTOR_OFFSET];
 
+    if (card_id == SERVICE_CARD)
+        return ErrorCode::SERVICE_CARD;
+
     auto headerStatus = _RecoverHeader(startSector, header);
     if (headerStatus.error)
         return headerStatus.error;
 
     // 5. calculate the offset in the header
     // If this is the start station punching, clear all the previous punches
-    if (punch.GetStation() == START_STATION) {
+    if (punch.GetStation() == START_STATION || card_id == DEBUG_CARD) {
         memset(header, 0xff, IMifare::BLOCK_SIZE);
         header[0] = 0;
     }
@@ -98,9 +101,19 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     if (auto res = _mifare->WriteBlock(headerBlock1, header, IMifare::BLOCK_SIZE))
         return res;
 
+    if (card_id == DEBUG_CARD && _callback) {
+        // Write debug info to the card
+        auto info = _callback->GetDebugInfo();
+        auto [res, offset] = _WriteString((startSector + 1) % IMifare::SECTOR_COUNT * 4, info);
+        _callback->ConfirmDebugInfo(offset);
+        if (res)
+            return res;
+    }
+
     if (_callback)
         _callback->OnCardId(card_id);
-    return ErrorCode::OK;
+
+    return card_id == DEBUG_CARD ? ErrorCode::DEBUG_CARD : ErrorCode::OK;
 }
 
 ErrorCode PunchCard::Clear()
@@ -304,6 +317,48 @@ uint8_t PunchCard::_GetPunchBlock(uint8_t index, uint8_t startSector)
         }
     }
     return sector * IMifare::BLOCKS_PER_SECTOR + sectorOffset;
+}
+
+std::pair<uint8_t, size_t>
+PunchCard::_WriteString(uint8_t startBlock, const std::string &str)
+{
+    size_t offset = 0;
+    // Write into the consequent blocks starting from the start block.
+    // We can't write into the block 0 and the key blocks.
+    uint8_t n = (IMifare::SECTOR_COUNT - 1) * IMifare::BLOCKS_PER_SECTOR - 1;
+    for (uint8_t block = startBlock, i = 0; i < n; ++block, ++i) {
+
+        // The first block is not writable
+        if (block == 0)
+            continue;
+
+        // Skip sector trailers (block 3,7,11,...)
+        if ((block % IMifare::BLOCKS_PER_SECTOR) == (IMifare::BLOCKS_PER_SECTOR - 1)) {
+            continue;
+        }
+
+        size_t remaining = str.size() - offset;
+        if (!remaining) {
+            return {ErrorCode::OK, offset};
+        }
+
+        size_t toCopy = std::min<size_t>(IMifare::BLOCK_SIZE, remaining);
+
+        uint8_t sector = _mifare->BlockToSector(block);
+        if (auto res = _Authenticate(sector))
+            return {res, offset};
+
+        uint8_t buffer[IMifare::BLOCK_SIZE + 2] = {0};
+        memcpy(buffer, str.data() + offset, toCopy);
+
+        if (auto res = _mifare->WriteBlock(block, buffer, IMifare::BLOCK_SIZE)) {
+            return {res, offset};
+        }
+
+        offset += toCopy;
+    }
+
+    return {ErrorCode::OK, offset};
 }
 
 }  // namespace AOP;

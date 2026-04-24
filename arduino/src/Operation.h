@@ -33,6 +33,8 @@ public:
 
     void ResetStats();
     std::string DumpStats();
+    using StatsT = std::array<uint32_t, static_cast<size_t>(Mode::Count)>;
+    StatsT GetStats();
 
 private:
     Buzzer &buzzer;
@@ -44,7 +46,7 @@ private:
     Mutex mutex;
     uint32_t prevCardTimeMs = 0;
     uint32_t prevTransitionTime = 0;
-    std::array<uint32_t, static_cast<size_t>(Mode::Count)> timeStats = {};
+    StatsT timeStats = {};
 
     void TransitionTo(Mode, bool silent = false);
     Mode GetNextMode();
