@@ -1,6 +1,8 @@
 package com.sakhnik.arduinopunch
 
 import android.content.Context
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.Arrays
 import kotlin.random.Random
 
@@ -299,7 +301,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         return sector * 4 + sectorOffset
     }
 
-    data class Info(val cardNumber: Int, val punches: List<Punch>)
+    data class Info(val cardNumber: Int, val punches: List<Punch>, val debugInfo: DebugInfo?)
 
     fun readOut(progress: Progress = Procedure.NO_PROGRESS): Info {
         val stages = 8
@@ -335,8 +337,16 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             readPunchesFromBlock(tail, header, punches)
         }
 
+        var debugInfo: DebugInfo? = null
+
+        if (cardId == 0xFFFF) {
+            val startBlock = ((startSector + 1) % 16) * 4
+            val raw = readDebugInfo(startBlock)
+            debugInfo = parseDebugInfo(raw)
+        }
+
         progress(1, 1)
-        return Info(cardId, punches)
+        return Info(cardId, punches, debugInfo)
     }
 
     private fun readPunchesFromBlock(count: Int, data: ByteArray, punches: ArrayList<Punch>) {
@@ -352,5 +362,55 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             }
             punches.add(punch)
         }
+    }
+
+    private fun readDebugInfo(startBlock: Int): ByteArray {
+        val result = ByteArray(24)
+        var offset = 0
+        var block = startBlock
+
+        while (offset < result.size) {
+
+            val b = block % 64
+
+            // skip block 0 and sector trailer
+            if (b == 0 || b % 4 == 3) {
+                block++
+                continue
+            }
+
+            val sector = mifare.blockToSector(b)
+            authenticate(sector)
+
+            val data = mifare.readBlock(b) as ByteArray
+
+            val toCopy = minOf(data.size, result.size - offset)
+            System.arraycopy(data, 0, result, offset, toCopy)
+
+            offset += toCopy
+            block++
+        }
+
+        return result
+    }
+
+    data class DebugInfo(
+        val version: Int,
+        val bootCount: Int,
+        val lastResetReason: Int,
+        val timeStats: IntArray
+    )
+
+    private fun parseDebugInfo(data: ByteArray): DebugInfo {
+        val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
+
+        val version = buffer.get().toInt() and 0xFF
+        val bootCount = buffer.short.toInt() and 0xFFFF
+        val lastResetReason = buffer.get().toInt() and 0xFF
+
+        val count = (data.size - 1 - 2 - 1) / 4
+        val timeStats = IntArray(count) { buffer.int }
+
+        return DebugInfo(version, bootCount, lastResetReason, timeStats)
     }
 }

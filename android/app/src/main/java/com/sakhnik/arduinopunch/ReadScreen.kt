@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -117,6 +118,20 @@ fun ReadScreen(cardViewModel: CardViewModel) {
             PunchesTable(viewModel = cardViewModel)
         }
     }
+}
+
+private fun PunchCard.DebugInfo.toLines(): List<String> {
+    val lines = mutableListOf<String>()
+
+    lines += "Version: $version"
+    lines += "Boot count: $bootCount"
+    lines += "Last reset: $lastResetReason"
+
+    timeStats.forEachIndexed { i, v ->
+        lines += "Time[$i]: $v"
+    }
+
+    return lines
 }
 
 @Composable
@@ -228,6 +243,33 @@ fun PunchesTable(viewModel: CardViewModel) {
                     }
                 }
             }
+
+            // Debug info section
+            readout.debugInfo?.let { debug ->
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Debug info",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                        .padding(8.dp)
+                ) {
+                    debug.toLines().forEach { line ->
+                        Text(
+                            text = line,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -281,7 +323,7 @@ fun ReadScreenPreview() {
             Punch(station = 33, timestamp = 10800L),
             Punch(station = 100, timestamp = 10900L),
         )
-        val readOut = PunchCard.Info(cardNumber = 123, punches = punches)
+        val readOut = PunchCard.Info(cardNumber = 123, punches = punches, debugInfo = null)
         val mockViewModel = MockCardViewModel().apply {
             setReadOutForPreview(readOut)
         }

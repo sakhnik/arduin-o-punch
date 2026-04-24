@@ -31,7 +31,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
     private val _progress = mutableFloatStateOf(0f)
     val progress: State<Float> = _progress
 
-    private val _readOut = MutableLiveData(PunchCard.Info(0, listOf()))
+    private val _readOut = MutableLiveData(PunchCard.Info(0, listOf(), debugInfo = null))
     val readOut: LiveData<PunchCard.Info> get() = _readOut
     // Helper method for preview
     fun setReadOutForPreview(readOut: PunchCard.Info) {
