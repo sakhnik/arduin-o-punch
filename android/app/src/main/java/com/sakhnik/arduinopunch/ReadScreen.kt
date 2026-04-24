@@ -120,20 +120,6 @@ fun ReadScreen(cardViewModel: CardViewModel) {
     }
 }
 
-private fun PunchCard.DebugInfo.toLines(): List<String> {
-    val lines = mutableListOf<String>()
-
-    lines += "Version: $version"
-    lines += "Boot count: $bootCount"
-    lines += "Last reset: $lastResetReason"
-
-    timeStats.forEachIndexed { i, v ->
-        lines += "Time[$i]: $v"
-    }
-
-    return lines
-}
-
 @Composable
 fun PunchesTable(viewModel: CardViewModel) {
     val readOut by viewModel.readOut.observeAsState()
@@ -262,7 +248,7 @@ fun PunchesTable(viewModel: CardViewModel) {
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
                         .padding(8.dp)
                 ) {
-                    debug.toLines().forEach { line ->
+                    DebugStatsFormatter.format(debug).forEach { line ->
                         Text(
                             text = line,
                             fontSize = 13.sp

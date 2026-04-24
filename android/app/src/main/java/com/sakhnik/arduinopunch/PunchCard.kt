@@ -342,7 +342,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         if (cardId == 0xFFFF) {
             val startBlock = ((startSector + 1) % 16) * 4
             val raw = readDebugInfo(startBlock)
-            debugInfo = parseDebugInfo(raw)
+            debugInfo = DebugInfo.parse(raw)
         }
 
         progress(1, 1)
@@ -365,7 +365,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
     }
 
     private fun readDebugInfo(startBlock: Int): ByteArray {
-        val result = ByteArray(24)
+        val result = ByteArray(DebugInfo.SIZE)
         var offset = 0
         var block = startBlock
 
@@ -394,23 +394,4 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         return result
     }
 
-    data class DebugInfo(
-        val version: Int,
-        val bootCount: Int,
-        val lastResetReason: Int,
-        val timeStats: IntArray
-    )
-
-    private fun parseDebugInfo(data: ByteArray): DebugInfo {
-        val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
-
-        val version = buffer.get().toInt() and 0xFF
-        val bootCount = buffer.short.toInt() and 0xFFFF
-        val lastResetReason = buffer.get().toInt() and 0xFF
-
-        val count = (data.size - 1 - 2 - 1) / 4
-        val timeStats = IntArray(count) { buffer.int }
-
-        return DebugInfo(version, bootCount, lastResetReason, timeStats)
-    }
 }

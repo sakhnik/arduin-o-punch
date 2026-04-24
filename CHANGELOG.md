@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eco mode after inactivity period
 - Deep sleep after inactivity period, wake up on shake
 - ArduinoOTA
+- Debug card to retrieve diagnostic information
 
 ### Changed
 
