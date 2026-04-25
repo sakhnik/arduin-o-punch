@@ -57,7 +57,6 @@ object DebugStatsFormatter {
         // -------------------------
         // HEADER
         // -------------------------
-        lines += "Debug info"
         lines += "Version: ${info.version}"
         lines += "Boot count: ${info.bootCount}"
         lines += "Reset reason: ${resetReasonText(info.lastResetReason)}"
