@@ -127,7 +127,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "/home/sakhnik/work/orienteering/arduin-o-punch/arduino/pcb/aop/0_2/")
+			(outputdirectory "/home/sakhnik/work/orienteering/arduin-o-punch/arduino/pcb/aop/0_3/")
 		)
 	)
 	(footprint "RFID-RC522:RFID-RC522_1"
