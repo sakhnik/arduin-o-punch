@@ -31,6 +31,7 @@ public:
 
     void ConfirmPunch();
     void ConfirmDebug();
+    void SignalRTCFail();
     void SignalDefaultKey();
     void SignalCardFull();
     void SignalOk();

@@ -27,9 +27,8 @@ void setup()
     Serial.begin(9600);
 
     buzzer.Setup();
-    operation.Setup();
 
-    if (settings.Setup()) {
+    if (operation.Setup() || settings.Setup()) {
         while (true) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.println(F("Failed to initialize"));

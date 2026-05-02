@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Use of external EEPROM
-- External RTC DS3231 in favour of ESP32 RTC
 
 ## [2.1.0] - 2025.11.30
 

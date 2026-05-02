@@ -1,12 +1,12 @@
 #include "Settings.h"
 #include "Buzzer.h"
-#include <ESP32Time.h>
+#include <RTClib.h>
 #include <flex_DST.h>
 #include <stddef.h>
 #include <Preferences.h>
 
 // Should always keep non-DST time
-ESP32Time rtc{0};
+extern RTC_DS3231 rtc;
 
 namespace {
 
@@ -70,7 +70,7 @@ int8_t Settings::Setup()
 
     if (_record_retain_days > 0) {
         // If record is older than the retain period, reformat.
-        uint32_t timestamp = rtc.getEpoch();
+        uint32_t timestamp = rtc.now().unixtime();
         uint16_t cur_day = timestamp / _recorder.SECONDS_IN_DAY;
         if (cur_day - _recorder.GetFormatDay() >= _record_retain_days) {
             _recorder.Format(_recorder.GetSize(), _recorder.GetBitsPerRecord(), timestamp);
@@ -117,13 +117,13 @@ void Settings::SetKey(std::string_view skey)
 
 DateTime Settings::GetDateTime() const
 {
-    return dst.calculateTime(DateTime{rtc.getEpoch()});
+    return dst.calculateTime(rtc.now());
 }
 
 uint32_t Settings::GetClock(const DateTime *date_time) const
 {
     if (!date_time) {
-        auto now = GetDateTime();
+        auto now = dst.calculateTime(rtc.now());
         return GetClock(&now);
     }
     // TODO: subsecond resolution
@@ -137,7 +137,7 @@ uint32_t Settings::GetClock(const DateTime *date_time) const
 
 void Settings::SetClock(uint32_t clock)
 {
-    auto now = GetDateTime();
+    auto now = dst.calculateTime(rtc.now());
     //auto ms = clock % 1000;
     clock /= 1000;
     auto sec = clock % 60;
@@ -148,7 +148,7 @@ void Settings::SetClock(uint32_t clock)
     if (dst.checkDST(adjusted)) {
         adjusted = adjusted.unixtime() - 3600;
     }
-    rtc.setTime(adjusted.unixtime());
+    rtc.adjust(adjusted);
 }
 
 void Settings::SetDateTime(uint32_t timestamp)
@@ -157,7 +157,7 @@ void Settings::SetDateTime(uint32_t timestamp)
     if (dst.checkDST(adjusted)) {
         adjusted = adjusted.unixtime() - 3600;
     }
-    rtc.setTime(adjusted.unixtime());
+    rtc.adjust(adjusted);
 }
 
 uint8_t Settings::GetId()

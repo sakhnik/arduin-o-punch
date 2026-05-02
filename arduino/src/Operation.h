@@ -13,7 +13,7 @@ class Operation
 public:
     Operation(Buzzer &, Settings &, Bluetooth &, Network &);
 
-    void Setup();
+    int Setup();
     void SetupLate();
 
     enum class Mode

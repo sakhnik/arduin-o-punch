@@ -10,10 +10,11 @@
 #include <SPI.h>
 #include <esp_sleep.h>
 #include <driver/gpio.h>
-#include <ESP32Time.h>
+#include <RTClib.h>
 #include <Preferences.h>
 
-extern ESP32Time rtc;
+// Should always keep non-DST time
+RTC_DS3231 rtc;
 
 namespace {
 
@@ -39,7 +40,7 @@ Operation::Operation(Buzzer &buzzer, Settings &settings, Bluetooth &bluetooth, N
 {
 }
 
-void Operation::Setup()
+int Operation::Setup()
 {
     gpio_deep_sleep_hold_dis();
     for (int pin : HIGH_PINS) {
@@ -49,19 +50,21 @@ void Operation::Setup()
     pinMode(MOSFET_PIN, OUTPUT);
     pinMode(WAKEUP_PIN, INPUT_PULLUP);
 
-    // Set the CPU frequency to 10 MHz for power optimization
-    setCpuFrequencyMhz(10);
-    Serial.print(F("CPU Frequency: "));
-    Serial.print(getCpuFrequencyMhz());
-    Serial.println(F(" MHz"));
-
     // Power on the RFID reader
     digitalWrite(MOSFET_PIN, LOW);
+
+    Wire.begin(I2C_SDA, I2C_SCL);
+    if (!rtc.begin()) {
+        Serial.println("Couldn't find RTC");
+        Serial.flush();
+        buzzer.SignalRTCFail();
+        return -1;
+    }
 
     if (RtcLog::IsReliable()) {
         // Restore the previous mode to preserve the accurate statistics
         prefs.begin(PREF_STATS, true);
-        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, rtc.getEpoch());
+        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, rtc.now().unixtime());
         auto prevMode = prefs.getInt(PREF_PREV_MODE, static_cast<int>(Mode::Sleep));
         if (prevMode < static_cast<int>(Mode::Count)) {
             mode = static_cast<Mode>(prevMode);
@@ -69,17 +72,28 @@ void Operation::Setup()
         prefs.getBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));
         prefs.end();
     } else {
-        prevTransitionTime = rtc.getEpoch();
+        prevTransitionTime = rtc.now().unixtime();
     }
 
-    // Transition to the default mode and record the time in the sleep/previous mode
-    TransitionTo(Mode::Eco, /*silent=*/true);
-
     prevCardTimeMs = millis();
+    return 0;
 }
 
 void Operation::SetupLate()
 {
+    if (!settings.IsKeyDefault()) {
+        // Set the CPU frequency to 10 MHz for power optimization
+        setCpuFrequencyMhz(10);
+        Serial.print(F("CPU Frequency: "));
+        Serial.print(getCpuFrequencyMhz());
+        Serial.println(F(" MHz"));
+
+        // Transition to the default mode and record the time in the sleep/previous mode
+        TransitionTo(Mode::Eco, /*silent=*/true);
+    } else {
+        TransitionTo(Mode::Active, /*silent=*/true);
+    }
+
     // Stay up 2 minutes unless a card has been punched
     prevCardTimeMs = millis() + 2 * 60000 - settings.GetEcoMs();
 }
@@ -117,7 +131,7 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
     }
 
     // Record the time spent in the previous mode
-    auto now = rtc.getEpoch();
+    auto now = rtc.now().unixtime();
     {
         LockGuard lock{mutex};
         timeStats[static_cast<size_t>(mode)] += now - prevTransitionTime;
@@ -175,6 +189,7 @@ void Operation::EnterSleep()
 
     // stop buses
     SPI.end();
+    Wire.end();
 
     // Configure high impedance state for the I²C and SPI
     auto high_z = [](int pin) {
@@ -186,6 +201,8 @@ void Operation::EnterSleep()
     high_z(MISO);
     high_z(SCK);
     high_z(SS);
+    high_z(I2C_SDA);
+    high_z(I2C_SCL);
 
     for (int pin : HIGH_PINS) {
         pinMode(pin, OUTPUT);
@@ -217,6 +234,10 @@ void Operation::TransitionToNext()
 
 bool Operation::CheckSnooze()
 {
+    if (settings.IsKeyDefault()) {
+        return false;
+    }
+
     auto millisNow = millis();
 
     if (mode == Mode::Eco && millisNow - prevCardTimeMs >= settings.GetEcoMs()) {
@@ -248,14 +269,14 @@ bool Operation::CheckSnooze()
 void Operation::ResetStats()
 {
     LockGuard lock{mutex};
-    prevTransitionTime = rtc.getEpoch();
+    prevTransitionTime = rtc.now().unixtime();
     timeStats.fill(0);
 }
 
 Operation::StatsT Operation::GetStats()
 {
     decltype(timeStats) snapshot;
-    auto now = rtc.getEpoch();
+    auto now = rtc.now().unixtime();
     {
         LockGuard lock{mutex};
         snapshot = timeStats;
