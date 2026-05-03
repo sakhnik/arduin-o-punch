@@ -4119,7 +4119,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1 uF"
+		(property "Value" "1uF"
 			(at 100.33 143.5099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4875,7 +4875,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100 nF"
+		(property "Value" "100nF"
 			(at 86.36 143.5099 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5115,7 +5115,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "470 uF"
+		(property "Value" "470uF"
 			(at 113.03 142.6209 0)
 			(show_name no)
 			(do_not_autoplace no)
