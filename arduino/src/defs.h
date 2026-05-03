@@ -7,3 +7,8 @@
 
 #define I2C_SCL 10
 #define I2C_SDA 20
+
+#define SPI_MISO 5
+#define SPI_MOSI 6
+#define SPI_SCK 7
+#define SPI_SS 8

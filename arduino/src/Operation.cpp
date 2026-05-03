@@ -197,10 +197,10 @@ void Operation::EnterSleep()
         gpio_set_pull_mode((gpio_num_t)pin, GPIO_FLOATING);
     };
 
-    high_z(MOSI);
-    high_z(MISO);
-    high_z(SCK);
-    high_z(SS);
+    high_z(SPI_MOSI);
+    high_z(SPI_MISO);
+    high_z(SPI_SCK);
+    high_z(SPI_SS);
     high_z(I2C_SDA);
     high_z(I2C_SCL);
 

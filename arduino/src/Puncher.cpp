@@ -5,6 +5,7 @@
 #include "Buzzer.h"
 #include "Operation.h"
 #include "RtcLog.h"
+#include "defs.h"
 
 #include <MFRC522v2.h>
 #include <MFRC522DriverSPI.h>
@@ -18,7 +19,7 @@
 
 namespace {
 
-MFRC522DriverPinSimple ss_pin = SS;
+MFRC522DriverPinSimple ss_pin = SPI_SS;
 MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
 MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
@@ -32,6 +33,7 @@ Puncher::Puncher(Settings &settings, Operation &operation)
 
 void Puncher::Setup()
 {
+    SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SPI_SS);
     mfrc522.PCD_Init();  // Init MFRC522 board.
 }
 
