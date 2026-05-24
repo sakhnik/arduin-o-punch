@@ -11,4 +11,4 @@
 #define SPI_MISO 5
 #define SPI_MOSI 6
 #define SPI_SCK 7
-#define SPI_SS 8
+#define SPI_SS 20
