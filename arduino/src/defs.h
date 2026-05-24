@@ -6,7 +6,7 @@
 #define MOSFET_PIN 3
 
 #define I2C_SCL 10
-#define I2C_SDA 20
+#define I2C_SDA 4
 
 #define SPI_MISO 5
 #define SPI_MOSI 6

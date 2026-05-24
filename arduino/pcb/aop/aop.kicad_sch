@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "AOP")
-		(rev "v0.4")
+		(rev "v0.5")
 	)
 	(lib_symbols
 		(symbol "AO4435:AO4435"
@@ -3541,12 +3541,6 @@
 		(uuid "72baedb8-c8b6-4d8c-8d7a-8654e5d7c279")
 	)
 	(junction
-		(at 184.15 93.98)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "836e9559-2e63-4723-95fb-fb115c2a007a")
-	)
-	(junction
 		(at 96.52 146.05)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3563,6 +3557,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "cd4afe18-745f-41c4-a897-6145cdf22a78")
+	)
+	(junction
+		(at 184.15 93.98)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d18853de-ebca-4839-ac3b-429c88cc88a7")
 	)
 	(junction
 		(at 107.95 53.34)
@@ -3718,6 +3718,16 @@
 	)
 	(wire
 		(pts
+			(xy 116.84 107.95) (xy 184.15 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "42d6a5a6-48fa-4ed2-b992-84bb1d28d477")
+	)
+	(wire
+		(pts
 			(xy 180.34 119.38) (xy 137.16 119.38)
 		)
 		(stroke
@@ -3725,6 +3735,16 @@
 			(type default)
 		)
 		(uuid "468aab86-3d80-446c-aa74-db1d267c169b")
+	)
+	(wire
+		(pts
+			(xy 121.92 93.98) (xy 116.84 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "48721a1a-cb4e-4ff7-84a5-ce853135a0de")
 	)
 	(wire
 		(pts
@@ -3828,16 +3848,6 @@
 	)
 	(wire
 		(pts
-			(xy 157.48 93.98) (xy 184.15 93.98)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "75f4b105-120a-42d2-a8ab-2a6ccd721041")
-	)
-	(wire
-		(pts
 			(xy 121.92 111.76) (xy 121.92 99.06)
 		)
 		(stroke
@@ -3915,6 +3925,16 @@
 			(type default)
 		)
 		(uuid "ab7f932c-6ecf-412b-902a-c8c4dffabc6f")
+	)
+	(wire
+		(pts
+			(xy 184.15 107.95) (xy 184.15 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b6cc7b0c-eeec-4ef8-967e-038a4ae1f7e7")
 	)
 	(wire
 		(pts
@@ -4075,6 +4095,16 @@
 			(type default)
 		)
 		(uuid "ea61baa6-fe1a-4fd5-a7fa-b15c5d3bae28")
+	)
+	(wire
+		(pts
+			(xy 116.84 93.98) (xy 116.84 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f58a0674-24d2-4229-81e2-916c5d313052")
 	)
 	(wire
 		(pts
