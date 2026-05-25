@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deep sleep after inactivity period, wake up on shake
 - ArduinoOTA
 - Debug card to retrieve diagnostic information
+- UART for programming, configuration and debugging instead of USB CDC
 
 ### Changed
 

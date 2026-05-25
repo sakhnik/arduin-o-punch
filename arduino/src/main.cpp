@@ -23,8 +23,7 @@ void setup()
 {
     RtcLog::Init();
 
-    // 9600 allows for reliable communication with automated scripts like sync-clock.py
-    Serial.begin(9600);
+    Serial.begin(115200);
 
     buzzer.Setup();
 
@@ -48,15 +47,6 @@ void setup()
     bluetooth.Setup();
     network.Setup();
 
-    Serial.onEvent(
-        ARDUINO_HW_CDC_RX_EVENT,
-        [](void *arg, esp_event_base_t base, int32_t id, void *data) {
-            while (Serial.available()) {
-                shell.PutChar(Serial.read());
-            }
-        }
-    );
-
     operation.SetupLate();
 
     if (initialization_ok) {
@@ -66,6 +56,10 @@ void setup()
 
 void loop()
 {
+    while (Serial.available()) {
+        shell.PutChar(Serial.read());
+    }
+
     for (int i = 0; i < 2; ++i) {
         auto res = puncher.Punch();
         if (!res) {
