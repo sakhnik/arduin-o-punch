@@ -10,10 +10,7 @@ Buzzer::Buzzer()
 void Buzzer::Setup()
 {
     pinMode(BUZZER_PIN, OUTPUT);
-    pinMode(LED_CONFIRM_PIN, OUTPUT);
-
     digitalWrite(BUZZER_PIN, HIGH);
-    digitalWrite(LED_CONFIRM_PIN, HIGH);
 
     _queue = xQueueCreate(8, sizeof(Melody));
 
@@ -54,7 +51,6 @@ void Buzzer::TaskLoop()
 
             if (duration == 0) {
                 digitalWrite(BUZZER_PIN, HIGH);
-                digitalWrite(LED_CONFIRM_PIN, HIGH);
                 break; // melody finished
             }
 
@@ -69,7 +65,6 @@ void Buzzer::TaskLoop()
             }
 
             digitalWrite(BUZZER_PIN, state);
-            digitalWrite(LED_CONFIRM_PIN, state);
 
             state = !state;
             idx++;

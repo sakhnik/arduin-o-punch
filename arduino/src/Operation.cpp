@@ -21,7 +21,7 @@ namespace {
 Preferences prefs;
 
 // Hold some pins in the high state during sleep to keep RFC522 and DS3231 switched off and to avoid parasitic current
-static constexpr const int HIGH_PINS[] = {MOSFET_PIN, LED_CONFIRM_PIN, BUZZER_PIN};
+static constexpr const int HIGH_PINS[] = {MOSFET_PIN, BUZZER_PIN};
 
 constexpr const int TIME_TO_SLEEP_MS = 500;
 
