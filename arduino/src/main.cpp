@@ -56,8 +56,14 @@ void setup()
 
 void loop()
 {
+    // Check the serial for input and prohibit light sleep while the serial is active.
+    auto nowMs = millis();
     while (Serial.available()) {
-        shell.PutChar(Serial.read());
+        auto ch = Serial.read();
+        if (ch > 0 && ch < 0xff) {
+            shell.PutChar(ch);
+            operation.TransitionToActive();
+        }
     }
 
     for (int i = 0; i < 2; ++i) {
