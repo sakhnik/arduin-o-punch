@@ -318,17 +318,17 @@ std::string Operation::DumpStats()
     auto snapshot = GetStats();
 
     std::string s;
-    s += "Active: " + getLine(snapshot[static_cast<size_t>(Mode::Active)], 20.f) + "\n";
-    s += "Eco:    " + getLine(snapshot[static_cast<size_t>(Mode::Eco)], 10.f) + "\n";
-    s += "BLE:    " + getLine(snapshot[static_cast<size_t>(Mode::BLE)], 100.f) + "\n";
-    s += "WiFi:   " + getLine(snapshot[static_cast<size_t>(Mode::WiFi)], 100.f) + "\n";
-    s += "Sleep:  " + getLine(snapshot[static_cast<size_t>(Mode::Sleep)], 0.05f) + "\n\n";
+    s += "Active: " + getLine(snapshot[static_cast<size_t>(Mode::Active)], 20.f) + "\r\n";
+    s += "Eco:    " + getLine(snapshot[static_cast<size_t>(Mode::Eco)], 10.f) + "\r\n";
+    s += "BLE:    " + getLine(snapshot[static_cast<size_t>(Mode::BLE)], 100.f) + "\r\n";
+    s += "WiFi:   " + getLine(snapshot[static_cast<size_t>(Mode::WiFi)], 100.f) + "\r\n";
+    s += "Sleep:  " + getLine(snapshot[static_cast<size_t>(Mode::Sleep)], 0.05f) + "\r\n\n";
     auto avgCur = totalEnergy * (60 * 60) / totalTime;
     s += "Total:  " + getLine(totalTime, avgCur) + "  I ~ ";
     char buf[32];
     sprintf(buf, "%.2f", avgCur);
     s += buf;
-    s += " mA\n";
+    s += " mA\r\n";
 
     return s;
 }
