@@ -286,6 +286,7 @@ void Shell::_Process(const String &buffer)
         case ESP_RST_SDIO:      _outMux.print("SDIO");      break;
         }
         _outMux.println();
+        _outMux.println(_operation->DumpStats().c_str());
     } else {
         if (buffer[0] != '\r' && buffer[0] != '\n') {
             _outMux.print(F("Unknown command: "));
