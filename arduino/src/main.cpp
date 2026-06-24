@@ -60,7 +60,7 @@ void loop()
     auto nowMs = millis();
     while (Serial.available()) {
         auto ch = Serial.read();
-        if (ch > 0 && ch < 0xff) {
+        if (0 < ch && ch < 0xf0) {
             shell.PutChar(ch);
             operation.TransitionToActive();
         }
