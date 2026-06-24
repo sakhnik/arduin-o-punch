@@ -155,6 +155,35 @@ ErrorCode Puncher::Punch()
         return ErrorCode::WRONG_CARD;
     }
 
+    ErrorCode res = ErrorCode::OK;
+
+    switch (_settings.GetActiveMode()) {
+    case Settings::Mode::Punch:
+        res = DoPunch();
+        break;
+    case Settings::Mode::ReadOut:
+        res = DoReadOut();
+        break;
+    }
+
+    mfrc522.PICC_HaltA();
+    mfrc522.PCD_StopCrypto1();
+
+    return res;
+}
+
+void Puncher::AntennaOn()
+{
+    mfrc522.PCD_AntennaOn();
+}
+
+void Puncher::AntennaOff()
+{
+    mfrc522.PCD_AntennaOff();
+}
+
+ErrorCode Puncher::DoPunch()
+{
 #ifdef LOGGER
     logger.Clear();
     Serial.println(F("----"));
@@ -215,20 +244,23 @@ ErrorCode Puncher::Punch()
     logger.Print();
 #endif
 
-    mfrc522.PICC_HaltA();
-    mfrc522.PCD_StopCrypto1();
-
     if (res == ErrorCode::DUPLICATE_PUNCH)
         res = ErrorCode::OK;
     return res;
 }
 
-void Puncher::AntennaOn()
+ErrorCode Puncher::DoReadOut()
 {
-    mfrc522.PCD_AntennaOn();
-}
-
-void Puncher::AntennaOff()
-{
-    mfrc522.PCD_AntennaOff();
+    MifareClassic mifareClassic{mfrc522};
+    AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
+    AOP::PunchCard::PunchesT punches;
+    auto res = punchCard.ReadOut(punches);
+    if (res != ErrorCode::OK) {
+        return res;
+    }
+    Serial.println(punches.size());
+    for (const auto &punch : punches) {
+        Serial.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
+    }
+    return res;
 }

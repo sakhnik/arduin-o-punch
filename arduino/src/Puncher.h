@@ -18,4 +18,7 @@ public:
 private:
     Settings &_settings;
     Operation &_operation;
+
+    ErrorCode DoPunch();
+    ErrorCode DoReadOut();
 };

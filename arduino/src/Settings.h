@@ -58,6 +58,16 @@ public:
     size_t Subscribe(OnChangeT);
     void Unsubscribe(size_t);
 
+    enum class Mode
+    {
+        Punch,
+        ReadOut,
+    };
+
+    Mode GetActiveMode() { return _mode; }
+    void ActivatePunchMode() { _mode = Mode::Punch; }
+    void ActivateReadOutMode() { _mode = Mode::ReadOut; }
+
 private:
     Buzzer *_buzzer;
     Mutex _watchersMx;
@@ -79,6 +89,8 @@ private:
     std::string _wifi_pass;
 
     AOP::Recorder _recorder;
+
+    Mode _mode = Mode::Punch;
 
     void NotifyWatchers();
 

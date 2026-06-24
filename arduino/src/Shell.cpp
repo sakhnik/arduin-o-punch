@@ -182,6 +182,8 @@ void Shell::_Process(const String &buffer)
             _outMux.println(F("stats-reset       Reset energy consumption stats"));
         }
         _outMux.println(F("log               Dump log"));
+        _outMux.println(F("punch             Activate punch mode"));
+        _outMux.println(F("readout           Activate readout mode"));
     } else if (buffer.startsWith(F("info"))) {
         _outMux.print(F("version="));
         _outMux.print(PROJECT_VERSION);
@@ -207,6 +209,11 @@ void Shell::_Process(const String &buffer)
         _PrintRecordRetainDays();
         _outMux.print(F("wifissid="));
         _PrintWifiSsid();
+        _outMux.print(F("mode="));
+        switch (_settings.GetActiveMode()) {
+        case Settings::Mode::Punch: _outMux.println(F("punch")); break;
+        case Settings::Mode::ReadOut: _outMux.println(F("readout")); break;
+        }
     } else if (buffer.startsWith(F("id "))) {
         SetId(buffer.c_str() + 3);
         _PrintId();
@@ -261,6 +268,10 @@ void Shell::_Process(const String &buffer)
         _SetWifiPass(buffer.c_str() + 9);
     } else if (buffer.startsWith("wifipass")) {
         _PrintWifiPass();
+    } else if (buffer.startsWith("punch")) {
+        _settings.ActivatePunchMode();
+    } else if (buffer.startsWith("readout")) {
+        _settings.ActivateReadOutMode();
     } else if (_operation && buffer.startsWith("stats-reset")) {
         _operation->ResetStats();
         _outMux.println(_operation->DumpStats().c_str());
