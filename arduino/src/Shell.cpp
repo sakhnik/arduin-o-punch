@@ -182,8 +182,9 @@ void Shell::_Process(const String &buffer)
             _outMux.println(F("stats-reset       Reset energy consumption stats"));
         }
         _outMux.println(F("log               Dump log"));
-        _outMux.println(F("punch             Activate punch mode"));
-        _outMux.println(F("readout           Activate readout mode"));
+        _outMux.println(F("card-punch        Activate punch mode"));
+        _outMux.println(F("card-readout      Activate readout mode"));
+        _outMux.println(F("card-format <id>  Activate card formatting mode"));
     } else if (buffer.startsWith(F("info"))) {
         _outMux.print(F("version="));
         _outMux.print(PROJECT_VERSION);
@@ -209,10 +210,18 @@ void Shell::_Process(const String &buffer)
         _PrintRecordRetainDays();
         _outMux.print(F("wifissid="));
         _PrintWifiSsid();
-        _outMux.print(F("mode="));
-        switch (_settings.GetActiveMode()) {
-        case Settings::Mode::Punch: _outMux.println(F("punch")); break;
-        case Settings::Mode::ReadOut: _outMux.println(F("readout")); break;
+        _outMux.print(F("card-mode="));
+        switch (_settings.GetActiveCardMode()) {
+        case Settings::CardMode::Punch:
+            _outMux.println(F("punch"));
+            break;
+        case Settings::CardMode::ReadOut:
+            _outMux.println(F("readout"));
+            break;
+        case Settings::CardMode::Format:
+            _outMux.print(F("format "));
+            _outMux.println(_settings.GetCardModeArg().c_str());
+            break;
         }
     } else if (buffer.startsWith(F("id "))) {
         SetId(buffer.c_str() + 3);
@@ -268,10 +277,12 @@ void Shell::_Process(const String &buffer)
         _SetWifiPass(buffer.c_str() + 9);
     } else if (buffer.startsWith("wifipass")) {
         _PrintWifiPass();
-    } else if (buffer.startsWith("punch")) {
-        _settings.ActivatePunchMode();
-    } else if (buffer.startsWith("readout")) {
-        _settings.ActivateReadOutMode();
+    } else if (buffer.startsWith("card-punch")) {
+        _settings.ActivateCardPunchMode();
+    } else if (buffer.startsWith("card-readout")) {
+        _settings.ActivateCardReadOutMode();
+    } else if (buffer.startsWith("card-format ")) {
+        _settings.ActivateCardFormatMode(buffer.c_str() + 12);
     } else if (_operation && buffer.startsWith("stats-reset")) {
         _operation->ResetStats();
         _outMux.println(_operation->DumpStats().c_str());

@@ -157,12 +157,15 @@ ErrorCode Puncher::Punch()
 
     ErrorCode res = ErrorCode::OK;
 
-    switch (_settings.GetActiveMode()) {
-    case Settings::Mode::Punch:
+    switch (_settings.GetActiveCardMode()) {
+    case Settings::CardMode::Punch:
         res = DoPunch();
         break;
-    case Settings::Mode::ReadOut:
+    case Settings::CardMode::ReadOut:
         res = DoReadOut();
+        break;
+    case Settings::CardMode::Format:
+        res = DoFormat();
         break;
     }
 
@@ -263,4 +266,9 @@ ErrorCode Puncher::DoReadOut()
         Serial.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
     }
     return res;
+}
+
+ErrorCode Puncher::DoFormat()
+{
+    return ErrorCode::OK;
 }

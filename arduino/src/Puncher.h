@@ -21,4 +21,5 @@ private:
 
     ErrorCode DoPunch();
     ErrorCode DoReadOut();
+    ErrorCode DoFormat();
 };

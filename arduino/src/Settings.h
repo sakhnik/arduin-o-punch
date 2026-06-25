@@ -58,15 +58,23 @@ public:
     size_t Subscribe(OnChangeT);
     void Unsubscribe(size_t);
 
-    enum class Mode
+    enum class CardMode
     {
         Punch,
         ReadOut,
+        Format,
     };
 
-    Mode GetActiveMode() { return _mode; }
-    void ActivatePunchMode() { _mode = Mode::Punch; }
-    void ActivateReadOutMode() { _mode = Mode::ReadOut; }
+    CardMode GetActiveCardMode() { return _cardMode; }
+    const std::string& GetCardModeArg() const { return _cardModeArg; }
+
+    void ActivateCardPunchMode() { _cardMode = CardMode::Punch; }
+    void ActivateCardReadOutMode() { _cardMode = CardMode::ReadOut; }
+    void ActivateCardFormatMode(std::string_view arg)
+    {
+        _cardMode = CardMode::Format;
+        _cardModeArg = arg;
+    }
 
 private:
     Buzzer *_buzzer;
@@ -90,7 +98,8 @@ private:
 
     AOP::Recorder _recorder;
 
-    Mode _mode = Mode::Punch;
+    CardMode _cardMode = CardMode::Punch;
+    std::string _cardModeArg;
 
     void NotifyWatchers();
 
