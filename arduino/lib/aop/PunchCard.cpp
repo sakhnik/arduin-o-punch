@@ -1,11 +1,7 @@
 #include "PunchCard.h"
 #include "ErrorCode.h"
-
-#if defined(BUILD_TEST) || defined(BUILD_WA)
-# include <cstring>
-#else
-# include <Arduino.h>
-#endif
+#include <random>
+#include <cstring>
 
 namespace AOP {
 
@@ -151,10 +147,17 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
     return 0;
 }
 
+namespace {
+
+std::mt19937 rng{std::random_device{}()};
+
+} //namespace;
+
 ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
 {
     if (startSector >= _mifare->SECTOR_COUNT) {
-        startSector = rand() % _mifare->SECTOR_COUNT;
+        std::uniform_int_distribution<int> dist(0, _mifare->SECTOR_COUNT - 1);
+        startSector = dist(rng);
     }
 
     for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
