@@ -25,9 +25,10 @@ MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
 } //namespace;
 
-Puncher::Puncher(Settings &settings, Operation &operation)
+Puncher::Puncher(Settings &settings, Operation &operation, Buzzer &buzzer)
     : _settings{settings}
     , _operation{operation}
+    , _buzzer{buzzer}
 {
 }
 
@@ -134,7 +135,7 @@ ErrorCode Puncher::Punch()
 {
     // Soft reset the RFID chip periodically when the buzzer is silent to avoid distraction
     static int loopCount = 0;
-    if (++loopCount > 100 && _settings.GetBuzzer().IsIdle()) {
+    if (++loopCount > 100 && _buzzer.IsIdle()) {
         loopCount = 0;
         mfrc522.PCD_Reset();
         mfrc522.PCD_Init();
@@ -254,6 +255,8 @@ ErrorCode Puncher::DoPunch()
 
 ErrorCode Puncher::DoReadOut()
 {
+    _buzzer.SignalDit();
+
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
     AOP::PunchCard::PunchesT punches;
@@ -270,5 +273,16 @@ ErrorCode Puncher::DoReadOut()
 
 ErrorCode Puncher::DoFormat()
 {
+    _buzzer.SignalDit();
+
+    uint16_t cardId = std::atoi(_settings.GetCardModeArg().c_str());
+    Serial.print(F("Card format "));
+    Serial.println(cardId);
+    MifareClassic mifareClassic{mfrc522};
+    AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
+    auto res = punchCard.Format(cardId);
+    if (res != ErrorCode::OK) {
+        return res;
+    }
     return ErrorCode::OK;
 }

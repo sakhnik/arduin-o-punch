@@ -4,11 +4,12 @@
 
 class Settings;
 class Operation;
+class Buzzer;
 
 class Puncher
 {
 public:
-    Puncher(Settings &, Operation &);
+    Puncher(Settings &, Operation &, Buzzer &);
     void Setup();
     ErrorCode Punch();
 
@@ -18,6 +19,7 @@ public:
 private:
     Settings &_settings;
     Operation &_operation;
+    Buzzer &_buzzer;
 
     ErrorCode DoPunch();
     ErrorCode DoReadOut();
