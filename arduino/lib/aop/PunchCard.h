@@ -80,7 +80,8 @@ public:
     // Clear previous punches from a card without changing the format information
     ErrorCode Clear();
 
-    ErrorCode Format(uint16_t id, uint8_t startSector = 255);
+    using KeysT = std::vector<IMifare::KeyT>;
+    ErrorCode Format(uint16_t id, const KeysT& keysToTry, uint8_t startSector = 255);
 
     using PunchesT = std::vector<AOP::Punch>;
     uint8_t ReadOut(PunchesT &);
@@ -121,6 +122,7 @@ private:
     _Address _GetPunchAddr(uint8_t index);
     uint8_t _GetPunchBlock(uint8_t index, uint8_t startSector);
     std::pair<uint8_t, size_t> _WriteString(uint8_t startBlock, const std::string &str);
+    ErrorCode _PickKeyToSector(const KeysT &keysToTry, KeysT &goodKeys);
 };
 
 } //namespace AOP;

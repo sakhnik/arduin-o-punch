@@ -134,7 +134,7 @@ public:
     uint8_t Format(uint16_t cardId, uint8_t startSector)
     {
         _mifare->ResetHighlights();
-        return AOP::PunchCard::Format(cardId, startSector);
+        return AOP::PunchCard::Format(cardId, {}, startSector);
     }
 
     uint8_t Punch(uint8_t stationId, uint32_t timestamp)

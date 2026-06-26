@@ -280,7 +280,7 @@ ErrorCode Puncher::DoFormat()
     Serial.println(cardId);
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
-    auto res = punchCard.Format(cardId);
+    auto res = punchCard.Format(cardId, {});
     if (res != ErrorCode::OK) {
         return res;
     }

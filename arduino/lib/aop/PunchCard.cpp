@@ -1,5 +1,6 @@
 #include "PunchCard.h"
 #include "ErrorCode.h"
+#include <algorithm>
 #include <random>
 #include <cstring>
 
@@ -153,15 +154,20 @@ std::mt19937 rng{std::random_device{}()};
 
 } //namespace;
 
-ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
+ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSector)
 {
+    KeysT goodKeys;
+    if (auto res = _PickKeyToSector(keysToTry, goodKeys)) {
+        return res;
+    }
+
     if (startSector >= _mifare->SECTOR_COUNT) {
         std::uniform_int_distribution<int> dist(0, _mifare->SECTOR_COUNT - 1);
         startSector = dist(rng);
     }
 
     for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
-        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT.data())) {
+        if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, goodKeys[sector].data())) {
             return res;
         }
         _auth_sector = sector;
@@ -185,6 +191,29 @@ ErrorCode PunchCard::Format(uint16_t id, uint8_t startSector)
 
     if (auto res = _ClearPunches(startSector)) {
         return res;
+    }
+
+    return ErrorCode::OK;
+}
+
+ErrorCode PunchCard::_PickKeyToSector(const KeysT &keysToTry, KeysT &goodKeys)
+{
+    goodKeys.clear();
+
+    for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
+        // Try the previous sector's key first for better luck
+        if (sector > 0 && !_mifare->AuthenticateSectorWithKeyA(sector, goodKeys.back().data())) {
+            goodKeys.push_back(goodKeys.back());
+        } else if (!_mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT.data())) {
+            goodKeys.push_back(IMifare::KEY_DEFAULT);
+        } else {
+            auto it = std::find_if(keysToTry.begin(), keysToTry.end(), [this, sector](const auto &key) {
+                return !_mifare->AuthenticateSectorWithKeyA(sector, key.data());
+            });
+            if (it == keysToTry.end())
+                return ErrorCode::FAILED_AUTH;
+            goodKeys.push_back(*it);
+        }
     }
 
     return ErrorCode::OK;

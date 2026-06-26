@@ -22,6 +22,7 @@ struct ErrorCode
         DUPLICATE_PUNCH,
         SERVICE_CARD,
         DEBUG_CARD,
+        FAILED_AUTH,
     };
 
     uint8_t code;
