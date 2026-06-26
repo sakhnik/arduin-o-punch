@@ -17,7 +17,7 @@ Shell shell{outMux, settings, buzzer};
 Bluetooth bluetooth{outMux, settings, shell};
 Network network {outMux, settings, shell, buzzer};
 Operation operation{buzzer, settings, bluetooth, network};
-Puncher puncher{settings, operation, buzzer};
+Puncher puncher{settings, operation, buzzer, outMux};
 
 void setup()
 {

@@ -4,6 +4,7 @@
 #include "PunchCard.h"
 #include "Buzzer.h"
 #include "Operation.h"
+#include "OutMux.h"
 #include "RtcLog.h"
 #include "defs.h"
 
@@ -25,10 +26,11 @@ MFRC522 mfrc522{driver};  // Create MFRC522 instance.
 
 } //namespace;
 
-Puncher::Puncher(Settings &settings, Operation &operation, Buzzer &buzzer)
+Puncher::Puncher(Settings &settings, Operation &operation, Buzzer &buzzer, OutMux &outMux)
     : _settings{settings}
     , _operation{operation}
     , _buzzer{buzzer}
+    , _outMux{outMux}
 {
 }
 
@@ -273,9 +275,9 @@ ErrorCode Puncher::DoReadOut()
     if (res != ErrorCode::OK) {
         return res;
     }
-    Serial.println(punches.size());
+    _outMux.println(punches.size());
     for (const auto &punch : punches) {
-        Serial.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
+        _outMux.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
     }
     return res;
 }
@@ -285,8 +287,8 @@ ErrorCode Puncher::DoFormat()
     _buzzer.SignalDit();
 
     uint16_t cardId = std::atoi(_settings.GetCardModeArg().c_str());
-    Serial.print(F("Card format "));
-    Serial.println(cardId);
+    _outMux.print(F("card-format "));
+    _outMux.println(cardId);
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
     auto res = punchCard.Format(cardId, _settings.GetKnownKeys());

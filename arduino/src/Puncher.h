@@ -5,11 +5,12 @@
 class Settings;
 class Operation;
 class Buzzer;
+class OutMux;
 
 class Puncher
 {
 public:
-    Puncher(Settings &, Operation &, Buzzer &);
+    Puncher(Settings &, Operation &, Buzzer &, OutMux &);
     void Setup();
     ErrorCode Punch();
 
@@ -20,6 +21,7 @@ private:
     Settings &_settings;
     Operation &_operation;
     Buzzer &_buzzer;
+    OutMux &_outMux;
 
     ErrorCode DoPunch();
     ErrorCode DoReadOut();
