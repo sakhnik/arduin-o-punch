@@ -9,7 +9,7 @@
 
 namespace {
 
-const uint8_t MAX_SIZE = 32;
+const size_t MAX_SIZE = 256;
 
 } // namespace;
 
@@ -185,6 +185,8 @@ void Shell::_Process(const String &buffer)
         _outMux.println(F("card-punch        Activate punch mode"));
         _outMux.println(F("card-readout      Activate readout mode"));
         _outMux.println(F("card-format <id>  Activate card formatting mode"));
+        _outMux.println(F("known-keys        Print known keys to try for formatting"));
+        _outMux.println(F("known-keys <keys> Set list of known keys"));
     } else if (buffer.startsWith(F("info"))) {
         _outMux.print(F("version="));
         _outMux.print(PROJECT_VERSION);
@@ -283,6 +285,10 @@ void Shell::_Process(const String &buffer)
         _settings.ActivateCardReadOutMode();
     } else if (buffer.startsWith("card-format ")) {
         _settings.ActivateCardFormatMode(buffer.c_str() + 12);
+    } else if (buffer.startsWith("known-keys ")) {
+        _SetKnownKeys(buffer.c_str() + 11);
+    } else if (buffer.startsWith("known-keys")) {
+        _PrintKnownKeys();
     } else if (_operation && buffer.startsWith("stats-reset")) {
         _operation->ResetStats();
         _outMux.println(_operation->DumpStats().c_str());
@@ -352,20 +358,36 @@ T ParseNum(const char *&str)
     return num;
 }
 
+Settings::KeyT ParseKey(std::string_view s)
+{
+    Settings::KeyT key{};
+
+    std::size_t nibble = 0;
+    for (char c : s) {
+        int v = FromHex(c);
+        if (v < 0)
+            continue;
+
+        if (nibble >= key.size() * 2)
+            break;
+
+        auto &b = key[nibble / 2];
+        if ((nibble & 1) == 0)
+            b = static_cast<uint8_t>(v << 4);
+        else
+            b |= static_cast<uint8_t>(v);
+
+        ++nibble;
+    }
+
+    return key;
+}
+
 } //namespace;
 
 void Shell::SetKey(const char *hex)
 {
-    std::string key;
-    for (uint8_t i = 0; ; ++i) {
-        auto d1 = FromHex(*hex++);
-        if (d1 == -1)
-            break;
-        auto d2 = FromHex(*hex++);
-        if (d2 == -1)
-            break;
-        key.push_back((d1 << 4) | d2);
-    }
+    auto key = ParseKey(hex);
     _settings.SetKey(key);
 }
 
@@ -540,4 +562,41 @@ void Shell::_SetWifiPass(const char *str)
 void Shell::_PrintWifiPass()
 {
     _outMux.println(_settings.GetWifiPass().c_str());
+}
+
+void Shell::_PrintKnownKeys()
+{
+    const char *comma = "";
+    for (const auto &key : _settings.GetKnownKeys()) {
+        _outMux.print(comma);
+        comma = ",";
+        for (auto b : key) {
+            char buf[3];
+            sprintf(buf, "%02X", static_cast<unsigned>(b));
+            _outMux.print(buf);
+        }
+    }
+    _outMux.println();
+}
+
+void Shell::_SetKnownKeys(const char *str)
+{
+    Settings::KeysT keys;
+
+    while (*str) {
+        while (*str && (std::isspace(*str) || *str == ',')) {
+            ++str;
+        }
+
+        if (!*str)
+            break;
+
+        const char *begin = str;
+        while (*str && !std::isspace(*str) && *str != ',')
+            ++str;
+
+        keys.push_back(ParseKey(std::string_view(begin, str - begin)));
+    }
+
+    _settings.SetKnownKeys(std::move(keys));
 }

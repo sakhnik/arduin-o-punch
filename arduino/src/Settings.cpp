@@ -35,6 +35,7 @@ struct EepromImpl : AOP::Recorder::IEeprom
 constexpr const char *const PREF_CONFIG = "config";
 constexpr const char *const PREF_ID = "id";
 constexpr const char *const PREF_KEY = "key";
+constexpr const char *const PREF_KNOWN_KEYS = "known-keys";
 constexpr const char *const PREF_T_ACT_M = "t-act";
 constexpr const char *const PREF_T_ECO_M = "t-eco";
 constexpr const char *const PREF_RECDAYS = "recdays";
@@ -56,6 +57,13 @@ int8_t Settings::Setup()
     prefs.begin(PREF_CONFIG, true);
     _id = prefs.getUChar(PREF_ID, 1);
     prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
+
+    auto prevKeysLen = prefs.getBytesLength(PREF_KNOWN_KEYS);
+    auto prevKeysSize = prevKeysLen / KEY_SIZE;
+    _knownKeys.resize(prevKeysSize + 1);
+    prefs.getBytes(PREF_KNOWN_KEYS, _knownKeys.data(), prevKeysLen);
+    _knownKeys.resize(prevKeysSize);
+
     _active_minutes = prefs.getUShort(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
     _active_ms = 60000ul * _active_minutes;
     _eco_minutes = prefs.getUShort(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
@@ -93,15 +101,11 @@ bool Settings::IsKeyDefault()
 Settings::KeyT Settings::GetKey()
 {
     LockGuard lock{_dataMx};
-    Serial.println();
     return _key;
 }
 
-void Settings::SetKey(std::string_view skey)
+void Settings::SetKey(const KeyT &key)
 {
-    KeyT key = {};
-    memcpy(key.data(), skey.data(), std::min(KEY_SIZE, skey.size()));
-
     {
         LockGuard lock{_dataMx};
         if (_key == key)
@@ -109,6 +113,26 @@ void Settings::SetKey(std::string_view skey)
         _key = key;
         prefs.begin(PREF_CONFIG, false);
         prefs.putBytes(PREF_KEY, _key.data(), KEY_SIZE);
+        prefs.end();
+    }
+
+    NotifyWatchers();
+}
+
+const Settings::KeysT& Settings::GetKnownKeys()
+{
+    return _knownKeys;
+}
+
+void Settings::SetKnownKeys(KeysT &&keys)
+{
+    {
+        LockGuard lock{_dataMx};
+        if (_knownKeys == keys)
+            return;
+        _knownKeys = std::move(keys);
+        prefs.begin(PREF_CONFIG, false);
+        prefs.putBytes(PREF_KNOWN_KEYS, _knownKeys.data(), KEY_SIZE * _knownKeys.size());
         prefs.end();
     }
 

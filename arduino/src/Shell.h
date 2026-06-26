@@ -61,4 +61,6 @@ private:
     void _PrintWifiSsid();
     void _SetWifiPass(const char *str);
     void _PrintWifiPass();
+    void _PrintKnownKeys();
+    void _SetKnownKeys(const char *str);
 };

@@ -72,9 +72,18 @@ struct MifareClassic : AOP::IMifare
                           (MFRC522Constants::MIFARE_Key *)key,
                           &mfrc522.uid
                       );
-        if (status) {
+        if (status != MFRC522Constants::StatusCode::STATUS_OK) {
             Serial.print(F("Auth failed: "));
             Serial.println(static_cast<int>(status));
+            // When the authentication fails, timeout happens and the card isn't available anymore.
+            mfrc522.PICC_HaltA();
+            mfrc522.PCD_StopCrypto1();
+
+            // Re-select card
+            if (!mfrc522.PICC_IsNewCardPresent() ||
+                !mfrc522.PICC_ReadCardSerial()) {
+                Serial.println("Card lost");
+            }
         }
         return status;
     }
@@ -280,7 +289,7 @@ ErrorCode Puncher::DoFormat()
     Serial.println(cardId);
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
-    auto res = punchCard.Format(cardId, {});
+    auto res = punchCard.Format(cardId, _settings.GetKnownKeys());
     if (res != ErrorCode::OK) {
         return res;
     }

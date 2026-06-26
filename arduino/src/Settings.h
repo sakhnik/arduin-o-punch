@@ -2,6 +2,7 @@
 
 #include "Recorder.h"
 #include "Mutex.h"
+#include "PunchCard.h"
 
 #include <RTClib.h>
 #include <array>
@@ -20,10 +21,14 @@ public:
     int8_t Setup();
 
     static constexpr const size_t KEY_SIZE = 6;
-    using KeyT = std::array<uint8_t, KEY_SIZE>;
+    using KeyT = AOP::IMifare::KeyT;
     KeyT GetKey();
-    void SetKey(std::string_view key);
+    void SetKey(const KeyT &key);
     bool IsKeyDefault();
+
+    using KeysT = AOP::PunchCard::KeysT;
+    const KeysT& GetKnownKeys();
+    void SetKnownKeys(KeysT &&);
 
     DateTime GetDateTime() const;
     uint32_t GetClock(const DateTime *date_time) const;
@@ -84,6 +89,7 @@ private:
     Mutex _dataMx;
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    KeysT _knownKeys;
 
     static constexpr const uint16_t DEFAULT_ACTIVE_MINUTES = 10;
     uint16_t _active_minutes = DEFAULT_ACTIVE_MINUTES;

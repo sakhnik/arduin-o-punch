@@ -157,7 +157,7 @@ std::mt19937 rng{std::random_device{}()};
 ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSector)
 {
     KeysT goodKeys;
-    if (auto res = _PickKeyToSector(keysToTry, goodKeys)) {
+    if (auto res = _PickKeysToSectors(keysToTry, goodKeys)) {
         return res;
     }
 
@@ -196,7 +196,7 @@ ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSe
     return ErrorCode::OK;
 }
 
-ErrorCode PunchCard::_PickKeyToSector(const KeysT &keysToTry, KeysT &goodKeys)
+ErrorCode PunchCard::_PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys)
 {
     goodKeys.clear();
 

@@ -1,3 +1,4 @@
+#pragma once
 
 #include "Punch.h"
 #include "IMifare.h"
@@ -122,7 +123,7 @@ private:
     _Address _GetPunchAddr(uint8_t index);
     uint8_t _GetPunchBlock(uint8_t index, uint8_t startSector);
     std::pair<uint8_t, size_t> _WriteString(uint8_t startBlock, const std::string &str);
-    ErrorCode _PickKeyToSector(const KeysT &keysToTry, KeysT &goodKeys);
+    ErrorCode _PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys);
 };
 
 } //namespace AOP;
