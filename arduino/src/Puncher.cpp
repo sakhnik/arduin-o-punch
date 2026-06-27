@@ -270,13 +270,16 @@ ErrorCode Puncher::DoReadOut()
 
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
-    AOP::PunchCard::PunchesT punches;
-    auto res = punchCard.ReadOut(punches);
+    AOP::PunchCard::CardReadOut readOut;
+    auto res = punchCard.ReadOut(readOut);
     if (res != ErrorCode::OK) {
         return res;
     }
-    _outMux.println(punches.size());
-    for (const auto &punch : punches) {
+    _outMux.print(F("card="));
+    _outMux.println(readOut.cardId);
+    _outMux.print(F("punches="));
+    _outMux.println(readOut.punches.size());
+    for (const auto &punch : readOut.punches) {
         _outMux.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
     }
     return res;

@@ -219,7 +219,7 @@ ErrorCode PunchCard::_PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys)
     return ErrorCode::OK;
 }
 
-uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
+uint8_t PunchCard::ReadOut(CardReadOut &readOut)
 {
     // 1. read card id
     auto headerSector = _mifare->BlockToSector(INDEX_KEY_BLOCK);
@@ -229,7 +229,7 @@ uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
     uint8_t headerSize = sizeof(header);
     if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize))
         return res;
-    //uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
+    readOut.cardId = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     uint8_t startSector = header[SECTOR_OFFSET];
 
     // 2. Recover the header
@@ -239,6 +239,7 @@ uint8_t PunchCard::ReadOut(std::vector<AOP::Punch> &punches)
     uint8_t count = header[COUNT_OFFSET];
 
     // 5. loop over the punches
+    auto &punches = readOut.punches;
     punches.clear();
     if (count > 0) {
         punches.reserve(count);

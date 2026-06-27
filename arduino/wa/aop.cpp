@@ -168,12 +168,12 @@ public:
 
     uint8_t ReadOut()
     {
-        AOP::PunchCard::PunchesT punches;
-        if (auto res = AOP::PunchCard::ReadOut(punches)) {
+        AOP::PunchCard::CardReadOut readOut;
+        if (auto res = AOP::PunchCard::ReadOut(readOut)) {
             return res;
         }
         lastReadout.clear();
-        for (const auto &p : punches) {
+        for (const auto &p : readOut.punches) {
             lastReadout.emplace_back(p.GetStation(), p.GetTimestamp());
         }
         return 0;

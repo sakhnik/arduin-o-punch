@@ -132,44 +132,48 @@ TEST_CASE("PunchCard Punch")
     TestMifare mifare(123, 2);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(readOut.empty());
+    CHECK(123 == readOut.cardId);
+    CHECK(readOut.punches.empty());
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(32, 130), Punch(33, 221)};
     for (int i = 0; i != punches.size(); ++i) {
         CHECK(0 == punchCard.Punch(punches[i]));
         CHECK(0 == punchCard.ReadOut(readOut));
-        CHECK(i + 1 == readOut.size());
-        CHECK(punches[i] == readOut[i]);
+        CHECK(123 == readOut.cardId);
+        CHECK(i + 1 == readOut.punches.size());
+        CHECK(punches[i] == readOut.punches[i]);
     }
 
     CHECK(0 == punchCard.ReadOut(readOut));
     //CHECK(punches.size() == readOut.size());
-    CHECK(punches == readOut);
+    CHECK(punches == readOut.punches);
 }
 
 TEST_CASE("PunchCard Punch asynchronous")
 {
-    TestMifare mifare(123, 3);
+    TestMifare mifare(12345, 3);
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(readOut.empty());
+    CHECK(12345 == readOut.cardId);
+    CHECK(readOut.punches.empty());
 
     // Stations could potentially be not synchronized, the timestamps can go down occasionally.
     std::vector<Punch> punches = {Punch(31, 200), Punch(32, 130), Punch(33, 100)};
     for (int i = 0; i != punches.size(); ++i) {
         REQUIRE(0 == punchCard.Punch(punches[i]));
         REQUIRE(0 == punchCard.ReadOut(readOut));
-        REQUIRE(i + 1 == readOut.size());
-        CHECK(punches[i] == readOut[i]);
+        CHECK(12345 == readOut.cardId);
+        REQUIRE(i + 1 == readOut.punches.size());
+        CHECK(punches[i] == readOut.punches[i]);
     }
 
     REQUIRE(0 == punchCard.ReadOut(readOut));
     //CHECK(punches.size() == readOut.size());
-    CHECK(punches == readOut);
+    CHECK(punches == readOut.punches);
 }
 
 TEST_CASE("PunchCard max punches")
@@ -188,11 +192,12 @@ TEST_CASE("PunchCard max punches")
     // No more space
     REQUIRE(ErrorCode::CARD_IS_FULL == punchCard.Punch(Punch(51, 65000)));
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     REQUIRE(0 == punchCard.ReadOut(readOut));
-    REQUIRE(maxPunches == readOut.size());
+    CHECK(readOut.cardId == 123);
+    REQUIRE(maxPunches == readOut.punches.size());
     for (int i = 0; i < maxPunches; ++i) {
-        CHECK(testPunch(i) == readOut[i]);
+        CHECK(testPunch(i) == readOut.punches[i]);
     }
 }
 
@@ -222,18 +227,18 @@ TEST_CASE("PunchCard max repeated punches")
             REQUIRE(ErrorCode::DUPLICATE_PUNCH == punchCard.Punch(p));
         }
 
-        std::vector<Punch> readOut;
+        PunchCard::CardReadOut readOut;
         REQUIRE(0 == punchCard.ReadOut(readOut));
-        REQUIRE(i + 1 == readOut.size());
+        REQUIRE(i + 1 == readOut.punches.size());
     }
     // No more space
     REQUIRE(ErrorCode::CARD_IS_FULL == punchCard.Punch(Punch(51, 65000)));
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     REQUIRE(0 == punchCard.ReadOut(readOut));
-    REQUIRE(maxPunches == readOut.size());
+    REQUIRE(maxPunches == readOut.punches.size());
     for (int i = 0; i < maxPunches; ++i) {
-        CHECK(testPunch(i) == readOut[i]);
+        CHECK(testPunch(i) == readOut.punches[i]);
     }
 }
 
@@ -247,13 +252,13 @@ TEST_CASE("PunchCard Clear")
         CHECK(0 == punchCard.Punch(punches[i]));
     }
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(punches == readOut);
+    CHECK(punches == readOut.punches);
 
     punchCard.Clear();
     CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(0 == readOut.size());
+    CHECK(0 == readOut.punches.size());
 }
 
 TEST_CASE("PunchCard Clear at Start")
@@ -266,10 +271,10 @@ TEST_CASE("PunchCard Clear at Start")
         CHECK(0 == punchCard.Punch(punches[i]));
     }
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(1 == readOut.size());
-    CHECK(punches[2] == readOut[0]);
+    CHECK(1 == readOut.punches.size());
+    CHECK(punches[2] == readOut.punches[0]);
 }
 
 TEST_CASE("PunchCard Recover from failed write")
@@ -297,19 +302,19 @@ TEST_CASE("PunchCard Recover from failed write")
             if (res != ErrorCode::OK && res != ErrorCode::DUPLICATE_PUNCH) {
                 REQUIRE(exceptionAnticipated);
             } else {
-                std::vector<Punch> readOut;
+                PunchCard::CardReadOut readOut;
                 REQUIRE(0 == punchCard.ReadOut(readOut));
-                REQUIRE(i + 1 == readOut.size());
+                REQUIRE(i + 1 == readOut.punches.size());
                 break;
             }
         }
     }
 
-    std::vector<Punch> readOut;
+    PunchCard::CardReadOut readOut;
     REQUIRE(0 == punchCard.ReadOut(readOut));
-    REQUIRE(100 == readOut.size());
+    REQUIRE(100 == readOut.punches.size());
     for (int i = 0; i < 100; ++i) {
-        REQUIRE(testPunch(i) == readOut[i]);
+        REQUIRE(testPunch(i) == readOut.punches[i]);
     }
 }
 

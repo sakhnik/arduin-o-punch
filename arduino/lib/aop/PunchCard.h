@@ -85,7 +85,12 @@ public:
     ErrorCode Format(uint16_t id, const KeysT& keysToTry, uint8_t startSector = 255);
 
     using PunchesT = std::vector<AOP::Punch>;
-    uint8_t ReadOut(PunchesT &);
+    struct CardReadOut
+    {
+        uint16_t cardId;
+        PunchesT punches;
+    };
+    uint8_t ReadOut(CardReadOut &);
     void _ReadPunchesFromBlock(uint8_t count, const uint8_t *data, PunchesT &);
 
 private:
