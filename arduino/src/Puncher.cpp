@@ -76,8 +76,8 @@ struct MifareClassic : AOP::IMifare
                           &mfrc522.uid
                       );
         if (status != MFRC522Constants::StatusCode::STATUS_OK) {
-            Serial.print(F("Auth failed: "));
-            Serial.println(static_cast<int>(status));
+            //Serial.print(F("Auth failed: "));
+            //Serial.println(static_cast<int>(status));
             // When the authentication fails, timeout happens and the card isn't available anymore.
             mfrc522.PICC_HaltA();
             mfrc522.PCD_StopCrypto1();
