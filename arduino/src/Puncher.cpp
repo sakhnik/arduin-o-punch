@@ -23,6 +23,7 @@ namespace {
 MFRC522DriverPinSimple ss_pin = SPI_SS;
 MFRC522DriverSPI driver{ss_pin}; // Create SPI driver.
 MFRC522 mfrc522{driver};  // Create MFRC522 instance.
+unsigned long lastPunchTimeMs = 0;
 
 } //namespace;
 
@@ -152,6 +153,23 @@ ErrorCode Puncher::Punch()
         mfrc522.PCD_Init();
     }
 
+    auto getInhibitTimeMs = [this]() {
+        switch (_settings.GetActiveCardMode()) {
+        case Settings::CardMode::Punch:
+            break;
+        case Settings::CardMode::ReadOut:
+        case Settings::CardMode::Format:
+            return 2000;
+        }
+        return 0;
+    };
+
+    // Throttle card processing when formatting and reading out
+    auto now = millis();
+    if (now - lastPunchTimeMs < getInhibitTimeMs()) {
+        return ErrorCode::NO_CARD;
+    }
+
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
     if (!mfrc522.PICC_IsNewCardPresent()) {
         return ErrorCode::NO_CARD;
@@ -183,6 +201,10 @@ ErrorCode Puncher::Punch()
 
     mfrc522.PICC_HaltA();
     mfrc522.PCD_StopCrypto1();
+
+    if (res == ErrorCode::OK) {
+        lastPunchTimeMs = now;
+    }
 
     return res;
 }
