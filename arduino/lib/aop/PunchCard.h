@@ -65,6 +65,7 @@ public:
         virtual void OnCardId(uint16_t card) = 0;
         virtual std::string GetDebugInfo() { return ""; }
         virtual void ConfirmDebugInfo(size_t) { }
+        virtual void SetDebugInfo(std::string &) { }
     };
 
     static int GetMaxPunches()
@@ -128,6 +129,7 @@ private:
     _Address _GetPunchAddr(uint8_t index);
     uint8_t _GetPunchBlock(uint8_t index, uint8_t startSector);
     std::pair<uint8_t, size_t> _WriteString(uint8_t startBlock, const std::string &str);
+    std::pair<uint8_t, std::string> _ReadString(uint8_t startBlock);
     ErrorCode _PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys);
 };
 

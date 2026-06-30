@@ -273,62 +273,24 @@ void Operation::ResetStats()
     timeStats.fill(0);
 }
 
-Operation::StatsT Operation::GetStats()
+Stats Operation::GetStats()
 {
-    decltype(timeStats) snapshot;
+    Stats stats;
+    stats.bootCount = RtcLog::bootCount;
+    stats.lastResetReason = RtcLog::lastReset;
+
     auto now = rtc.now().unixtime();
     {
         LockGuard lock{mutex};
-        snapshot = timeStats;
-        // Account the ongoing mode
-        snapshot[static_cast<size_t>(mode)] += now - prevTransitionTime;
-    }
-    return snapshot;
-}
-
-std::string Operation::DumpStats()
-{
-    auto toMAH = [](uint32_t s, float current)  {
-        return current * s / (60 * 60);
-    };
-
-    auto getCurrent = [](Mode m) -> float {
-        switch (m) {
-        case Mode::Active: return 20.f;
-        case Mode::Eco: return 10.f;
-        case Mode::BLE: return 100.f;
-        case Mode::WiFi: return 100.f;
-        case Mode::Sleep: return 0.05f;
-        default: return 0.f;
+        for (int i = 0; i < static_cast<int>(OperationMode::Count); ++i) {
+            stats.timeStats[i] = timeStats[i];
         }
-    };
+        // Account the ongoing mode
+        stats.timeStats[static_cast<size_t>(mode)] += now - prevTransitionTime;
+        for (int i = 0; i < static_cast<int>(OperationMode::Count); ++i) {
+            stats.timeStats[i] = timeStats[i];
+        }
+    }
 
-    uint32_t totalTime = 0;
-    float totalEnergy = 0;
-
-    auto getLine = [&, this](uint32_t time, float current) -> std::string {
-        totalTime += time;
-        auto mah = toMAH(time, current);
-        totalEnergy += mah;
-        char line[64];
-        sprintf(line, "%8d (%4d:%02d:%02d) %6.1f mAh", time, time / (60 * 60), (time / 60) % 60, time % 60, mah);
-        return line;
-    };
-
-    auto snapshot = GetStats();
-
-    std::string s;
-    s += "Active: " + getLine(snapshot[static_cast<size_t>(Mode::Active)], 20.f) + "\r\n";
-    s += "Eco:    " + getLine(snapshot[static_cast<size_t>(Mode::Eco)], 10.f) + "\r\n";
-    s += "BLE:    " + getLine(snapshot[static_cast<size_t>(Mode::BLE)], 100.f) + "\r\n";
-    s += "WiFi:   " + getLine(snapshot[static_cast<size_t>(Mode::WiFi)], 100.f) + "\r\n";
-    s += "Sleep:  " + getLine(snapshot[static_cast<size_t>(Mode::Sleep)], 0.05f) + "\r\n\n";
-    auto avgCur = totalEnergy * (60 * 60) / totalTime;
-    s += "Total:  " + getLine(totalTime, avgCur) + "  I ~ ";
-    char buf[32];
-    sprintf(buf, "%.2f", avgCur);
-    s += buf;
-    s += " mA\r\n";
-
-    return s;
+    return stats;
 }

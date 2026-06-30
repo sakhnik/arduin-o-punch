@@ -5,7 +5,6 @@
 #include "Buzzer.h"
 #include "Operation.h"
 #include "OutMux.h"
-#include "RtcLog.h"
 #include "defs.h"
 
 #include <MFRC522v2.h>
@@ -131,16 +130,6 @@ struct MifareClassic : AOP::IMifare
     }
 };
 
-#pragma pack(push, 1)
-struct DebugInfo
-{
-    uint8_t version = 0;
-    uint16_t bootCount;
-    uint8_t lastResetReason;
-    uint32_t timeStats[static_cast<size_t>(Operation::Mode::Count)];
-};
-#pragma pack(pop)
-
 } //namespace;
 
 ErrorCode Puncher::Punch()
@@ -243,15 +232,9 @@ ErrorCode Puncher::DoPunch()
 
         std::string GetDebugInfo() override
         {
-            DebugInfo info;
-            info.bootCount = RtcLog::bootCount;
-            info.lastResetReason = RtcLog::lastReset;
             auto stats = operation.GetStats();
-            static_assert(stats.size() == std::size(info.timeStats));
-            for (size_t i = 0; i < stats.size(); ++i) {
-                info.timeStats[i] = htole32(stats[i]);
-            }
-            return std::string(reinterpret_cast<const char *>(&info), sizeof(DebugInfo));
+            stats.ToN();
+            return std::string(reinterpret_cast<const char *>(&stats), sizeof(Stats));
         }
 
         void ConfirmDebugInfo(size_t) override
@@ -290,8 +273,31 @@ ErrorCode Puncher::DoReadOut()
 {
     _buzzer.SignalDit();
 
+    struct Callback : AOP::PunchCard::ICallback
+    {
+        OutMux &outMux;
+        uint16_t card_id{};
+
+        Callback(OutMux &outMux)
+            : outMux{outMux}
+        {
+        }
+
+        void OnCardId(uint16_t card_id) override
+        {
+            this->card_id = card_id;
+        }
+
+        void SetDebugInfo(std::string &dump) override
+        {
+            Stats *stats = reinterpret_cast<Stats *>(dump.data());
+            stats->FromN();
+            stats->Print(outMux);
+        }
+    } callback{_outMux};
+
     MifareClassic mifareClassic{mfrc522};
-    AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
+    AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey(), &callback};
     AOP::PunchCard::CardReadOut readOut;
     auto res = punchCard.ReadOut(readOut);
     if (res != ErrorCode::OK) {

@@ -4,7 +4,6 @@
 #include "OutMux.h"
 #include "PunchCard.h"
 #include "Operation.h"
-#include "RtcLog.h"
 #include <RTClib.h>
 
 namespace {
@@ -291,30 +290,11 @@ void Shell::_Process(const String &buffer)
         _PrintKnownKeys();
     } else if (_operation && buffer.startsWith("stats-reset")) {
         _operation->ResetStats();
-        _outMux.println(_operation->DumpStats().c_str());
-    } else if (_operation && buffer.startsWith("stats")) {
-        _outMux.println(_operation->DumpStats().c_str());
-    } else if (buffer.startsWith("log")) {
-        _outMux.print("bootCount=");
-        _outMux.println(RtcLog::bootCount);
-        _outMux.print("lastReset=");
-        _outMux.print(RtcLog::lastReset);
-        _outMux.print(" -> ");
-        switch (static_cast<esp_reset_reason_t>(RtcLog::lastReset)) {
-        case ESP_RST_UNKNOWN: 	_outMux.print("UNKNOWN");   break;
-        case ESP_RST_POWERON:   _outMux.print("POWERON");   break;
-        case ESP_RST_EXT:       _outMux.print("EXT");       break;
-        case ESP_RST_SW:        _outMux.print("SW");        break;
-        case ESP_RST_PANIC:     _outMux.print("PANIC");     break;
-        case ESP_RST_INT_WDT:   _outMux.print("INT_WDT"); 	break;
-        case ESP_RST_TASK_WDT:  _outMux.print("TASK_WDT"); 	break;
-        case ESP_RST_WDT:       _outMux.print("WDT");       break;
-        case ESP_RST_DEEPSLEEP: _outMux.print("DEEPSLEEP"); break;
-        case ESP_RST_BROWNOUT:  _outMux.print("BROWNOUT");  break;
-        case ESP_RST_SDIO:      _outMux.print("SDIO");      break;
-        }
-        _outMux.println();
-        _outMux.println(_operation->DumpStats().c_str());
+        auto stats = _operation->GetStats();
+        stats.Print(_outMux);
+    } else if (buffer.startsWith("log") || buffer.startsWith("stats")) {
+        auto stats = _operation->GetStats();
+        stats.Print(_outMux);
     } else {
         if (buffer[0] != '\r' && buffer[0] != '\n') {
             _outMux.print(F("Unknown command: "));

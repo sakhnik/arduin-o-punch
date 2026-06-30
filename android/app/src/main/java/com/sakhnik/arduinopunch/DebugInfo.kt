@@ -11,7 +11,7 @@ data class DebugInfo(
 ) {
 
     companion object {
-        const val SIZE = 24  // enforce contract
+        const val SIZE = 26  // enforce contract
 
         fun parse(data: ByteArray): DebugInfo {
             require(data.size >= SIZE) {
@@ -20,11 +20,12 @@ data class DebugInfo(
 
             val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
 
+            val size = buffer.short.toInt() and 0xFFFF
             val version = buffer.get().toInt() and 0xFF
             val bootCount = buffer.short.toInt() and 0xFFFF
             val lastResetReason = buffer.get().toInt() and 0xFF
 
-            val count = (SIZE - 1 - 2 - 1) / 4
+            val count = (SIZE - 2 - 1 - 2 - 1) / 4
             val timeStats = IntArray(count) { buffer.int }
 
             return DebugInfo(version, bootCount, lastResetReason, timeStats)

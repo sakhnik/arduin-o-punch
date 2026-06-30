@@ -260,6 +260,15 @@ uint8_t PunchCard::ReadOut(CardReadOut &readOut)
         }
         _ReadPunchesFromBlock(tail, header, punches);
     }
+
+    // Read debug info if it was the debug card
+    if (readOut.cardId == DEBUG_CARD && _callback) {
+        auto [res, debugInfo] = _ReadString((startSector + 1) % IMifare::SECTOR_COUNT * 4);
+        if (res)
+            return res;
+        _callback->SetDebugInfo(debugInfo);
+    }
+
     return 0;
 }
 
@@ -392,6 +401,58 @@ PunchCard::_WriteString(uint8_t startBlock, const std::string &str)
     }
 
     return {ErrorCode::OK, offset};
+}
+
+std::pair<uint8_t, std::string>
+PunchCard::_ReadString(uint8_t startBlock)
+{
+    std::string result;
+
+    uint8_t buffer[IMifare::BLOCK_SIZE + 2];
+
+    auto readBlock = [&](uint8_t block) -> uint8_t {
+        uint8_t sector = _mifare->BlockToSector(block);
+        if (auto res = _Authenticate(sector))
+            return res;
+        uint8_t bufferSize = sizeof(buffer);
+        return _mifare->ReadBlock(block, buffer, bufferSize);
+    };
+
+    // Read first data block.
+    if (auto res = readBlock(startBlock))
+        return {res, {}};
+
+    uint16_t totalSize;
+    memcpy(&totalSize, buffer, sizeof(totalSize));
+
+    if (totalSize < sizeof(totalSize))
+        return {ErrorCode::DATA_CORRUPTED, {}};
+
+    result.reserve(totalSize);
+
+    uint8_t n = (IMifare::SECTOR_COUNT - 1) * IMifare::BLOCKS_PER_SECTOR - 1;
+
+    for (uint8_t block = startBlock, i = 0; i < n && result.size() < totalSize; ++block, ++i) {
+
+        if (block == 0)
+            continue;
+
+        if ((block % IMifare::BLOCKS_PER_SECTOR) == (IMifare::BLOCKS_PER_SECTOR - 1))
+            continue;
+
+        if (block != startBlock) {
+            if (auto res = readBlock(block))
+                return {res, {}};
+        }
+
+        size_t toCopy = std::min<size_t>(IMifare::BLOCK_SIZE, totalSize - result.size());
+        result.append(reinterpret_cast<char *>(buffer), toCopy);
+    }
+
+    if (result.size() != totalSize)
+        return {ErrorCode::DATA_CORRUPTED, {}};
+
+    return {ErrorCode::OK, std::move(result)};
 }
 
 }  // namespace AOP;
