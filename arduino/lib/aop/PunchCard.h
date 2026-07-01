@@ -83,7 +83,7 @@ public:
     ErrorCode Clear();
 
     using KeysT = std::vector<IMifare::KeyT>;
-    ErrorCode Format(uint16_t id, const KeysT& keysToTry, uint8_t startSector = 255);
+    ErrorCode Format(uint16_t id, const KeysT& keysToTry);
 
     using PunchesT = std::vector<AOP::Punch>;
     struct CardReadOut

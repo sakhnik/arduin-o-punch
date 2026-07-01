@@ -154,17 +154,15 @@ std::mt19937 rng{std::random_device{}()};
 
 } //namespace;
 
-ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSector)
+ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry)
 {
     KeysT goodKeys;
     if (auto res = _PickKeysToSectors(keysToTry, goodKeys)) {
         return res;
     }
 
-    if (startSector >= _mifare->SECTOR_COUNT) {
-        std::uniform_int_distribution<int> dist(0, _mifare->SECTOR_COUNT - 1);
-        startSector = dist(rng);
-    }
+    std::uniform_int_distribution<int> dist(0, _mifare->SECTOR_COUNT - 1);
+    uint8_t startSector = dist(rng);
 
     for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
         if (auto res = _mifare->AuthenticateSectorWithKeyA(sector, goodKeys[sector].data())) {
