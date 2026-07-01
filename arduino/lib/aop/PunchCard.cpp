@@ -180,10 +180,12 @@ ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSe
         memcpy(trailer, _key.data(), IMifare::KEY_SIZE);
         // Restore default access bits to use KeyB for data
         memcpy(trailer + IMifare::KEY_SIZE, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE);
-        // Write card ID to KeyB
-        trailer[ID_OFFSET] = id & 0xff;
-        trailer[ID_OFFSET + 1] = (id >> 8) & 0xff;
-        trailer[SECTOR_OFFSET] = startSector;
+        if (sector == startSector || sector == INDEX_SECTOR) {
+            // Write card ID to KeyB
+            trailer[ID_OFFSET] = id & 0xff;
+            trailer[ID_OFFSET + 1] = (id >> 8) & 0xff;
+            trailer[SECTOR_OFFSET] = startSector;
+        }
         if (auto res = _mifare->WriteBlock(blockIndex, trailer, IMifare::BLOCK_SIZE)) {
             return res;
         }
