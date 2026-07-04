@@ -65,7 +65,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         progress(1, 1)
     }
 
-    fun format(id: Int, keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS, startSector: Int = -1) {
+    fun format(id: Int, keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS) {
         val procedure = Procedure()
         val goodKeys = ArrayList<ByteArray>()
 
@@ -75,11 +75,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
 
         // Choose a start sector for punches to even out card wear
-        val chosenStartSector = if (startSector >= 0 && startSector < mifare.sectorCount) {
-            startSector
-        } else {
-            Random.nextInt(0, mifare.sectorCount)
-        }
+        val chosenStartSector = Random.nextInt(0, mifare.sectorCount)
 
         // Configure KeyA, access bits and write card ID to KeyB
         procedure.add(mifare.sectorCount) { p ->
