@@ -1,8 +1,6 @@
 package com.sakhnik.arduinopunch
 
 import android.content.Context
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.Arrays
 import kotlin.random.Random
 
@@ -120,9 +118,11 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             key.copyInto(trailer)
             // Restore default access bits to use KeyB for data
             ACCESS_BITS.copyInto(trailer, 6)
-            // Write card ID to KeyB
-            byteArrayOf(id.toByte(), (id shr 8).toByte()).copyInto(trailer, ID_OFFSET)
-            trailer[SECTOR_OFFSET] = startSector.toByte()
+            if (sector == startSector || sector == INDEX_SECTOR) {
+                // Write card ID to KeyB
+                byteArrayOf(id.toByte(), (id shr 8).toByte()).copyInto(trailer, ID_OFFSET)
+                trailer[SECTOR_OFFSET] = startSector.toByte()
+            }
             mifare.writeBlock(blockIndex, trailer)
         }
     }
