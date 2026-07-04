@@ -165,10 +165,9 @@
             if (typeof punchCard !== 'undefined' && punchCard !== null) {
                 punchCard.delete();
             }
-            if (typeof mifare !== 'undefined' && mifare !== null) {
-                mifare.delete();
+            if (typeof mifare === 'undefined' && mifare === null) {
+                mifare = new Module.WebMifare();
             }
-            mifare = new Module.WebMifare();
             const key = new Uint8Array(hexKey.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
             punchCard = new Module.PunchCard(mifare, key);
             const res = punchCard.Format(cardId);

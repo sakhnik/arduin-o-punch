@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debug card to retrieve diagnostic information
 - UART for programming, configuration and debugging instead of USB CDC
 - Card readout, formatting via shell
+- Cyclic card formatting, reading previous run punches
 
 ### Changed
 

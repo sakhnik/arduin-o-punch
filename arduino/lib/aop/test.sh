@@ -8,4 +8,5 @@ cmake -B "$build_dir" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POLICY_VERSION_MINIMUM=3.
 cmake --build "$build_dir"
 if [[ "$1" != "--skip-tests" ]]; then
     ctest -V --test-dir "$build_dir"
+    #$build_dir/test-aop -tc="PunchCard Multiple Format"
 fi
