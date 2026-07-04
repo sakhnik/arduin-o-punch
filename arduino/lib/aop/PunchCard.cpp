@@ -112,25 +112,6 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     return card_id == DEBUG_CARD ? ErrorCode::DEBUG_CARD : ErrorCode::OK;
 }
 
-ErrorCode PunchCard::Clear()
-{
-    // 1. read startSector
-    auto indexSector = _mifare->BlockToSector(INDEX_KEY_BLOCK);
-    if (auto res = _Authenticate(indexSector))
-        return res;
-    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
-    uint8_t headerSize = sizeof(header);
-    if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize))
-        return res;
-    uint8_t startSector = header[SECTOR_OFFSET];
-
-    if (auto res = _ClearPunches(startSector)) {
-        return res;
-    }
-
-    return ErrorCode::OK;
-}
-
 uint8_t PunchCard::_ClearPunches(uint8_t startSector)
 {
     if (auto res = _Authenticate(startSector))

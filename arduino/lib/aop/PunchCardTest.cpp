@@ -270,10 +270,6 @@ TEST_CASE("PunchCard Clear")
     PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
     CHECK(punches == readOut.punches);
-
-    punchCard.Clear();
-    CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(0 == readOut.punches.size());
 }
 
 TEST_CASE("PunchCard Clear at Start")

@@ -93,16 +93,6 @@ int main()
             }
             continue;
         }
-        if (cmd == "CLEAR") {
-            CliMifare mifare;
-            AOP::PunchCard punchCard{&mifare, key};
-            if (auto res = punchCard.Clear()) {
-                std::cout << "ERR " << static_cast<unsigned>(res) << std::endl;
-            } else {
-                std::cout << "OK" << std::endl;
-            }
-            continue;
-        }
         if (cmd == "QUIT") {
             std::cout << "OK" << std::endl;
             break;

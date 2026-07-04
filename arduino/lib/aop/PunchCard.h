@@ -81,9 +81,6 @@ public:
     // Punch a card with the given information about station and timestamp
     ErrorCode Punch(Punch punch);
 
-    // Clear previous punches from a card without changing the format information
-    ErrorCode Clear();
-
     using KeysT = std::vector<IMifare::KeyT>;
     ErrorCode Format(uint16_t id, const KeysT& keysToTry);
 
