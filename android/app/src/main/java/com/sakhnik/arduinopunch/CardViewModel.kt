@@ -127,7 +127,6 @@ open class CardViewModel(private val repository: Repository, application: Applic
     fun handleCard(mifare: MifareClassic) {
         when (_currentDestination.value) {
             DST_FORMAT -> formatCard(mifare)
-            DST_CLEAR -> clearCard(mifare)
             DST_PUNCH -> punchCard(mifare)
             DST_READ -> readRunner(mifare)
             DST_RESET -> resetCard(mifare)
@@ -151,13 +150,6 @@ open class CardViewModel(private val repository: Repository, application: Applic
         Log.d(null, "Format $cardId with key ${key.joinToString("") { "%02X".format(it) }}")
         val card = PunchCard(MifareImpl(mifare), key, context)
         card.format(cardId, getKnownKeys(), this::setProgress)
-    }
-
-    private fun clearCard(mifareClassic: MifareClassic) {
-        val key = getKey()
-        val context = getApplication<Application>().applicationContext
-        val card = PunchCard(MifareImpl(mifareClassic), key, context)
-        card.clear(this::setProgress)
     }
 
     private fun punchCard(mifare: MifareClassic) {

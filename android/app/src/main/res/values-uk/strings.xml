@@ -5,7 +5,6 @@
     <string name="navigation_drawer_close">Закрити навігацію</string>
     <string name="station_id">Станція</string>
     <string name="from_card">З картки</string>
-    <string name="clear">Очистити</string>
     <string name="clock_offset">Різниця годинника</string>
     <string name="upload">Вивантажити</string>
     <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
@@ -13,7 +12,6 @@
     <string name="card_id_report">Картка %d</string>
     <string name="key">Ключ</string>
     <string name="format_card">Підготовка Картки</string>
-    <string name="clear_punches">Очистити Відмітки</string>
     <string name="punch">Відмітка</string>
     <string name="read_card">Зчитати Картку</string>
     <string name="reset_card">Скинути Картку</string>
@@ -23,8 +21,6 @@
     <string name="the_card_is_full">Картка переповнена</string>
     <string name="format_title">Підготувати картку</string>
     <string name="format_instruction">Підготувати картку: відформатувати заданим ключем шифрування розміром 12 шістнадцяткових цифр, призначити ID (0..65535).</string>
-    <string name="clear_title">Очистити картку</string>
-    <string name="clear_instruction">Очистити попередні відмітки у картці без зміни інформації (наприклад, ID).</string>
     <string name="punch_title">Відмітка в картці</string>
     <string name="punch_instruction">Поставити відмітку в картці заданим ID станції (0..255) і теперішнім часом.\nID 0 використовується для звіряння годинників, 10 для старту, 255 для фінішу.</string>
     <string name="read_title">Прочитати картку</string>

@@ -5,7 +5,6 @@
     <string name="_31" translatable="false">31</string>
     <string name="station_id">Station</string>
     <string name="from_card">From card</string>
-    <string name="clear">Clear</string>
     <string name="clock_offset">Clock offset</string>
     <string name="upload">Upload</string>
     <string name="url_for_qr_o_punch_upload">URL for qr-o-punch upload</string>
@@ -14,7 +13,6 @@
     <string name="card_id_report">Card %d</string>
     <string name="_1" translatable="false">1</string>
     <string name="format_card">Format Card</string>
-    <string name="clear_punches">Clear Punches</string>
     <string name="punch">Punch</string>
     <string name="read_card">Read Card</string>
     <string name="reset_card">Reset Card</string>
@@ -25,8 +23,6 @@
     <string name="format_title">Format card</string>
     <string name="format_instruction">Prepare a card: format with the given 12-hexadigit encryption key, assign ID (0..65535).</string>
     <string name="key">Key</string>
-    <string name="clear_title">Clear card</string>
-    <string name="clear_instruction">Clear previous punches from a card without changing card information (like ID).</string>
     <string name="punch_title">Punch card</string>
     <string name="punch_instruction">Punch card with the given station ID (0..255) and current time.\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
     <string name="read_title">Read card</string>

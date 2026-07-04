@@ -51,20 +51,6 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
     }
 
-    // Clear the card before the start without changing the format information
-    fun clear(progress: Progress = Procedure.NO_PROGRESS) {
-        // 1. read startSector
-        progress(0, 2)
-        authenticate(INDEX_SECTOR)
-        val headerKey = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
-        val startSector = headerKey[SECTOR_OFFSET].toInt()
-
-        progress(1, 2)
-        clearPunches(startSector, progress)
-
-        progress(1, 1)
-    }
-
     fun format(id: Int, keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS) {
         val procedure = Procedure()
         val goodKeys = ArrayList<ByteArray>()
