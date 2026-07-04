@@ -2,7 +2,6 @@ package com.sakhnik.arduinopunch
 
 import android.content.Context
 import java.util.Arrays
-import kotlin.random.Random
 
 class PunchCard(private val mifare: IMifare, private val key: ByteArray, private val context: Context) {
     private var authSector = -1
@@ -16,6 +15,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         // ID is written into KeyB
         const val ID_OFFSET = 10
         const val SECTOR_OFFSET = 12
+        const val PREV_SECTOR_OFFSET = 13
 
         const val CHECK_STATION = 1
         const val START_STATION = 10
@@ -74,19 +74,79 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             pickKeyToSector(keysToTry, goodKeys, p)
         }
 
-        // Choose a start sector for punches to even out card wear
-        val chosenStartSector = Random.nextInt(0, mifare.sectorCount)
+        var startSector = 1
+        var prevStartSector = 1
 
         // Configure KeyA, access bits and write card ID to KeyB
         procedure.add(mifare.sectorCount) { p ->
-            writeNewKey(id, goodKeys, p, chosenStartSector)
+            writeNewKey(goodKeys, p)
+        }
+
+        procedure.add(5) { p ->
+            authenticate(INDEX_SECTOR)
+
+            val trailer = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
+            startSector = trailer[SECTOR_OFFSET].toInt() and 0xff
+            prevStartSector = trailer[PREV_SECTOR_OFFSET].toInt() and 0xff
+
+            if (startSector !in 1 until mifare.sectorCount) {
+                startSector = 1
+                prevStartSector = 1
+                return@add
+            }
+
+            val header = try {
+                recoverHeader(startSector, 5, p)
+            } catch (_: RuntimeException) {
+                startSector = 1
+                prevStartSector = 1
+                return@add
+            }
+
+            val count = header[0].toInt() and 0xff
+            if (count == 0)
+                return@add
+
+            prevStartSector = startSector
+
+            var occupied = if (count < 5) 0 else (count - 1) / PUNCHES_PER_BLOCK
+
+            fun nextSector(s: Int) =
+                if (s + 1 == mifare.sectorCount) 1 else s + 1
+
+            startSector = nextSector(startSector)
+            while (occupied >= 3) {
+                occupied -= 3
+                startSector = nextSector(startSector)
+            }
+            if (occupied > 1)
+                startSector = nextSector(startSector)
+        }
+
+        procedure.add(2) {
+            writeSector(startSector, id, startSector, prevStartSector)
+            writeSector(INDEX_SECTOR, id, startSector, prevStartSector)
         }
 
         procedure.add(3) { p ->
-            clearPunches(chosenStartSector, p)
+            clearPunches(startSector, p)
         }
 
         procedure.run(progress)
+    }
+
+    private fun writeSector(sector: Int, id: Int, startSector: Int, prevStartSector: Int) {
+        authenticate(sector)
+
+        val blockIndex = 3 + sector * 4
+        val trailer = mifare.readBlock(blockIndex) as ByteArray
+
+        trailer[ID_OFFSET] = id.toByte()
+        trailer[ID_OFFSET + 1] = (id shr 8).toByte()
+        trailer[SECTOR_OFFSET] = startSector.toByte()
+        trailer[PREV_SECTOR_OFFSET] = prevStartSector.toByte()
+
+        mifare.writeBlock(blockIndex, trailer)
     }
 
     private fun clearPunches(startSector: Int, progress: Progress) {
@@ -102,24 +162,34 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         mifare.writeBlock(headerBlock2, data)
     }
 
-    private fun writeNewKey(id: Int, keys: List<ByteArray>, progress: Progress, startSector: Int) {
+    private fun writeNewKey(keys: List<ByteArray>, progress: Progress) {
         for (sector in 0 until mifare.sectorCount) {
             progress(sector, mifare.sectorCount)
+
             if (!mifare.authenticateSectorWithKeyA(sector, keys[sector])) {
                 throw RuntimeException(context.getString(R.string.no_known_key_for_sector, sector))
             }
+
             authSector = sector
+
             val blockIndex = 3 + 4 * sector
             val trailer = mifare.readBlock(blockIndex) as ByteArray
-            key.copyInto(trailer)
-            // Restore default access bits to use KeyB for data
-            ACCESS_BITS.copyInto(trailer, 6)
-            if (sector == startSector || sector == INDEX_SECTOR) {
-                // Write card ID to KeyB
-                byteArrayOf(id.toByte(), (id shr 8).toByte()).copyInto(trailer, ID_OFFSET)
-                trailer[SECTOR_OFFSET] = startSector.toByte()
+
+            var changed = false
+
+            if (!trailer.copyOfRange(0, 6).contentEquals(key)) {
+                key.copyInto(trailer)
+                changed = true
             }
-            mifare.writeBlock(blockIndex, trailer)
+
+            if (!trailer.copyOfRange(6, 10).contentEquals(ACCESS_BITS)) {
+                ACCESS_BITS.copyInto(trailer, 6)
+                changed = true
+            }
+
+            if (changed) {
+                mifare.writeBlock(blockIndex, trailer)
+            }
         }
     }
 
@@ -129,14 +199,16 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             // Try the previous sector's key first for better luck
             if (sector > 0 && mifare.authenticateSectorWithKeyA(sector, goodKeys[sector - 1])) {
                 goodKeys.add(goodKeys[sector - 1])
-            }
-            else if (mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
+            } else if (mifare.authenticateSectorWithKeyA(sector, mifare.keyDefault)) {
                 goodKeys.add(mifare.keyDefault)
+            } else if (mifare.authenticateSectorWithKeyA(sector, key)) {
+                goodKeys.add(key)
             } else {
                 val k = keysToTry.find {
                     mifare.authenticateSectorWithKeyA(sector, it)
-                }
-                    ?: throw RuntimeException(context.getString(R.string.no_known_key_for_sector, sector))
+                } ?: throw RuntimeException(
+                    context.getString(R.string.no_known_key_for_sector, sector)
+                )
                 goodKeys.add(k)
             }
         }
