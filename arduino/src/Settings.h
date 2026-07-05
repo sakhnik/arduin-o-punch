@@ -74,12 +74,8 @@ public:
     const std::string& GetCardModeArg() const { return _cardModeArg; }
 
     void ActivateCardPunchMode() { _cardMode = CardMode::Punch; }
-    void ActivateCardReadOutMode() { _cardMode = CardMode::ReadOut; }
-    void ActivateCardFormatMode(std::string_view arg)
-    {
-        _cardMode = CardMode::Format;
-        _cardModeArg = arg;
-    }
+    void ActivateCardReadOutMode(std::string_view arg);
+    void ActivateCardFormatMode(std::string_view arg);
 
 private:
     Buzzer *_buzzer;

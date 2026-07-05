@@ -296,21 +296,27 @@ ErrorCode Puncher::DoReadOut()
         }
     } callback{_outMux};
 
+    int maxCount = std::stoi(_settings.GetCardModeArg());
+
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey(), &callback};
-    AOP::PunchCard::CardReadOut readOut;
-    auto res = punchCard.ReadOut(readOut);
+    std::vector<AOP::PunchCard::CardReadOut> out;
+    auto res = punchCard.ReadOut(maxCount, out);
     if (res != ErrorCode::OK) {
         return res;
     }
-    _outMux.print(F("card="));
-    _outMux.println(readOut.cardId);
-    _outMux.print(F("punches="));
-    _outMux.println(readOut.punches.size());
-    for (const auto &punch : readOut.punches) {
-        _outMux.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
+    _outMux.print(F("readout="));
+    _outMux.println(out.size());
+    for (const auto &readOut : out) {
+        _outMux.print(F("card="));
+        _outMux.println(readOut.cardId);
+        _outMux.print(F("punches="));
+        _outMux.println(readOut.punches.size());
+        for (const auto &punch : readOut.punches) {
+            _outMux.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
+        }
     }
-    return res;
+    return ErrorCode::OK;
 }
 
 ErrorCode Puncher::DoFormat()

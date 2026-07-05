@@ -169,7 +169,7 @@ ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry)
 
     uint8_t startSector = header[SECTOR_OFFSET];
     uint8_t prevStartSector = header[PREV_SECTOR_OFFSET];
-    if (0 < startSector && startSector <= _mifare->SECTOR_COUNT) {
+    if (id != DEBUG_CARD && 0 < startSector && startSector <= _mifare->SECTOR_COUNT) {
         auto headerStatus = _RecoverHeader(startSector, header);
         if (headerStatus.error == ErrorCode::DATA_CORRUPTED) {
             startSector = prevStartSector = 1;
@@ -303,6 +303,9 @@ ErrorCode PunchCard::ReadOut(CardReadOut &readOut)
 
 ErrorCode PunchCard::ReadOut(int count, std::vector<CardReadOut> &out)
 {
+    if (count == 0)
+        count = 100;
+
     MarkedBlocksT markedBlocks;
     markedBlocks.set(INDEX_KEY_BLOCK);
 
@@ -328,6 +331,14 @@ ErrorCode PunchCard::ReadOut(int count, std::vector<CardReadOut> &out)
 
         if (1 > nextSector || nextSector >= IMifare::SECTOR_COUNT || nextSector == curSector)
             break;
+    }
+
+    // Read debug info if it was the debug card
+    if (out.size() == 1 && out[0].cardId == DEBUG_CARD && _callback) {
+        auto [res, debugInfo] = _ReadString((startSector + 1) % IMifare::SECTOR_COUNT * 4);
+        if (res)
+            return res;
+        _callback->SetDebugInfo(debugInfo);
     }
 
     return ErrorCode::OK;

@@ -182,8 +182,8 @@ void Shell::_Process(const String &buffer)
         }
         _outMux.println(F("log               Dump log"));
         _outMux.println(F("card-punch        Activate punch mode"));
-        _outMux.println(F("card-readout      Activate readout mode"));
-        _outMux.println(F("card-format <id>  Activate card formatting mode"));
+        _outMux.println(F("card-readout cnt  Activate readout mode"));
+        _outMux.println(F("card-format id    Activate card formatting mode"));
         _outMux.println(F("known-keys        Print known keys to try for formatting"));
         _outMux.println(F("known-keys <keys> Set list of known keys"));
     } else if (buffer.startsWith(F("info"))) {
@@ -217,7 +217,8 @@ void Shell::_Process(const String &buffer)
             _outMux.println(F("punch"));
             break;
         case Settings::CardMode::ReadOut:
-            _outMux.println(F("readout"));
+            _outMux.print(F("readout "));
+            _outMux.println(_settings.GetCardModeArg().c_str());
             break;
         case Settings::CardMode::Format:
             _outMux.print(F("format "));
@@ -281,9 +282,9 @@ void Shell::_Process(const String &buffer)
     } else if (buffer.startsWith("card-punch")) {
         _settings.ActivateCardPunchMode();
     } else if (buffer.startsWith("card-readout")) {
-        _settings.ActivateCardReadOutMode();
-    } else if (buffer.startsWith("card-format ")) {
-        _settings.ActivateCardFormatMode(buffer.c_str() + 12);
+        _settings.ActivateCardReadOutMode(buffer.c_str() + 12);
+    } else if (buffer.startsWith("card-format")) {
+        _settings.ActivateCardFormatMode(buffer.c_str() + 11);
     } else if (buffer.startsWith("known-keys ")) {
         _SetKnownKeys(buffer.c_str() + 11);
     } else if (buffer.startsWith("known-keys")) {

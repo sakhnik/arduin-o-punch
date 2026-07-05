@@ -350,3 +350,23 @@ void Settings::NotifyWatchers()
         }
     }
 }
+
+void Settings::ActivateCardReadOutMode(std::string_view arg)
+{
+    _cardMode = CardMode::ReadOut;
+    while (!arg.empty() && !std::isdigit(arg.front())) {
+        arg = arg.substr(1);
+    }
+    if (arg.empty())
+        arg = "1";
+    _cardModeArg = arg;
+}
+
+void Settings::ActivateCardFormatMode(std::string_view arg)
+{
+    _cardMode = CardMode::Format;
+    while (!arg.empty() && !std::isdigit(arg.front())) {
+        arg = arg.substr(1);
+    }
+    _cardModeArg = arg;
+}
