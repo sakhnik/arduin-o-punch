@@ -6,7 +6,7 @@ include(FetchContent)
 FetchContent_Declare(
     DocTest
     GIT_REPOSITORY "https://github.com/doctest/doctest"
-    GIT_TAG "v2.4.11"
+    GIT_TAG "v2.5.2"
 )
 
 FetchContent_MakeAvailable(DocTest)
