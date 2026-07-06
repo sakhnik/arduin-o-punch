@@ -4,6 +4,7 @@
 #include "IMifare.h"
 #include "ErrorCode.h"
 
+#include <bitset>
 #include <vector>
 #include <string>
 
@@ -45,6 +46,7 @@ public:
     // ID is written into KeyB
     static constexpr auto ID_OFFSET = 10;
     static constexpr auto SECTOR_OFFSET = 12;
+    static constexpr auto PREV_SECTOR_OFFSET = 13;
 
     static constexpr auto PUNCHES_PER_BLOCK = 4;
     static constexpr auto PUNCHES_PER_SECTOR = PUNCHES_PER_BLOCK * 3;
@@ -79,11 +81,8 @@ public:
     // Punch a card with the given information about station and timestamp
     ErrorCode Punch(Punch punch);
 
-    // Clear previous punches from a card without changing the format information
-    ErrorCode Clear();
-
     using KeysT = std::vector<IMifare::KeyT>;
-    ErrorCode Format(uint16_t id, const KeysT& keysToTry, uint8_t startSector = 255);
+    ErrorCode Format(uint16_t id, const KeysT& keysToTry);
 
     using PunchesT = std::vector<AOP::Punch>;
     struct CardReadOut
@@ -91,8 +90,9 @@ public:
         uint16_t cardId;
         PunchesT punches;
     };
-    uint8_t ReadOut(CardReadOut &);
-    void _ReadPunchesFromBlock(uint8_t count, const uint8_t *data, PunchesT &);
+    ErrorCode ReadOut(CardReadOut &);
+
+    ErrorCode ReadOut(int count, std::vector<CardReadOut> &);
 
 private:
     IMifare *_mifare;
@@ -131,6 +131,11 @@ private:
     std::pair<uint8_t, size_t> _WriteString(uint8_t startBlock, const std::string &str);
     std::pair<uint8_t, std::string> _ReadString(uint8_t startBlock);
     ErrorCode _PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys);
+    void _ReadPunchesFromBlock(uint8_t count, const uint8_t *data, PunchesT &);
+
+    // Mark read blocks to detect punches overlap (history overwrite).
+    using MarkedBlocksT = std::bitset<IMifare::BLOCK_COUNT>;
+    ErrorCode _ReadOutRun(uint8_t startSector, CardReadOut &, uint8_t &nextSector, MarkedBlocksT &);
 };
 
 } //namespace AOP;

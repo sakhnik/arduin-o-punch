@@ -153,7 +153,7 @@ class PunchCardTest {
         val mifare = TestMifare()
         val punchCard = PunchCard(mifare, TEST_KEY, context)
 
-        for (k in 0 until 16) {
+        (0 until 16).forEach { _ ->
             // Test repetitive formatting doesn't corrupt the card
             punchCard.format(42, listOf(TEST_KEY))
 
@@ -279,7 +279,7 @@ class PunchCardTest {
                         val readOut = punchCard.readOut()
                         assertEquals(i + 1, readOut.punches.size)
                         break
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         assertTrue(exceptionAnticipated)
                     }
                 }
@@ -294,7 +294,7 @@ class PunchCardTest {
                     }
                     punchCard.reset(listOf(TEST_KEY))
                     break
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // There may be scheduled outstanding failures when recovering the header
                 }
             }

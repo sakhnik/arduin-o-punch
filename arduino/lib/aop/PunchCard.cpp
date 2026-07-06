@@ -1,7 +1,6 @@
 #include "PunchCard.h"
 #include "ErrorCode.h"
 #include <algorithm>
-#include <random>
 #include <cstring>
 
 namespace AOP {
@@ -113,25 +112,6 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
     return card_id == DEBUG_CARD ? ErrorCode::DEBUG_CARD : ErrorCode::OK;
 }
 
-ErrorCode PunchCard::Clear()
-{
-    // 1. read startSector
-    auto indexSector = _mifare->BlockToSector(INDEX_KEY_BLOCK);
-    if (auto res = _Authenticate(indexSector))
-        return res;
-    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
-    uint8_t headerSize = sizeof(header);
-    if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize))
-        return res;
-    uint8_t startSector = header[SECTOR_OFFSET];
-
-    if (auto res = _ClearPunches(startSector)) {
-        return res;
-    }
-
-    return ErrorCode::OK;
-}
-
 uint8_t PunchCard::_ClearPunches(uint8_t startSector)
 {
     if (auto res = _Authenticate(startSector))
@@ -148,22 +128,11 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
     return 0;
 }
 
-namespace {
-
-std::mt19937 rng{std::random_device{}()};
-
-} //namespace;
-
-ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSector)
+ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry)
 {
     KeysT goodKeys;
     if (auto res = _PickKeysToSectors(keysToTry, goodKeys)) {
         return res;
-    }
-
-    if (startSector >= _mifare->SECTOR_COUNT) {
-        std::uniform_int_distribution<int> dist(0, _mifare->SECTOR_COUNT - 1);
-        startSector = dist(rng);
     }
 
     for (int sector = 0; sector < _mifare->SECTOR_COUNT; ++sector) {
@@ -177,16 +146,96 @@ ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry, uint8_t startSe
         if (auto res = _mifare->ReadBlock(blockIndex, trailer, dataSize)) {
             return res;
         }
-        memcpy(trailer, _key.data(), IMifare::KEY_SIZE);
-        // Restore default access bits to use KeyB for data
-        memcpy(trailer + IMifare::KEY_SIZE, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE);
+        // Avoid overwriting index blocks if possible (spare some write calls).
+        if (memcmp(trailer, _key.data(), IMifare::KEY_SIZE) || memcmp(trailer + IMifare::KEY_SIZE, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE)) {
+            memcpy(trailer, _key.data(), IMifare::KEY_SIZE);
+            // Restore default access bits to use KeyB for data
+            memcpy(trailer + IMifare::KEY_SIZE, IMifare::ACCESS_BITS, IMifare::ACCESS_BITS_SIZE);
+            if (auto res = _mifare->WriteBlock(blockIndex, trailer, IMifare::BLOCK_SIZE)) {
+                return res;
+            }
+        }
+    }
+
+    auto headerSector = _mifare->BlockToSector(INDEX_KEY_BLOCK);
+    if (auto res = _Authenticate(headerSector)) {
+        return res;
+    }
+    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
+    uint8_t headerSize = sizeof(header);
+    if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize)) {
+        return res;
+    }
+
+    uint8_t startSector = header[SECTOR_OFFSET];
+    uint8_t prevStartSector = header[PREV_SECTOR_OFFSET];
+    if (id != DEBUG_CARD && 0 < startSector && startSector <= _mifare->SECTOR_COUNT) {
+        auto headerStatus = _RecoverHeader(startSector, header);
+        if (headerStatus.error == ErrorCode::DATA_CORRUPTED) {
+            startSector = prevStartSector = 1;
+        } else if (headerStatus.error != ErrorCode::OK) {
+            return headerStatus.error;
+        } else {
+            // Determine the next available sector to keep all the punches from the previous run.
+            uint8_t count = header[0];
+            if (count != 0) {
+                prevStartSector = startSector;
+                int occupied = count < 5 ? 0 : (count - 1) / PUNCHES_PER_BLOCK;
+
+                auto nextSector = [](uint8_t s) {
+                    // Skip sector 0
+                    return (s + 1 == IMifare::SECTOR_COUNT) ? 1 : s + 1;
+                };
+
+                auto findFreeSector = [=](int occupied) {
+                    uint8_t sector = nextSector(startSector);
+
+                    while (occupied >= 3) {
+                        occupied -= 3;
+                        sector = nextSector(sector);
+                    }
+
+                    if (occupied > 1)
+                        sector = nextSector(sector);
+
+                    return sector;
+                };
+
+                startSector = findFreeSector(occupied);
+            }
+        }
+    } else {
+        startSector = prevStartSector = 1;
+    }
+
+    auto writeSector = [&](uint8_t sector) -> ErrorCode {
+        if (auto res = _Authenticate(sector))
+            return res;
+
+        uint8_t blockIndex = IMifare::BLOCKS_PER_SECTOR * (sector + 1) - 1;
+        uint8_t trailer[IMifare::BLOCK_SIZE + 2];
+        uint8_t dataSize = sizeof(trailer);
+        if (auto res = _mifare->ReadBlock(blockIndex, trailer, dataSize)) {
+            return res;
+        }
+
         // Write card ID to KeyB
         trailer[ID_OFFSET] = id & 0xff;
         trailer[ID_OFFSET + 1] = (id >> 8) & 0xff;
         trailer[SECTOR_OFFSET] = startSector;
+        trailer[PREV_SECTOR_OFFSET] = prevStartSector;
+
         if (auto res = _mifare->WriteBlock(blockIndex, trailer, IMifare::BLOCK_SIZE)) {
             return res;
         }
+        return ErrorCode::OK;
+    };
+
+    if (auto res = writeSector(startSector)) {
+        return res;
+    }
+    if (auto res = writeSector(INDEX_SECTOR)) {
+        return res;
     }
 
     if (auto res = _ClearPunches(startSector)) {
@@ -206,6 +255,8 @@ ErrorCode PunchCard::_PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys)
             goodKeys.push_back(goodKeys.back());
         } else if (!_mifare->AuthenticateSectorWithKeyA(sector, IMifare::KEY_DEFAULT.data())) {
             goodKeys.push_back(IMifare::KEY_DEFAULT);
+        } else if (!_mifare->AuthenticateSectorWithKeyA(sector, _key.data())) {
+            goodKeys.push_back(_key);
         } else {
             auto it = std::find_if(keysToTry.begin(), keysToTry.end(), [this, sector](const auto &key) {
                 return !_mifare->AuthenticateSectorWithKeyA(sector, key.data());
@@ -219,9 +270,12 @@ ErrorCode PunchCard::_PickKeysToSectors(const KeysT &keysToTry, KeysT &goodKeys)
     return ErrorCode::OK;
 }
 
-uint8_t PunchCard::ReadOut(CardReadOut &readOut)
+ErrorCode PunchCard::ReadOut(CardReadOut &readOut)
 {
-    // 1. read card id
+    MarkedBlocksT markedBlocks;
+    markedBlocks.set(INDEX_KEY_BLOCK);
+
+    // 1. read start sector
     auto headerSector = _mifare->BlockToSector(INDEX_KEY_BLOCK);
     if (auto res = _Authenticate(headerSector))
         return res;
@@ -229,10 +283,97 @@ uint8_t PunchCard::ReadOut(CardReadOut &readOut)
     uint8_t headerSize = sizeof(header);
     if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize))
         return res;
-    readOut.cardId = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     uint8_t startSector = header[SECTOR_OFFSET];
 
+    uint8_t nextSector{};
+    if (auto res = _ReadOutRun(startSector, readOut, nextSector, markedBlocks)) {
+        return res;
+    }
+
+    // Read debug info if it was the debug card
+    if (readOut.cardId == DEBUG_CARD && _callback) {
+        auto [res, debugInfo] = _ReadString((startSector + 1) % IMifare::SECTOR_COUNT * 4);
+        if (res)
+            return res;
+        _callback->SetDebugInfo(debugInfo);
+    }
+
+    return 0;
+}
+
+ErrorCode PunchCard::ReadOut(int count, std::vector<CardReadOut> &out)
+{
+    if (count == 0)
+        count = 100;
+
+    MarkedBlocksT markedBlocks;
+    markedBlocks.set(INDEX_KEY_BLOCK);
+
+    // 1. read start sector
+    auto headerSector = _mifare->BlockToSector(INDEX_KEY_BLOCK);
+    if (auto res = _Authenticate(headerSector))
+        return res;
+    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
+    uint8_t headerSize = sizeof(header);
+    if (auto res = _mifare->ReadBlock(INDEX_KEY_BLOCK, header, headerSize))
+        return res;
+    uint8_t startSector = header[SECTOR_OFFSET];
+
+    for (uint8_t curSector = startSector, nextSector; count-- > 0; curSector = nextSector) {
+        CardReadOut readOut;
+
+        if (auto res = _ReadOutRun(curSector, readOut, nextSector, markedBlocks)) {
+            return res == ErrorCode::DATA_CORRUPTED && !out.empty() ? ErrorCode::OK : res;
+        }
+        //std::cout << "curSector=" << (int)curSector << " nextSector=" << (int)nextSector << " cardId=" << readOut.cardId << " count=" << readOut.punches.size() << " blocks=" << markedBlocks << std::endl;
+
+        out.push_back(std::move(readOut));
+
+        if (1 > nextSector || nextSector >= IMifare::SECTOR_COUNT || nextSector == curSector)
+            break;
+    }
+
+    // Read debug info if it was the debug card
+    if (out.size() == 1 && out[0].cardId == DEBUG_CARD && _callback) {
+        auto [res, debugInfo] = _ReadString((startSector + 1) % IMifare::SECTOR_COUNT * 4);
+        if (res)
+            return res;
+        _callback->SetDebugInfo(debugInfo);
+    }
+
+    return ErrorCode::OK;
+}
+
+ErrorCode PunchCard::_ReadOutRun(uint8_t startSector, CardReadOut &readOut, uint8_t &nextSector, MarkedBlocksT &markedBlocks)
+{
+    auto checkAndMarkBlock = [&](uint8_t block) {
+        if (markedBlocks.test(block)) {
+            nextSector = startSector;
+            readOut.punches.clear();
+            return false;
+        }
+        markedBlocks.set(block);
+        return true;
+    };
+
+    // 1. read card id
+    if (auto res = _Authenticate(startSector))
+        return res;
+    uint8_t header[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
+    uint8_t headerSize = sizeof(header);
+    uint8_t headerBlock = startSector * IMifare::BLOCKS_PER_SECTOR + INDEX_KEY_BLOCK;
+    if (!checkAndMarkBlock(headerBlock))
+        return ErrorCode::DATA_CORRUPTED;
+    if (auto res = _mifare->ReadBlock(headerBlock, header, headerSize))
+        return res;
+    readOut.cardId = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
+    nextSector = header[PREV_SECTOR_OFFSET];
+
     // 2. Recover the header
+    if (!checkAndMarkBlock(startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK1)
+        || !checkAndMarkBlock(startSector * IMifare::BLOCKS_PER_SECTOR + HEADER_BLOCK2)) {
+        return ErrorCode::DATA_CORRUPTED;
+    }
     auto headerStatus = _RecoverHeader(startSector, header);
     if (headerStatus.error)
         return headerStatus.error;
@@ -250,6 +391,8 @@ uint8_t PunchCard::ReadOut(CardReadOut &readOut)
         uint8_t wholeBlocks = (count - tail) / PUNCHES_PER_BLOCK;
         for (int i = 0; i < wholeBlocks; ++i) {
             uint8_t block = _GetPunchBlock(i * PUNCHES_PER_BLOCK, startSector);
+            if (!checkAndMarkBlock(block))
+                return ErrorCode::DATA_CORRUPTED;
             if (auto res = _Authenticate(_mifare->BlockToSector(block)))
                 return res;
             uint8_t data[IMifare::BLOCK_SIZE + 2];  // need at least 18 bytes +crc
@@ -261,15 +404,7 @@ uint8_t PunchCard::ReadOut(CardReadOut &readOut)
         _ReadPunchesFromBlock(tail, header, punches);
     }
 
-    // Read debug info if it was the debug card
-    if (readOut.cardId == DEBUG_CARD && _callback) {
-        auto [res, debugInfo] = _ReadString((startSector + 1) % IMifare::SECTOR_COUNT * 4);
-        if (res)
-            return res;
-        _callback->SetDebugInfo(debugInfo);
-    }
-
-    return 0;
+    return ErrorCode::OK;
 }
 
 void PunchCard::_ReadPunchesFromBlock(uint8_t count, const uint8_t *data, PunchesT &punches)

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cassert>
+#include <iomanip>
 
 #include <doctest/doctest.h>
 
@@ -30,15 +31,12 @@ struct TestMifare : AOP::IMifare
     int failWrites = 0;
     int failDelay = 0;
 
-    TestMifare(uint16_t cardId, uint8_t startSector)
+    TestMifare()
     {
         for (auto &block : blocks)
             block.fill(0);
         for (int sector = 0; sector < 16; ++sector)
             memcpy(blocks[sector * 4 + 3].data(), IMifare::KEY_DEFAULT.data(), IMifare::KEY_SIZE);
-        blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::ID_OFFSET] = cardId & 0xff;
-        blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::ID_OFFSET + 1] = (cardId >> 8) & 0xff;
-        blocks[PunchCard::INDEX_KEY_BLOCK][PunchCard::SECTOR_OFFSET] = startSector;
     }
 
     int GetFailWrites() const
@@ -87,6 +85,18 @@ struct TestMifare : AOP::IMifare
         memcpy(blocks[block].data(), data, blockSize);
         return 0;
     }
+
+    void Print(std::ostream& os = std::cout) const
+    {
+        for (size_t i = 0; i < BLOCK_COUNT; ++i)
+        {
+            os << std::setw(2) << i << ":";
+            for (uint8_t b : blocks[i]) {
+                os << ' ' << std::hex << std::setw(2) << std::setfill('0') << unsigned(b);
+            }
+            os << std::dec << std::setfill(' ') << '\n';
+        }
+    }
 };
 
 }  //namespace;
@@ -129,8 +139,9 @@ template<> struct StringMaker<std::vector<AOP::Punch>>
 
 TEST_CASE("PunchCard Punch")
 {
-    TestMifare mifare(123, 2);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(123, {}));
 
     PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
@@ -153,8 +164,9 @@ TEST_CASE("PunchCard Punch")
 
 TEST_CASE("PunchCard Punch asynchronous")
 {
-    TestMifare mifare(12345, 3);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(12345, {}));
 
     PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
@@ -178,8 +190,9 @@ TEST_CASE("PunchCard Punch asynchronous")
 
 TEST_CASE("PunchCard max punches")
 {
-    TestMifare mifare(123, 14);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(123, {}));
 
     auto testPunch = [](int i) {
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
@@ -203,8 +216,9 @@ TEST_CASE("PunchCard max punches")
 
 TEST_CASE("PunchCard max repeated punches")
 {
-    TestMifare mifare(123, 13);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(123, {}));
 
     auto testPunch = [](int i) {
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
@@ -244,8 +258,9 @@ TEST_CASE("PunchCard max repeated punches")
 
 TEST_CASE("PunchCard Clear")
 {
-    TestMifare mifare(123, 7);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(123, {}));
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130)};
     for (int i = 0; i != punches.size(); ++i) {
@@ -255,16 +270,13 @@ TEST_CASE("PunchCard Clear")
     PunchCard::CardReadOut readOut;
     CHECK(0 == punchCard.ReadOut(readOut));
     CHECK(punches == readOut.punches);
-
-    punchCard.Clear();
-    CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(0 == readOut.punches.size());
 }
 
 TEST_CASE("PunchCard Clear at Start")
 {
-    TestMifare mifare(123, 12);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(123, {}));
 
     std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::START_STATION, 150)};
     for (int i = 0; i != punches.size(); ++i) {
@@ -282,8 +294,9 @@ TEST_CASE("PunchCard Recover from failed write")
     // Some cheap cards may lose data when timeout occurs. The puncher should
     // be resilient and never lose ability to continue punching even after
     // occasional data loss in one block because of unsuccessful write operation.
-    TestMifare mifare(123, 7);
+    TestMifare mifare;
     PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+    REQUIRE(0 == punchCard.Format(123, {}));
 
     auto testPunch = [](int i) {
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
@@ -315,6 +328,48 @@ TEST_CASE("PunchCard Recover from failed write")
     REQUIRE(100 == readOut.punches.size());
     for (int i = 0; i < 100; ++i) {
         REQUIRE(testPunch(i) == readOut.punches[i]);
+    }
+}
+
+TEST_CASE("PunchCard Multiple Format")
+{
+    TestMifare mifare;
+
+    auto getPunch = [](int i, int j) {
+        return Punch(11 + i + j, 100 + i + j);
+    };
+
+    auto getCardId = [](int i) {
+        return 1000 + i;
+    };
+
+    for (int i = 1; i < 100; ++i) {
+        PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
+        REQUIRE(0 == punchCard.Format(getCardId(i), {}));
+
+        for (int j = 0; j != i; ++j) {
+            REQUIRE(0 == punchCard.Punch(getPunch(i, j)));
+        }
+
+        PunchCard::CardReadOut readOut;
+        REQUIRE(0 == punchCard.ReadOut(readOut));
+        REQUIRE(getCardId(i) == readOut.cardId);
+        REQUIRE(i == readOut.punches.size());
+        for (int j = 0; j < i; ++j) {
+            REQUIRE(getPunch(i, j) == readOut.punches[j]);
+        }
+
+        std::vector<PunchCard::CardReadOut> allRuns;
+        REQUIRE(0 == punchCard.ReadOut(100, allRuns));
+        REQUIRE(allRuns.size() <= i);
+        for (int j = 0; j < allRuns.size(); ++j) {
+            auto n = i - j;
+            REQUIRE(allRuns[j].cardId == getCardId(n));
+            REQUIRE(allRuns[j].punches.size() == n);
+            for (int k = 0; k != n; ++k) {
+                REQUIRE(allRuns[j].punches[k] == getPunch(i - j, k));
+            }
+        }
     }
 }
 

@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.List
@@ -321,17 +320,6 @@ fun MainScreen(viewModel: CardViewModel) {
                 Spacer(Modifier.weight(1f, true))
 
                 NavButton(
-                    action = DST_CLEAR,
-                    icon = Icons.Default.Clear,
-                    description = stringResource(id = R.string.clear_punches),
-                    selectedAction = selectedAction,
-                    navController
-                ) {
-                    selectedAction = it
-                }
-                Spacer(Modifier.weight(1f, true))
-
-                NavButton(
                     action = DST_PUNCH,
                     icon = Icons.Default.Add,
                     description = stringResource(id = R.string.punch),
@@ -384,7 +372,6 @@ fun MainScreen(viewModel: CardViewModel) {
 
                 NavHost(navController, startDestination = DST_FORMAT) {
                     composable(DST_FORMAT) { FormatScreen(viewModel) }
-                    composable(DST_CLEAR) { ClearScreen() }
                     composable(DST_PUNCH) { PunchScreen(viewModel) }
                     composable(DST_READ) { ReadScreen(viewModel) }
                     composable(DST_RESET) { ResetScreen() }
