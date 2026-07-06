@@ -21,6 +21,8 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         const val START_STATION = 10
         const val FINISH_STATION = 255
 
+        const val DEBUG_CARD = 0xFFFF
+
         const val PUNCHES_PER_BLOCK = 4
         const val PUNCHES_PER_SECTOR = PUNCHES_PER_BLOCK * 3
 
@@ -75,7 +77,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             startSector = trailer[SECTOR_OFFSET].toInt() and 0xff
             prevStartSector = trailer[PREV_SECTOR_OFFSET].toInt() and 0xff
 
-            if (startSector !in 1 until mifare.sectorCount) {
+            if (id == DEBUG_CARD || startSector !in 1 until mifare.sectorCount) {
                 startSector = 1
                 prevStartSector = 1
                 return@add
@@ -393,7 +395,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         var debugInfo: DebugInfo? = null
 
-        if (cardId == 0xFFFF) {
+        if (cardId == DEBUG_CARD) {
             val startBlock = ((startSector + 1) % 16) * 4
             val raw = readDebugInfo(startBlock)
             debugInfo = DebugInfo.parse(raw)
