@@ -316,6 +316,7 @@ ErrorCode Puncher::DoReadOut()
             _outMux.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
         }
     }
+    _outMux.println();
     return ErrorCode::OK;
 }
 
@@ -325,12 +326,17 @@ ErrorCode Puncher::DoFormat()
 
     uint16_t cardId = std::atoi(_settings.GetCardModeArg().c_str());
     _outMux.print(F("card-format "));
-    _outMux.println(cardId);
+    _outMux.print(cardId);
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
     auto res = punchCard.Format(cardId, _settings.GetKnownKeys());
     if (res != ErrorCode::OK) {
+        _outMux.print(F(" FAIL"));
+        _outMux.println(static_cast<int>(res));
         return res;
+    } else {
+        _outMux.println(F(" OK"));
     }
+    _outMux.println();
     return ErrorCode::OK;
 }

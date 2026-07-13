@@ -38,6 +38,13 @@ def echo_output(data):
     print(">> " + str(data))
 
 
+def next_line():
+    line = conn.read()
+    if line == b'\r\n':
+        line = conn.read()
+    return line
+
+
 def run(conn: Connection):
     # Wait for a clear prompt
     conn.write(b'\r')
@@ -58,7 +65,7 @@ def run(conn: Connection):
     start = get_current_time()
     # Get Arduin-o-punch clock reading
     conn.write(b'clock\r')
-    line = conn.read()
+    line = next_line()
     echo_output(line)
     arduino_clock = int(line.decode().strip())
     arduino_time = format_time(arduino_clock)
@@ -80,7 +87,7 @@ def run(conn: Connection):
 
     # Update Arduino clock
     conn.write(f'timestamp {target_timestamp}\r'.encode())
-    line = conn.read()
+    line = next_line()
     echo_output(line)
     timestamp = int(line.decode().strip())
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
@@ -88,7 +95,7 @@ def run(conn: Connection):
 
     if args.id is not None:
         conn.write(f'id {args.id}\r'.encode())
-        resp = conn.read()
+        resp = next_line()
         echo_output(resp)
 
     if args.script:
@@ -96,7 +103,7 @@ def run(conn: Connection):
             for line in f.readlines():
                 print(line.strip())
                 conn.write(f'{line.strip()}\r'.encode())
-                resp = conn.read()
+                resp = next_line()
                 echo_output(resp)
 
 

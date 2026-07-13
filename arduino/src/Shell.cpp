@@ -308,6 +308,7 @@ void Shell::_Process(const String &buffer)
             _outMux.println(">");
         }
     }
+    _outMux.println();
 }
 
 namespace {
