@@ -7,6 +7,7 @@
 #include <bitset>
 #include <vector>
 #include <string>
+#include <optional>
 
 namespace AOP {
 
@@ -82,7 +83,8 @@ public:
     ErrorCode Punch(Punch punch);
 
     using KeysT = std::vector<IMifare::KeyT>;
-    ErrorCode Format(uint16_t id, const KeysT& keysToTry);
+    // If id isn't given, the previous id is kept (the card is cleared)
+    ErrorCode Format(std::optional<uint16_t> id, const KeysT& keysToTry);
 
     using PunchesT = std::vector<AOP::Punch>;
     struct CardReadOut

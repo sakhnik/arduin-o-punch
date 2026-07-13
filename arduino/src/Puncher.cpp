@@ -305,7 +305,7 @@ ErrorCode Puncher::DoReadOut()
     if (res != ErrorCode::OK) {
         return res;
     }
-    _outMux.print(F("readout="));
+    _outMux.print(F("card-readout="));
     _outMux.println(out.size());
     for (const auto &readOut : out) {
         _outMux.print(F("card="));
@@ -324,9 +324,17 @@ ErrorCode Puncher::DoFormat()
 {
     _buzzer.SignalDit();
 
-    uint16_t cardId = std::atoi(_settings.GetCardModeArg().c_str());
-    _outMux.print(F("card-format "));
-    _outMux.print(cardId);
+    std::optional<uint16_t> cardId;
+    const auto &arg = _settings.GetCardModeArg();
+    if (!arg.empty() && std::isdigit(arg[0])) {
+        cardId = std::atoi(arg.c_str());
+        _outMux.print(F("card-format "));
+        _outMux.print(cardId.value());
+        _outMux.print(' ');
+    } else {
+        _outMux.print(F("card-clear "));
+    }
+
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
     auto res = punchCard.Format(cardId, _settings.GetKnownKeys());

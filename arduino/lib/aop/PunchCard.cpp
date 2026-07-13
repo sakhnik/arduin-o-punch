@@ -128,7 +128,7 @@ uint8_t PunchCard::_ClearPunches(uint8_t startSector)
     return 0;
 }
 
-ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry)
+ErrorCode PunchCard::Format(std::optional<uint16_t> id, const KeysT &keysToTry)
 {
     KeysT goodKeys;
     if (auto res = _PickKeysToSectors(keysToTry, goodKeys)) {
@@ -167,6 +167,7 @@ ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry)
         return res;
     }
 
+    uint16_t card_id = static_cast<uint16_t>(header[ID_OFFSET]) | (static_cast<uint16_t>(header[ID_OFFSET + 1]) << 8);
     uint8_t startSector = header[SECTOR_OFFSET];
     uint8_t prevStartSector = header[PREV_SECTOR_OFFSET];
     if (id != DEBUG_CARD && 0 < startSector && startSector <= _mifare->SECTOR_COUNT) {
@@ -220,8 +221,10 @@ ErrorCode PunchCard::Format(uint16_t id, const KeysT &keysToTry)
         }
 
         // Write card ID to KeyB
-        trailer[ID_OFFSET] = id & 0xff;
-        trailer[ID_OFFSET + 1] = (id >> 8) & 0xff;
+        if (id.has_value())
+            card_id = id.value();
+        trailer[ID_OFFSET] = card_id & 0xff;
+        trailer[ID_OFFSET + 1] = (card_id >> 8) & 0xff;
         trailer[SECTOR_OFFSET] = startSector;
         trailer[PREV_SECTOR_OFFSET] = prevStartSector;
 
