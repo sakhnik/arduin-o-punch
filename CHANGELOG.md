@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FreeRTOS instead of cooperative loop
 - Decrease CPU frequency to 10 MHz
 - Store settings as non-volatile preferences
+- Switch off BLE and WiFi after a 2-minute inactivity timeout
 
 ### Removed
 
