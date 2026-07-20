@@ -79,6 +79,8 @@ void Network::Setup()
     webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
     webServer.on("/record", HTTP_ANY, [this] { _HandleRecord(); });
     webServer.on("/clock", HTTP_ANY, [this] { _HandleClock(); });
+
+    _lastActivityTimeMs.store(millis());
 }
 
 void Network::SwitchOn()
@@ -120,7 +122,8 @@ bool Network::_Start()
     ArduinoOTA.onEnd([]() {
         Serial.println("\nOTA End");
     });
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    ArduinoOTA.onProgress([this](unsigned int progress, unsigned int total) {
+        _lastActivityTimeMs.store(millis());
         Serial.printf("Progress: %u%%\r", (progress * 100) / total);
     });
     ArduinoOTA.onError([](ota_error_t error) {
@@ -208,6 +211,7 @@ void Network::_Task()
                 int n = shellClient.read(buf, sizeof(buf));
                 if (n > 0) {
                     _shell.ProcessInput(buf, n);
+                    _lastActivityTimeMs.store(millis());
                 }
             }
         }
@@ -257,6 +261,7 @@ extern const char *index_html;
 
 void Network::_HandleSettings()
 {
+    _lastActivityTimeMs.store(millis());
     if (webServer.method() == HTTP_POST) {
         _shell.SetId(webServer.arg("id").c_str());
         _shell.SetKey(webServer.arg("key").c_str());
@@ -275,6 +280,7 @@ void Network::_HandleSettings()
 
 void Network::_HandleRecord()
 {
+    _lastActivityTimeMs.store(millis());
     if (webServer.method() == HTTP_GET) {
         struct Collector : AOP::Recorder::IVisitor
         {
@@ -299,6 +305,7 @@ void Network::_HandleRecord()
 
 void Network::_HandleClock()
 {
+    _lastActivityTimeMs.store(millis());
     if (webServer.method() == HTTP_GET) {
         char buf[64];
         sprintf(buf, "%d", _settings.GetDateTime().unixtime());
@@ -316,4 +323,9 @@ void Network::_HandleClock()
     } else {
         webServer.send(405);
     }
+}
+
+unsigned Network::GetInactivitySeconds()
+{
+    return (millis() - _lastActivityTimeMs.load()) / 1000;
 }

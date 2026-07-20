@@ -246,6 +246,12 @@ bool Operation::CheckSnooze()
         return false;
     }
 
+    if (mode == Mode::WiFi && network.GetInactivitySeconds() > 120) {
+        TransitionTo(Mode::Eco);
+        prevCardTimeMs = millisNow;
+        return false;
+    }
+
     if (mode == Mode::Eco && millisNow - prevCardTimeMs >= settings.GetEcoMs()) {
         TransitionTo(Mode::Sleep);
         // Never reached

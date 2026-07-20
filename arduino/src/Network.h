@@ -1,6 +1,7 @@
 #pragma once
 
 #include "OutMux.h"
+#include <atomic>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
@@ -17,6 +18,7 @@ public:
     void Setup();
     void SwitchOn();
     void SwitchOff();
+    unsigned GetInactivitySeconds();
 
 private:
     OutMux &_outMux;
@@ -27,6 +29,7 @@ private:
     bool _connection_signalled = false;
     TaskHandle_t _taskHandle = nullptr;
     SemaphoreHandle_t _wakeSignal = nullptr;
+    std::atomic<unsigned long> _lastActivityTimeMs = 0;
 
     bool _Start();
     bool _Stop();
