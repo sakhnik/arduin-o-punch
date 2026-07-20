@@ -13,14 +13,6 @@ static const char *SHELL_SERVICE_UUID   = "16404bac-eab0-422c-955f-fb13799c00fa"
 static const char *SHELL_STDIN_UUID     = "16404bac-eab1-422c-955f-fb13799c00fa";
 static const char *SHELL_STDOUT_UUID    = "16404bac-eab2-422c-955f-fb13799c00fa";
 
-static const char *CONFIG_SERVICE_UUID  = "26404bac-eab0-422c-955f-fb13799c00fa";
-static const char *CONFIG_ID_UUID       = "26404bac-eab1-422c-955f-fb13799c00fa";
-static const char *CONFIG_KEY_UUID      = "26404bac-eab2-422c-955f-fb13799c00fa";
-static const char *CONFIG_ACT_UUID      = "26404bac-eab3-422c-955f-fb13799c00fa";
-static const char *CONFIG_ECO_UUID      = "26404bac-eab4-422c-955f-fb13799c00fa";
-static const char *CONFIG_WIFISSID_UUID = "26404bac-eab5-422c-955f-fb13799c00fa";
-static const char *CONFIG_WIFIPASS_UUID = "26404bac-eab6-422c-955f-fb13799c00fa";
-
 constexpr const int CHUNK_SIZE = 32;
 
 NimBLEServer *server = nullptr;
@@ -194,97 +186,8 @@ bool Bluetooth::_Start()
     stdoutChr = shellSvc->createCharacteristic(SHELL_STDOUT_UUID, NIMBLE_PROPERTY::NOTIFY);
     stdoutChr->createDescriptor("2901")->setValue("stdout");
 
-    // Configuration service
-    NimBLEService *configSvc = server->createService(CONFIG_SERVICE_UUID);
-    auto *idChr = configSvc->createCharacteristic(CONFIG_ID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    idChr->createDescriptor("2901")->setValue("id");
-    {
-        BLE2904 *desc = new BLE2904();
-        desc->setFormat(BLE2904::FORMAT_UINT8);
-        desc->setUnit(0x2700);
-        idChr->addDescriptor(desc);
-    }
-    idChr->setValue(_settings.GetId());
-    setCb(idChr, [&]() {
-        _settings.SetId(idChr->getValue<uint8_t>());
-    });
-
-    //auto* keyChr = configSvc->createCharacteristic(CONFIG_KEY_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    //keyChr->createDescriptor("2901")->setValue("key");
-    //auto key = _settings.GetKey();
-    //keyChr->setValue(key.data(), key.size());
-    //setCb(keyChr, [&]() {
-    //    std::string value = keyChr->getValue();
-    //    _settings.SetKey(value);
-    //});
-
-    auto *tActChr = configSvc->createCharacteristic(CONFIG_ACT_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    tActChr->createDescriptor("2901")->setValue("t-act");
-    {
-        BLE2904 *desc = new BLE2904();
-        desc->setFormat(BLE2904::FORMAT_UINT16);
-        desc->setUnit(0x2760);
-        tActChr->addDescriptor(desc);
-    }
-    tActChr->setValue(_settings.GetActiveMinutes());
-    setCb(tActChr, [&]() {
-        _settings.SetActiveMinutes(tActChr->getValue<uint16_t>());
-    });
-
-    auto *tEcoChr = configSvc->createCharacteristic(CONFIG_ECO_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    tEcoChr->createDescriptor("2901")->setValue("t-act");
-    {
-        BLE2904 *desc = new BLE2904();
-        desc->setFormat(BLE2904::FORMAT_UINT16);
-        desc->setUnit(0x2760);
-        tEcoChr->addDescriptor(desc);
-    }
-    tEcoChr->setValue(_settings.GetEcoMinutes());
-    setCb(tEcoChr, [&]() {
-        _settings.SetEcoMinutes(tEcoChr->getValue<uint16_t>());
-    });
-
-    auto* wifissidChr = configSvc->createCharacteristic(CONFIG_WIFISSID_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    wifissidChr->createDescriptor("2901")->setValue("WiFi SSID");
-    {
-        BLE2904 *desc = new BLE2904();
-        desc->setFormat(BLE2904::FORMAT_UTF8);
-        desc->setUnit(0x2700);
-        wifissidChr->addDescriptor(desc);
-    }
-    wifissidChr->setValue(_settings.GetWifiSsid());
-    setCb(wifissidChr, [&]() {
-        std::string value = wifissidChr->getValue();
-        _settings.SetWifiSsid(value);
-    });
-
-    auto* wifipassChr = configSvc->createCharacteristic(CONFIG_WIFIPASS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
-    wifipassChr->createDescriptor("2901")->setValue("WiFi pass");
-    {
-        BLE2904 *desc = new BLE2904();
-        desc->setFormat(BLE2904::FORMAT_UTF8);
-        desc->setUnit(0x2700);
-        wifipassChr->addDescriptor(desc);
-    }
-    wifipassChr->setValue(_settings.GetWifiPass());
-    setCb(wifipassChr, [&]() {
-        std::string value = wifipassChr->getValue();
-        _settings.SetWifiPass(value);
-    });
-
-    _subscription_handle = _settings.Subscribe([=]() {
-        idChr->setValue(_settings.GetId());
-        //auto key = _settings.GetKey();
-        //keyChr->setValue(key.data(), key.size());
-        tActChr->setValue(_settings.GetActiveMinutes());
-        tEcoChr->setValue(_settings.GetEcoMinutes());
-        wifissidChr->setValue(_settings.GetWifiSsid());
-        wifipassChr->setValue(_settings.GetWifiPass());
-    });
-
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
     adv->addServiceUUID(SHELL_SERVICE_UUID);
-    adv->addServiceUUID(CONFIG_SERVICE_UUID);
     adv->setName(localName);
     adv->start();
 
