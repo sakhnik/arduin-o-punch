@@ -19,6 +19,7 @@ public:
     void Setup();
     void SwitchOn();
     void SwitchOff();
+    unsigned GetInactivitySeconds();
 
 private:
     OutMux &_outMux;
@@ -26,7 +27,7 @@ private:
     Shell &_shell;
     std::atomic<bool> _stopRequested{false};
     AOP::RingBuffer<1024> _outBuffer;
-    unsigned long _last_write_time = 0;
+    std::atomic<unsigned long> _lastStdinTimeMs = 0;
     Mutex _txMutex;
     SemaphoreHandle_t _txSignal = nullptr;
     TaskHandle_t _taskHandle = nullptr;

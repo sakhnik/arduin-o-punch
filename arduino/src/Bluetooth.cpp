@@ -92,7 +92,7 @@ Bluetooth::Bluetooth(OutMux &outMux, Settings &settings, Shell &shell)
 
 void Bluetooth::Setup()
 {
-    _last_write_time = millis();
+    _lastStdinTimeMs.store(millis());
     _txSignal = xSemaphoreCreateBinary();
 }
 
@@ -101,6 +101,7 @@ void Bluetooth::SwitchOn()
     assert(!_taskHandle);
 
     _stopRequested.store(false);
+    _lastStdinTimeMs.store(millis());
 
     _Start();
 }
@@ -181,6 +182,7 @@ bool Bluetooth::_Start()
         std::string value = stdinChr->getValue();
         if (!value.empty()) {
             _shell.ProcessInput(reinterpret_cast<const uint8_t *>(value.data()), value.size());
+            _lastStdinTimeMs.store(millis());
         }
     });
     stdoutChr = shellSvc->createCharacteristic(SHELL_STDOUT_UUID, NIMBLE_PROPERTY::NOTIFY);
@@ -230,4 +232,9 @@ void Bluetooth::Write(const uint8_t *buffer, size_t size)
     LockGuard{_txMutex}, _outBuffer.Add(buffer, size);
 
     xSemaphoreGive(_txSignal);  // wake TX task
+}
+
+unsigned Bluetooth::GetInactivitySeconds()
+{
+    return (millis() - _lastStdinTimeMs.load()) / 1000;
 }
