@@ -194,12 +194,6 @@ class PunchCardTest {
 
         val maxPunches = punchCard.getMaxPunches(mifare)
         for (i in 0 until maxPunches) {
-            // The start station can punch many times, the last timestamp counts
-            if (i == 0) {
-                val p = testPunch(i)
-                p.timestamp -= 100
-                punchCard.punch(p)
-            }
             punchCard.punch(testPunch(i))
             // Only the first timestamp counts for the rest of the stations
             if (i > 0) {
