@@ -227,12 +227,6 @@ TEST_CASE("PunchCard max repeated punches")
     auto maxPunches = PunchCard::GetMaxPunches();
     for (int i = 0; i < maxPunches; ++i) {
         CAPTURE(i);
-        // The start station can punch many times, the last timestamp counts
-        if (!i) {
-            auto p = testPunch(i);
-            p.SetTimestamp(p.GetTimestamp() - 100);
-            REQUIRE(0 == punchCard.Punch(p));
-        }
         REQUIRE(0 == punchCard.Punch(testPunch(i)));
         // Only the first timestamp counts for the rest of the stations
         if (i) {
@@ -272,23 +266,6 @@ TEST_CASE("PunchCard Clear")
     CHECK(punches == readOut.punches);
 }
 
-TEST_CASE("PunchCard Clear at Start")
-{
-    TestMifare mifare;
-    PunchCard punchCard(&mifare, IMifare::KEY_DEFAULT);
-    REQUIRE(0 == punchCard.Format(123, {}));
-
-    std::vector<Punch> punches = {Punch(31, 100), Punch(39, 130), Punch(PunchCard::START_STATION, 150)};
-    for (int i = 0; i != punches.size(); ++i) {
-        CHECK(0 == punchCard.Punch(punches[i]));
-    }
-
-    PunchCard::CardReadOut readOut;
-    CHECK(0 == punchCard.ReadOut(readOut));
-    CHECK(1 == readOut.punches.size());
-    CHECK(punches[2] == readOut.punches[0]);
-}
-
 TEST_CASE("PunchCard Recover from failed write")
 {
     // Some cheap cards may lose data when timeout occurs. The puncher should
@@ -302,6 +279,7 @@ TEST_CASE("PunchCard Recover from failed write")
         return Punch(PunchCard::START_STATION + i, 10000 + i * 100);
     };
 
+    int successfulPunches = 0;
     for (int i = 0; i < 100; ++i) {
         bool exceptionAnticipated = false;
         if (std::rand() % 100 < 10) {
@@ -315,9 +293,10 @@ TEST_CASE("PunchCard Recover from failed write")
             if (res != ErrorCode::OK && res != ErrorCode::DUPLICATE_PUNCH) {
                 REQUIRE(exceptionAnticipated);
             } else {
+                ++successfulPunches;
                 PunchCard::CardReadOut readOut;
                 REQUIRE(0 == punchCard.ReadOut(readOut));
-                REQUIRE(i + 1 == readOut.punches.size());
+                REQUIRE(successfulPunches == readOut.punches.size());
                 break;
             }
         }

@@ -148,7 +148,9 @@ void Shell::_Process(const String &buffer)
         _outMux.println(F("Commands:"));
         _outMux.println(F("info              All info"));
         _outMux.println(F("id                ID"));
-        _outMux.print  (F("id 33             Set ID: check="));
+        _outMux.print  (F("id 33             Set ID: clear="));
+        _outMux.print(AOP::PunchCard::CLEAR_STATION);
+        _outMux.print(F(" check="));
         _outMux.print(AOP::PunchCard::CHECK_STATION);
         _outMux.print(F(" start="));
         _outMux.print(AOP::PunchCard::START_STATION);

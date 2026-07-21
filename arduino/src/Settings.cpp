@@ -55,7 +55,12 @@ Settings::Settings(Buzzer &buzzer)
 int8_t Settings::Setup()
 {
     prefs.begin(PREF_CONFIG, true);
+
     _id = prefs.getUChar(PREF_ID, 1);
+    if (_id == AOP::PunchCard::CLEAR_STATION) {
+        _cardMode = CardMode::Format;
+    }
+
     prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
 
     auto prevKeysLen = prefs.getBytesLength(PREF_KNOWN_KEYS);

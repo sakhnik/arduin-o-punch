@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UART for programming, configuration and debugging instead of USB CDC
 - Card readout, formatting via shell
 - Cyclic card formatting, reading previous run punches
+- Dedicated station for clearing punches before the start
 
 ### Changed
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Decrease CPU frequency to 10 MHz
 - Store settings as non-volatile preferences
 - Switch off BLE and WiFi after a 2-minute inactivity timeout
+- Start station doesn't clear the punches
 
 ### Removed
 

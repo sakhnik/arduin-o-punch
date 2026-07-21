@@ -17,6 +17,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         const val SECTOR_OFFSET = 12
         const val PREV_SECTOR_OFFSET = 13
 
+        const val CLEAR_STATION = 0
         const val CHECK_STATION = 1
         const val START_STATION = 10
         const val FINISH_STATION = 255
@@ -276,14 +277,14 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         progress(1, stages)
         authenticate(INDEX_SECTOR)
         val headerKey = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
-        //val cardId = getId(headerKey)
+        val cardId = getId(headerKey)
         val startSector = headerKey[SECTOR_OFFSET].toInt()
 
         val header = recoverHeader(startSector, stages, progress)
 
         // 5. calculate the offset in the header
-        // If this is the start station punching, clear all the previous punches
-        if (newPunch.station == START_STATION) {
+        // If this is a debug card, clear all the previous punches
+        if (cardId == DEBUG_CARD) {
             Arrays.fill(header, 0xff.toByte())
             header[0] = 0
         }

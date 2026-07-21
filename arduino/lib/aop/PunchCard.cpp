@@ -33,8 +33,8 @@ ErrorCode PunchCard::Punch(AOP::Punch punch)
         return headerStatus.error;
 
     // 5. calculate the offset in the header
-    // If this is the start station punching, clear all the previous punches
-    if (punch.GetStation() == START_STATION || card_id == DEBUG_CARD) {
+    // If this is a debug card, clear all the previous punches
+    if (card_id == DEBUG_CARD) {
         memset(header, 0xff, IMifare::BLOCK_SIZE);
         header[0] = 0;
     }
