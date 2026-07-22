@@ -17,28 +17,12 @@ flex_DST dst{5, 3, 5, 10};
 
 constexpr const size_t EEPROM_SIZE = 32 * 1024;
 
-struct EepromImpl : AOP::Recorder::IEeprom
-{
-    uint8_t mem[EEPROM_SIZE];
-
-    uint8_t Read(uint16_t addr) override
-    {
-        return mem[addr];
-    }
-
-    void Write(uint16_t addr, uint8_t val) override
-    {
-        mem[addr] = val;
-    }
-} eeprom_impl;
-
 constexpr const char *const PREF_CONFIG = "config";
 constexpr const char *const PREF_ID = "id";
 constexpr const char *const PREF_KEY = "key";
 constexpr const char *const PREF_KNOWN_KEYS = "known-keys";
 constexpr const char *const PREF_T_ACT_M = "t-act";
 constexpr const char *const PREF_T_ECO_M = "t-eco";
-constexpr const char *const PREF_RECDAYS = "recdays";
 constexpr const char *const PREF_WIFI_SSID = "wifi-ssid";
 constexpr const char *const PREF_WIFI_PASS = "wifi-pass";
 
@@ -48,7 +32,6 @@ constexpr const char *const PREF_WIFI_PASS = "wifi-pass";
 
 Settings::Settings(Buzzer &buzzer)
     : _buzzer{&buzzer}
-    , _recorder{eeprom_impl}
 {
 }
 
@@ -73,22 +56,13 @@ int8_t Settings::Setup()
     _active_ms = 60000ul * _active_minutes;
     _eco_minutes = prefs.getUShort(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
     _eco_ms = 60000ul * _eco_minutes;
-    _record_retain_days = prefs.getUChar(PREF_RECDAYS, 1);
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
     _wifi_pass = prefs.getString(PREF_WIFI_PASS).c_str();
     prefs.end();
 
-    // Restore current record
-    _recorder.Setup(0, EEPROM_SIZE);
-
-    if (_record_retain_days > 0) {
-        // If record is older than the retain period, reformat.
-        uint32_t timestamp = rtc.now().unixtime();
-        uint16_t cur_day = timestamp / _recorder.SECONDS_IN_DAY;
-        if (cur_day - _recorder.GetFormatDay() >= _record_retain_days) {
-            _recorder.Format(_recorder.GetSize(), _recorder.GetBitsPerRecord(), timestamp);
-        }
-    }
+    // Prepare to record the punches
+    uint32_t now = GetClock(nullptr) / 1000;
+    _recorder.Setup(now);
 
     return 0;
 }
@@ -260,27 +234,6 @@ void Settings::SetEcoMinutes(uint32_t minutes)
         _eco_ms = 60000ul * _eco_minutes;
         prefs.begin(PREF_CONFIG, false);
         prefs.putUShort(PREF_T_ECO_M, _eco_minutes);
-        prefs.end();
-    }
-
-    NotifyWatchers();
-}
-
-int8_t Settings::GetRecordRetainDays()
-{
-    LockGuard lock{_dataMx};
-    return _record_retain_days;
-}
-
-void Settings::SetRecordRetainDays(uint8_t days)
-{
-    {
-        LockGuard lock{_dataMx};
-        if (_record_retain_days == days)
-            return;
-        _record_retain_days = days;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putUChar(PREF_RECDAYS, days);
         prefs.end();
     }
 

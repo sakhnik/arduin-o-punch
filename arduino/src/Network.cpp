@@ -251,9 +251,6 @@ void Network::_HandleGetSettings()
     addSetting("key", buf);
     addSetting("t-act", String{_settings.GetActiveMinutes()});
     addSetting("t-eco", String{_settings.GetEcoMinutes()});
-    addSetting("rec-size", String{_settings.GetRecorder().GetSize()});
-    addSetting("rec-bits", String{_settings.GetRecorder().GetBitsPerRecord()});
-    addSetting("rec-days", String{_settings.GetRecordRetainDays()});
     webServer.send(200, "text/plain", response);
 }
 
@@ -267,9 +264,6 @@ void Network::_HandleSettings()
         _shell.SetKey(webServer.arg("key").c_str());
         _shell.SetActive(webServer.arg("t-act").c_str());
         _shell.SetEco(webServer.arg("t-eco").c_str());
-        String recorder = webServer.arg("rec-size") + " " + webServer.arg("rec-bits");
-        _shell.RecorderFormat(recorder.c_str());
-        _shell.SetRecordRetainDays(webServer.arg("rec-days").c_str());
         webServer.send(200, "text/html", index_html);
     } else if (webServer.method() == HTTP_GET) {
         _HandleGetSettings();
@@ -286,14 +280,18 @@ void Network::_HandleRecord()
         {
             String buffer;
 
-            void OnCard(uint16_t card, uint8_t count, void *ctx) override
+            void OnCard(uint16_t card, uint32_t timestamp, void *ctx) override
             {
                 if (buffer.length() != 0) {
                     buffer += ' ';
                 }
-                buffer += card;
-                buffer += ':';
-                buffer += static_cast<uint16_t>(count);
+                auto s = timestamp % 60;
+                timestamp /= 60;
+                auto m = timestamp % 60;
+                timestamp /= 60;
+                char sts[64];
+                sprintf(sts, "%" PRIu16 "-%u:%02u:%02u", card, timestamp, m, s);
+                buffer += sts;
             }
         } collector;
         _settings.GetRecorder().List(collector, &collector);

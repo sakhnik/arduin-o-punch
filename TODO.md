@@ -1,5 +1,5 @@
 Arduino:
 
   - Card reset
-  - Rework the log to store into LittleFS or maybe just keep in RAM
-  - Autoformat card on the cleanup station. This will allow updating the key.
+  - Add special card to put stations to sleep
+  - Quick search in the punch record

@@ -50,9 +50,6 @@ public:
 
     AOP::Recorder& GetRecorder() { return _recorder; }
 
-    int8_t GetRecordRetainDays();
-    void SetRecordRetainDays(uint8_t days);
-
     std::string GetWifiSsid();
     void SetWifiSsid(std::string_view ssid);
 
@@ -94,7 +91,6 @@ private:
     uint16_t _eco_minutes = DEFAULT_ECO_MINUTES;
     uint32_t _eco_ms = 60000ul * _eco_minutes;
 
-    uint8_t _record_retain_days = 1;
     std::string _wifi_ssid;
     std::string _wifi_pass;
 

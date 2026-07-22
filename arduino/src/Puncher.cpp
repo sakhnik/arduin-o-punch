@@ -249,7 +249,7 @@ ErrorCode Puncher::DoPunch()
     auto res = punchCard.Punch(punch);
     if (res == ErrorCode::OK) {
         // If the punch was successful, record the card id.
-        _settings.GetRecorder().Record(callback.card_id);
+        _settings.GetRecorder().Record(callback.card_id, timestamp);
     }
     // The station could be configured to clear a card
     //auto res = punchCard.Clear();
