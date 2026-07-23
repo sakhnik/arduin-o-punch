@@ -1,0 +1,71 @@
+package com.sakhnik.arduinopunch
+
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavHostController
+
+@Composable
+fun CardBottomBar(
+    navController: NavHostController
+) {
+
+    var selectedAction by remember { mutableStateOf<String?>(null) }
+
+    BottomAppBar {
+
+        NavButton(
+            action = DST_FORMAT,
+            icon = Icons.Default.Create,
+            description = stringResource(id = R.string.format_card),
+            selectedAction = selectedAction,
+            navController
+        ) {
+            selectedAction = it
+        }
+        Spacer(Modifier.weight(1f, true))
+
+        NavButton(
+            action = DST_PUNCH,
+            icon = Icons.Default.Add,
+            description = stringResource(id = R.string.punch),
+            selectedAction = selectedAction,
+            navController
+        ) {
+            selectedAction = it
+        }
+        Spacer(Modifier.weight(1f, true))
+
+        NavButton(
+            action = DST_READ,
+            icon = Icons.Default.List,
+            description = stringResource(id = R.string.read_card),
+            selectedAction = selectedAction,
+            navController
+        ) {
+            selectedAction = it
+        }
+        Spacer(Modifier.weight(1f, true))
+
+        NavButton(
+            action = DST_RESET,
+            icon = Icons.Default.Delete,
+            description = stringResource(id = R.string.reset_card),
+            selectedAction = selectedAction,
+            navController
+        ) {
+            selectedAction = it
+        }
+    }
+}

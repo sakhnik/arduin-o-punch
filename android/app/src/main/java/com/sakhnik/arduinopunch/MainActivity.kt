@@ -12,65 +12,36 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import androidx.activity.viewModels
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -212,145 +183,14 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: CardViewModel) {
     val progress by viewModel.progress
     val navController = rememberNavController()
-    var selectedAction by remember { mutableStateOf<String?>(null) }
-    var expanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/yaml")
-    ) { uri ->
-        uri?.let {
-            val yamlString = runBlocking { viewModel.settingsToYaml() }
-            context.contentResolver.openOutputStream(uri)?.use { it.write(yamlString.toByteArray()) }
-            Toast.makeText(context,
-                context.getString(R.string.settings_exported), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                val yamlText = stream.bufferedReader().readText()
-                runBlocking { viewModel.yamlToSettings(yamlText) }
-            }
-            Toast.makeText(context,
-                context.getString(R.string.settings_imported), Toast.LENGTH_SHORT).show()
-        }
-    }
 
     Scaffold(
         modifier = Modifier.imePadding(), // This modifier moves the BottomAppBar above the keyboard
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.app_name)) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Blue,
-                    titleContentColor = Color.White
-                ),
-                actions = {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
-                    }
-
-                    var showAboutDialog by remember { mutableStateOf(false) }
-
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.export_settings)) },
-                            onClick = {
-                                expanded = false
-                                exportLauncher.launch("aop.yaml")
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.import_settings)) },
-                            onClick = {
-                                expanded = false
-                                importLauncher.launch(arrayOf("*/*"))
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.about_app)) }, // Add string to strings.xml
-                            onClick = {
-                                expanded = false
-                                showAboutDialog = true
-                            }
-                        )
-                    }
-
-                    if (showAboutDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showAboutDialog = false },
-                            confirmButton = {
-                                Button(onClick = { showAboutDialog = false }) {
-                                    Text("OK")
-                                }
-                            },
-                            title = { Text(stringResource(R.string.about_app)) },
-                            text = {
-
-                                Text(
-                                    stringResource(R.string.version, BuildConfig.VERSION_NAME) +
-                                        stringResource(R.string.git_revision, BuildConfig.GIT_REVISION) +
-                                        stringResource(R.string.build_type, BuildConfig.BUILD_TYPE)
-                                )
-                            }
-                        )
-                    }
-                }
-            )
+            AppTopBar(viewModel)
         },
         bottomBar = {
-            BottomAppBar {
-
-                NavButton(
-                    action = DST_FORMAT,
-                    icon = Icons.Default.Create,
-                    description = stringResource(id = R.string.format_card),
-                    selectedAction = selectedAction,
-                    navController
-                ) {
-                    selectedAction = it
-                }
-                Spacer(Modifier.weight(1f, true))
-
-                NavButton(
-                    action = DST_PUNCH,
-                    icon = Icons.Default.Add,
-                    description = stringResource(id = R.string.punch),
-                    selectedAction = selectedAction,
-                    navController
-                ) {
-                    selectedAction = it
-                }
-                Spacer(Modifier.weight(1f, true))
-
-                NavButton(
-                    action = DST_READ,
-                    icon = Icons.Default.List,
-                    description = stringResource(id = R.string.read_card),
-                    selectedAction = selectedAction,
-                    navController
-                ) {
-                    selectedAction = it
-                }
-                Spacer(Modifier.weight(1f, true))
-
-                NavButton(
-                    action = DST_RESET,
-                    icon = Icons.Default.Delete,
-                    description = stringResource(id = R.string.reset_card),
-                    selectedAction = selectedAction,
-                    navController
-                ) {
-                    selectedAction = it
-                }
-            }
+            CardBottomBar(navController)
         },
         content = { paddingValues ->
             // Main content area, respecting padding from Scaffold components
@@ -379,46 +219,6 @@ fun MainScreen(viewModel: CardViewModel) {
             }
         }
     )
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun NavButton(
-    action: String,
-    icon: ImageVector,
-    description: String,
-    selectedAction: String?,
-    navController: NavHostController,
-    setSelected: (String?) -> Unit
-) {
-    val isSelected = selectedAction == action
-    val enabled = selectedAction == null || isSelected
-
-    val iconColor = when {
-        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-        isSelected -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    Icon(
-        imageVector = icon,
-        contentDescription = description,
-        tint = iconColor,
-        modifier = Modifier
-            .combinedClickable(
-                enabled = enabled,
-                onClick = { navController.navigate(action) },
-                onLongClick = {
-                    navController.navigate(action)
-                    toggleSelection(action, selectedAction, setSelected)
-                }
-            )
-            .padding(8.dp)
-    )
-}
-
-fun toggleSelection(action: String, current: String?, set: (String?) -> Unit) {
-    set(if (current == action) null else action)
 }
 
 class MockRepository : Repository {
