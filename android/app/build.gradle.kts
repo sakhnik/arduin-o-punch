@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.sakhnik.arduinopunch"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 5
         versionName = "2.2.0"
