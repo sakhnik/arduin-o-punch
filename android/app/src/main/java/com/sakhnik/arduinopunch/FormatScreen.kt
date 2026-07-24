@@ -43,8 +43,6 @@ import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-const val DST_FORMAT = "format"
-
 @Composable
 fun FormatScreen(cardViewModel: CardViewModel) {
     Column(

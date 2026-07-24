@@ -126,10 +126,10 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
     fun handleCard(mifare: MifareClassic) {
         when (_currentDestination.value) {
-            DST_FORMAT -> formatCard(mifare)
-            DST_PUNCH -> punchCard(mifare)
-            DST_READ -> readRunner(mifare)
-            DST_RESET -> resetCard(mifare)
+            CardRoute.FORMAT -> formatCard(mifare)
+            CardRoute.PUNCH -> punchCard(mifare)
+            CardRoute.READ -> readRunner(mifare)
+            CardRoute.RESET -> resetCard(mifare)
         }
     }
 

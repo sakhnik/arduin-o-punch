@@ -20,8 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 
-const val DST_PUNCH = "punch"
-
 @Composable
 fun PunchScreen(cardViewModel: CardViewModel) {
     Column(

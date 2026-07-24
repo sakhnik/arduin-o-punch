@@ -26,7 +26,7 @@ fun CardBottomBar(
     BottomAppBar {
 
         NavButton(
-            action = DST_FORMAT,
+            action = CardRoute.FORMAT,
             icon = Icons.Default.Create,
             description = stringResource(id = R.string.format_card),
             selectedAction = selectedAction,
@@ -37,7 +37,7 @@ fun CardBottomBar(
         Spacer(Modifier.weight(1f, true))
 
         NavButton(
-            action = DST_PUNCH,
+            action = CardRoute.PUNCH,
             icon = Icons.Default.Add,
             description = stringResource(id = R.string.punch),
             selectedAction = selectedAction,
@@ -48,7 +48,7 @@ fun CardBottomBar(
         Spacer(Modifier.weight(1f, true))
 
         NavButton(
-            action = DST_READ,
+            action = CardRoute.READ,
             icon = Icons.Default.List,
             description = stringResource(id = R.string.read_card),
             selectedAction = selectedAction,
@@ -59,7 +59,7 @@ fun CardBottomBar(
         Spacer(Modifier.weight(1f, true))
 
         NavButton(
-            action = DST_RESET,
+            action = CardRoute.RESET,
             icon = Icons.Default.Delete,
             description = stringResource(id = R.string.reset_card),
             selectedAction = selectedAction,

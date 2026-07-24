@@ -49,8 +49,6 @@ import java.time.DateTimeException
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-const val DST_READ = "read"
-
 @Composable
 fun ReadScreen(cardViewModel: CardViewModel) {
     Column(

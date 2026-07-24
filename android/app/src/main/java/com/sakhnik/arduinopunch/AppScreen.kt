@@ -23,14 +23,14 @@ fun AppScreen(cardViewModel: CardViewModel) {
     ) { padding ->
         NavHost(
             rootNav,
-            startDestination = "card",
+            startDestination = RootRoute.CARD,
             modifier = Modifier.padding(padding)
         ) {
-            composable("card") {
+            composable(RootRoute.CARD) {
                 CardScreen(cardViewModel)
             }
 
-            composable("station") {
+            composable(RootRoute.STATION) {
                 StationScreen()
             }
         }

@@ -46,11 +46,11 @@ fun CardScreen(viewModel: CardViewModel) {
                 }
             }
 
-            NavHost(cardNav, startDestination = DST_FORMAT) {
-                composable(DST_FORMAT) { FormatScreen(viewModel) }
-                composable(DST_PUNCH) { PunchScreen(viewModel) }
-                composable(DST_READ) { ReadScreen(viewModel) }
-                composable(DST_RESET) { ResetScreen() }
+            NavHost(cardNav, startDestination = CardRoute.FORMAT) {
+                composable(CardRoute.FORMAT) { FormatScreen(viewModel) }
+                composable(CardRoute.PUNCH) { PunchScreen(viewModel) }
+                composable(CardRoute.READ) { ReadScreen(viewModel) }
+                composable(CardRoute.RESET) { ResetScreen() }
             }
         }
     }
