@@ -18,7 +18,7 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun CardBottomBar(
-    navController: NavHostController
+    cardNav: NavHostController
 ) {
 
     var selectedAction by remember { mutableStateOf<String?>(null) }
@@ -30,7 +30,7 @@ fun CardBottomBar(
             icon = Icons.Default.Create,
             description = stringResource(id = R.string.format_card),
             selectedAction = selectedAction,
-            navController
+            cardNav
         ) {
             selectedAction = it
         }
@@ -41,7 +41,7 @@ fun CardBottomBar(
             icon = Icons.Default.Add,
             description = stringResource(id = R.string.punch),
             selectedAction = selectedAction,
-            navController
+            cardNav
         ) {
             selectedAction = it
         }
@@ -52,7 +52,7 @@ fun CardBottomBar(
             icon = Icons.Default.List,
             description = stringResource(id = R.string.read_card),
             selectedAction = selectedAction,
-            navController
+            cardNav
         ) {
             selectedAction = it
         }
@@ -63,7 +63,7 @@ fun CardBottomBar(
             icon = Icons.Default.Delete,
             description = stringResource(id = R.string.reset_card),
             selectedAction = selectedAction,
-            navController
+            cardNav
         ) {
             selectedAction = it
         }

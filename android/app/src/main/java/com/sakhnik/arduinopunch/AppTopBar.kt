@@ -23,11 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
+    rootNav: NavController,
     viewModel: CardViewModel
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -70,11 +73,29 @@ fun AppTopBar(
             }
 
             var showAboutDialog by remember { mutableStateOf(false) }
+            val backStackEntry by rootNav.currentBackStackEntryAsState()
+            val currentRoute = backStackEntry?.destination?.route
 
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
+                val showingStation = currentRoute == "station"
+                val destination = if (showingStation) "card" else "station"
+                val title = if (showingStation) "Card operations" else "Station manager"
+
+                DropdownMenuItem(
+                    text = { Text(title) },
+                    onClick = {
+                        expanded = false
+                        rootNav.navigate(destination) {
+                            popUpTo(rootNav.graph.startDestinationId)
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.export_settings)) },
                     onClick = {

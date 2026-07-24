@@ -8,29 +8,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import kotlin.getValue
 
@@ -72,7 +57,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen(cardViewModel)
+                    AppScreen(cardViewModel)
                 }
             }
         }
@@ -107,54 +92,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainScreen(viewModel: CardViewModel) {
-    val progress by viewModel.progress
-    val navController = rememberNavController()
-
-    Scaffold(
-        modifier = Modifier.imePadding(), // This modifier moves the BottomAppBar above the keyboard
-        topBar = {
-            AppTopBar(viewModel)
-        },
-        bottomBar = {
-            CardBottomBar(navController)
-        },
-        content = { paddingValues ->
-            // Main content area, respecting padding from Scaffold components
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                Spacer(Modifier.height(8.dp))
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)
-                Spacer(Modifier.height(8.dp))
-
-                LaunchedEffect(navController) {
-                    navController.currentBackStackEntryFlow.collect { backStackEntry ->
-                        val destinationRoute = backStackEntry.destination.route
-                        viewModel.updateCurrentDestination(destinationRoute)
-                    }
-                }
-
-                NavHost(navController, startDestination = DST_FORMAT) {
-                    composable(DST_FORMAT) { FormatScreen(viewModel) }
-                    composable(DST_PUNCH) { PunchScreen(viewModel) }
-                    composable(DST_READ) { ReadScreen(viewModel) }
-                    composable(DST_RESET) { ResetScreen() }
-                }
-            }
-        }
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
-fun MainScreenPreview() {
+fun MainActivityPreview() {
     AppTheme {
         val mockViewModel = MockCardViewModel()
-        MainScreen(mockViewModel)
+        AppScreen(mockViewModel)
     }
 }
