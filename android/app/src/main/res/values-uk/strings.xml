@@ -50,4 +50,6 @@
     <string name="version">Версія: %1$s\n</string>
     <string name="git_revision">Ревізія Git: %1$s\n</string>
     <string name="build_type">Тип збірки: %1$s</string>
+    <string name="card_operations">Дії з картками</string>
+    <string name="station_manager">Керування станціями</string>
 </resources>

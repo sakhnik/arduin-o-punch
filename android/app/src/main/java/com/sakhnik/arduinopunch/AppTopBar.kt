@@ -82,7 +82,9 @@ fun AppTopBar(
             ) {
                 val showingStation = currentRoute == RootRoute.STATION
                 val destination = if (showingStation) RootRoute.CARD else RootRoute.STATION
-                val title = if (showingStation) "Card operations" else "Station manager"
+                val title = if (showingStation) stringResource(R.string.card_operations) else stringResource(
+                    R.string.station_manager
+                )
 
                 DropdownMenuItem(
                     text = { Text(title) },

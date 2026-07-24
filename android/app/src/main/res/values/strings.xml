@@ -52,4 +52,6 @@
     <string name="version">Version: %1$s\n</string>
     <string name="git_revision">Git Revision: %1$s\n</string>
     <string name="build_type">Build Type: %1$s</string>
+    <string name="card_operations">Card operations</string>
+    <string name="station_manager">Station manager</string>
 </resources>
