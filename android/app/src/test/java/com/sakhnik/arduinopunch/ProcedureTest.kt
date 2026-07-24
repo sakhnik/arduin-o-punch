@@ -1,5 +1,7 @@
 package com.sakhnik.arduinopunch
 
+import com.sakhnik.arduinopunch.card.Procedure
+import com.sakhnik.arduinopunch.card.Progress
 import org.junit.Assert.*
 
 import org.junit.Test

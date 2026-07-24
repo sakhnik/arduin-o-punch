@@ -11,6 +11,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.sakhnik.arduinopunch.card.CardBottomBar
+import com.sakhnik.arduinopunch.card.CardScreen
+import com.sakhnik.arduinopunch.card.CardViewModel
+import com.sakhnik.arduinopunch.card.MockCardViewModel
+import com.sakhnik.arduinopunch.station.StationScreen
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 
 @Composable

@@ -1,6 +1,7 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import android.content.Context
+import com.sakhnik.arduinopunch.R
 import java.util.Arrays
 
 class PunchCard(private val mifare: IMifare, private val key: ByteArray, private val context: Context) {

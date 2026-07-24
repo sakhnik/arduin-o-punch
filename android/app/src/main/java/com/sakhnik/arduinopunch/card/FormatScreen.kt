@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import android.app.AlertDialog
 import android.content.Context
@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

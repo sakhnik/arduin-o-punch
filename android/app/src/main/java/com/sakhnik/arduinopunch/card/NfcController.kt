@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import android.app.PendingIntent
 import android.content.Intent
@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
+import com.sakhnik.arduinopunch.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

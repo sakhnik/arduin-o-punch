@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 interface IMifare {
     val sectorCount: Int

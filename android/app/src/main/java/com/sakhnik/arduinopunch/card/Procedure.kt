@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 typealias Progress = (Int, Int) -> Unit
 typealias Step = (Progress) -> Unit

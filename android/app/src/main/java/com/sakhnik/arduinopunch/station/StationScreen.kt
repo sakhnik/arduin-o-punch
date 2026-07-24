@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.station
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

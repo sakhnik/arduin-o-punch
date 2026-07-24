@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import java.time.DateTimeException
 import java.time.LocalTime
@@ -199,7 +200,8 @@ fun PunchesTable(viewModel: CardViewModel) {
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            if (allSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all),
+                            if (allSelected) stringResource(R.string.deselect_all) else stringResource(
+                                R.string.select_all),
                             fontSize = 14.sp
                         )
                     }

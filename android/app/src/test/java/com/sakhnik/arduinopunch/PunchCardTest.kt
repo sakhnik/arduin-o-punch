@@ -1,6 +1,9 @@
 package com.sakhnik.arduinopunch
 
 import android.content.Context
+import com.sakhnik.arduinopunch.card.IMifare
+import com.sakhnik.arduinopunch.card.Punch
+import com.sakhnik.arduinopunch.card.PunchCard
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -157,7 +160,12 @@ class PunchCardTest {
             // Test repetitive formatting doesn't corrupt the card
             punchCard.format(42, listOf(TEST_KEY))
 
-            val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong())}
+            val testPunch = {i: Int ->
+                Punch(
+                    i + PunchCard.START_STATION,
+                    (10000 + i * 100).toLong()
+                )
+            }
 
             val maxPunches = punchCard.getMaxPunches(mifare)
             for (i in 0 until maxPunches) {
@@ -190,7 +198,7 @@ class PunchCardTest {
         // Test repetitive formatting doesn't corrupt the card
         punchCard.format(42, listOf(TEST_KEY))
 
-        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong())}
+        val testPunch = {i: Int -> Punch(i + PunchCard.START_STATION, (10000 + i * 100).toLong()) }
 
         val maxPunches = punchCard.getMaxPunches(mifare)
         for (i in 0 until maxPunches) {

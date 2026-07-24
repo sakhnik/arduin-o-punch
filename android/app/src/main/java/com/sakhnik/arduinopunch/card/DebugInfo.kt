@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

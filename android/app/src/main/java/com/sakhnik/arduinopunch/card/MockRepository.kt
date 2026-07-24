@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,4 +47,3 @@ class MockRepository : Repository {
         mockKnownKeysFlow.value = value
     }
 }
-

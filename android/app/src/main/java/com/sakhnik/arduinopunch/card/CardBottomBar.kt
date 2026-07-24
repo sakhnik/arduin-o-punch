@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
@@ -15,6 +15,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
+import com.sakhnik.arduinopunch.CardRoute
+import com.sakhnik.arduinopunch.R
 
 @Composable
 fun CardBottomBar(

@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 import android.app.Application
 
@@ -8,4 +8,3 @@ class MockCardViewModel : CardViewModel(MockRepository(), Application()) {
         updateProgress(0.75f)
     }
 }
-

@@ -1,5 +1,6 @@
 package com.sakhnik.arduinopunch
 
+import com.sakhnik.arduinopunch.card.Punch
 import org.junit.Assert.*
 
 import org.junit.Test

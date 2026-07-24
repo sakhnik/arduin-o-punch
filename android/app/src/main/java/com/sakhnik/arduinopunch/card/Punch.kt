@@ -1,4 +1,4 @@
-package com.sakhnik.arduinopunch
+package com.sakhnik.arduinopunch.card
 
 data class Punch(val station: Int, var timestamp: Long) {
 

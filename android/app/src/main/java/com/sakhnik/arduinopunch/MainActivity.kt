@@ -16,6 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.sakhnik.arduinopunch.card.CardViewModel
+import com.sakhnik.arduinopunch.card.MockCardViewModel
+import com.sakhnik.arduinopunch.card.NfcController
+import com.sakhnik.arduinopunch.card.RepositoryImpl
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
 import kotlin.getValue
 
