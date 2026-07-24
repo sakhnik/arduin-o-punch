@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,35 +24,28 @@ import com.sakhnik.arduinopunch.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardScreen(viewModel: CardViewModel) {
-    val cardNav = rememberNavController()
+fun CardScreen(viewModel: CardViewModel, cardNav: NavHostController) {
     val progress by viewModel.progress
 
-    Scaffold(
-        bottomBar = {
-            CardBottomBar(cardNav)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Spacer(Modifier.height(8.dp))
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)
+        Spacer(Modifier.height(8.dp))
+
+        LaunchedEffect(cardNav) {
+            cardNav.currentBackStackEntryFlow.collect { backStackEntry ->
+                val destinationRoute = backStackEntry.destination.route
+                viewModel.updateCurrentDestination(destinationRoute)
+            }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)
-            Spacer(Modifier.height(8.dp))
 
-            LaunchedEffect(cardNav) {
-                cardNav.currentBackStackEntryFlow.collect { backStackEntry ->
-                    val destinationRoute = backStackEntry.destination.route
-                    viewModel.updateCurrentDestination(destinationRoute)
-                }
-            }
-
-            NavHost(cardNav, startDestination = CardRoute.FORMAT) {
-                composable(CardRoute.FORMAT) { FormatScreen(viewModel) }
-                composable(CardRoute.PUNCH) { PunchScreen(viewModel) }
-                composable(CardRoute.READ) { ReadScreen(viewModel) }
-                composable(CardRoute.RESET) { ResetScreen() }
-            }
+        NavHost(cardNav, startDestination = CardRoute.FORMAT) {
+            composable(CardRoute.FORMAT) { FormatScreen(viewModel) }
+            composable(CardRoute.PUNCH) { PunchScreen(viewModel) }
+            composable(CardRoute.READ) { ReadScreen(viewModel) }
+            composable(CardRoute.RESET) { ResetScreen() }
         }
     }
 }
@@ -61,6 +55,6 @@ fun CardScreen(viewModel: CardViewModel) {
 fun CardScreenPreview() {
     AppTheme {
         val mockViewModel = MockCardViewModel()
-        CardScreen(mockViewModel)
+        CardScreen(mockViewModel, rememberNavController())
     }
 }
