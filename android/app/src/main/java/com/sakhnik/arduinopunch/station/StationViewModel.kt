@@ -34,12 +34,12 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
 
     fun setPeripheral(peripheral: BluetoothPeripheral?) {
         connectedPeripheral = peripheral
+        _lines.clear()
     }
 
     val peripheralCallback = object : BluetoothPeripheralCallback() {
 
         override fun onServicesDiscovered(peripheral: BluetoothPeripheral) {
-            Log.i("BLE", "*** Services discovered")
             peripheral.startNotify(SHELL_SERVICE_UUID, SHELL_STDOUT_UUID)
             send("info")
         }
@@ -50,6 +50,7 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
             characteristic: BluetoothGattCharacteristic,
             status: GattStatus
         ) {
+            Log.i("BLE", value.toString(Charsets.UTF_8))
             rxBuffer.append(value.toString(Charsets.UTF_8))
 
             while (true) {
