@@ -5,7 +5,10 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.BluetoothPeripheralCallback
@@ -26,7 +29,8 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
 
     private val rxBuffer = StringBuilder()
 
-    private var connectedPeripheral: BluetoothPeripheral? = null
+    var connectedPeripheral by mutableStateOf<BluetoothPeripheral?>(null)
+        private set
 
     fun setPeripheral(peripheral: BluetoothPeripheral?) {
         connectedPeripheral = peripheral
@@ -35,7 +39,7 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
     val peripheralCallback = object : BluetoothPeripheralCallback() {
 
         override fun onServicesDiscovered(peripheral: BluetoothPeripheral) {
-            Log.i(null, "*** onServicesDiscovered")
+            Log.i("BLE", "*** Services discovered")
             peripheral.startNotify(SHELL_SERVICE_UUID, SHELL_STDOUT_UUID)
             send("info")
         }
@@ -46,7 +50,6 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
             characteristic: BluetoothGattCharacteristic,
             status: GattStatus
         ) {
-            Log.i(null, "** onCharacteristicUpdate")
             rxBuffer.append(value.toString(Charsets.UTF_8))
 
             while (true) {
@@ -54,7 +57,6 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
                 if (end < 0) break
 
                 _lines += rxBuffer.substring(0, end)
-                Log.i(null, "** lines=$lines")
                 rxBuffer.delete(0, end + 4)
             }
         }
