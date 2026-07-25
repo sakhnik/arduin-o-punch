@@ -27,7 +27,7 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
     private val _lines = mutableStateListOf<String>()
     val lines: List<String> get() = _lines
 
-    private val rxBuffer = StringBuilder()
+    private val rxBuffer = mutableListOf<Byte>()
 
     var connectedPeripheral by mutableStateOf<BluetoothPeripheral?>(null)
         private set
@@ -50,17 +50,32 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
             characteristic: BluetoothGattCharacteristic,
             status: GattStatus
         ) {
-            Log.i("BLE", value.toString(Charsets.UTF_8))
-            rxBuffer.append(value.toString(Charsets.UTF_8))
+            rxBuffer += value.toList()
 
             while (true) {
-                val end = rxBuffer.indexOf("\r\n\r\n")
+                val end = findDelimiter(rxBuffer)
                 if (end < 0) break
 
-                _lines += rxBuffer.substring(0, end)
-                rxBuffer.delete(0, end + 4)
+                val packet = rxBuffer.subList(0, end).toByteArray()
+                _lines += packet.decodeToString()
+
+                repeat(end + 4) {
+                    rxBuffer.removeAt(0)
+                }
             }
         }
+    }
+
+    private fun findDelimiter(buffer: List<Byte>): Int {
+        for (i in 0 until buffer.size - 3) {
+            if (buffer[i] == '\r'.code.toByte() &&
+                buffer[i + 1] == '\n'.code.toByte() &&
+                buffer[i + 2] == '\r'.code.toByte() &&
+                buffer[i + 3] == '\n'.code.toByte()) {
+                return i
+            }
+        }
+        return -1
     }
 
     fun send(command: String) {
