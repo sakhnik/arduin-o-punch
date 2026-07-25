@@ -27,10 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.welie.blessed.BluetoothCentralManager
 
 @Composable
-fun ShellScreen(viewModel: StationViewModel, central: BluetoothCentralManager) {
+fun ShellScreen(viewModel: StationViewModel) {
     var command by rememberSaveable { mutableStateOf("") }
 
     Column(
@@ -102,7 +101,7 @@ fun ShellScreen(viewModel: StationViewModel, central: BluetoothCentralManager) {
         OutlinedButton(
             onClick = {
                 viewModel.connectedPeripheral?.let {
-                    central.cancelConnection(it)
+                    viewModel.disconnect()
                 }
             },
             modifier = Modifier.fillMaxWidth()
