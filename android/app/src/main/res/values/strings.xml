@@ -7,7 +7,7 @@
     <string name="from_card">From card</string>
     <string name="clock_offset">Clock offset</string>
     <string name="upload">Upload</string>
-    <string name="url_for_qr_o_punch_upload">URL for qr-o-punch upload</string>
+    <string name="url_for_qr_o_punch_upload">URL for o-event upload</string>
     <string name="https_sakhnik_com_qr_o_punch_card" translatable="false">https://sakhnik.com/qr-o-punch/card</string>
     <string name="card_id">Card</string>
     <string name="card_id_report">Card %d</string>
@@ -26,7 +26,7 @@
     <string name="punch_title">Punch card</string>
     <string name="punch_instruction">Punch card with the given station ID (0..255) and current time.\nStation ID 0 is used for clock calibration, 10 for start, 255 for finish.</string>
     <string name="read_title">Read card</string>
-    <string name="read_instruction">Read out a card, display the punches and optionally upload to QuickEvent using qr-o-punch protocol.</string>
+    <string name="read_instruction">Read out a card, display the punches and optionally upload to o-event.</string>
     <string name="reset_title">Reset card</string>
     <string name="reset_instruction">Reset a card by restoring the default encryption keys.\nThis will allow formatting it for another competition.</string>
     <string name="time">Time</string>
@@ -54,4 +54,10 @@
     <string name="build_type">Build Type: %1$s</string>
     <string name="card_operations">Card operations</string>
     <string name="station_manager">Station manager</string>
+    <string name="command">Command</string>
+    <string name="send">Send</string>
+    <string name="dt_ms">Δ %1$d ms</string>
+    <string name="measure">Measure</string>
+    <string name="synchronize">Synchronize</string>
+    <string name="disconnect">Disconnect</string>
 </resources>

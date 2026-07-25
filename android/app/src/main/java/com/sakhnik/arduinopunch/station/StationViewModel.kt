@@ -6,6 +6,7 @@ import android.bluetooth.le.ScanResult
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,9 +20,18 @@ import com.welie.blessed.BluetoothPeripheralCallback
 import com.welie.blessed.GattStatus
 import com.welie.blessed.HciStatus
 import com.welie.blessed.WriteType
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.UUID
 import kotlin.collections.plusAssign
 import kotlin.math.abs
@@ -66,19 +76,20 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
             if (index >= 0) {
                 val old = peripherals[index]
 
-                _peripherals[index] = if (now - old.lastRssiUpdate >= 500 && abs(scanResult.rssi - old.rssi) >= 5) {
-                    old.copy(
-                        peripheral = peripheral,
-                        rssi = scanResult.rssi,
-                        lastSeen = now,
-                        lastRssiUpdate = now
-                    )
-                } else {
-                    old.copy(
-                        peripheral = peripheral,
-                        lastSeen = now
-                    )
-                }
+                _peripherals[index] =
+                    if (now - old.lastRssiUpdate >= 500 && abs(scanResult.rssi - old.rssi) >= 5) {
+                        old.copy(
+                            peripheral = peripheral,
+                            rssi = scanResult.rssi,
+                            lastSeen = now,
+                            lastRssiUpdate = now
+                        )
+                    } else {
+                        old.copy(
+                            peripheral = peripheral,
+                            lastSeen = now
+                        )
+                    }
             } else {
                 _peripherals += DiscoveredPeripheral(
                     peripheral = peripheral,
@@ -115,6 +126,12 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
 
     private val rxBuffer = mutableListOf<Byte>()
     private val responseBuffer = StringBuilder()
+
+    private val commandMutex = Mutex()
+    private var pendingResponse: CompletableDeferred<String>? = null
+
+    var clockOffsetMs by mutableStateOf<Long?>(null)
+        private set
 
     var connectedPeripheral by mutableStateOf<BluetoothPeripheral?>(null)
         private set
@@ -166,13 +183,14 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
                 val line = rxBuffer.subList(0, end).toByteArray().decodeToString()
 
                 _lines += line
-                responseBuffer.append(line).append('\n')
-
                 rxBuffer.subList(0, end + 2).clear()
 
                 // Blank line -> end of response
                 if (line.isEmpty()) {
+                    pendingResponse?.complete(responseBuffer.toString())
                     responseBuffer.clear()
+                } else {
+                    responseBuffer.append(line).append('\n')
                 }
             }
         }
@@ -196,5 +214,84 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
             "$command\r\n".toByteArray(),
             WriteType.WITH_RESPONSE
         )
+        _lines.add("> $command")
+    }
+
+    suspend fun execute(command: String): String {
+        check(pendingResponse == null)
+
+        val deferred = CompletableDeferred<String>()
+        pendingResponse = deferred
+        responseBuffer.clear()
+
+        send(command)
+
+        try {
+            return withTimeout(3000.milliseconds) {
+                deferred.await()
+            }
+        } finally {
+            pendingResponse = null
+            responseBuffer.clear()
+        }
+    }
+
+    fun measureClockOffset() {
+        viewModelScope.launch {
+            val start = Instant.now()
+
+            val response = execute("clock")
+
+            val finish = Instant.now()
+
+            val stationClock = response.trim().toLong()
+
+            val midpoint = start.plusMillis(
+                (finish.toEpochMilli() - start.toEpochMilli()) / 2
+            )
+
+            val now = LocalTime.now()
+
+            val localClock =
+                ((now.hour * 3600L +
+                    now.minute * 60L +
+                    now.second) * 1000L) +
+                    now.nano / 1_000_000L
+
+            clockOffsetMs = stationClock - localClock
+        }
+    }
+
+    fun synchronizeClock() {
+        viewModelScope.launch {
+            val start = Instant.now()
+
+            execute("clock")
+
+            val finish = Instant.now()
+
+            val latencyUs =
+                (finish.toEpochMilli() - start.toEpochMilli()) * 1000 / 2
+
+            while (true) {
+                val now = Instant.now()
+
+                val dtUs = latencyUs + now.nano / 1000 - 1_000_000
+
+                if (dtUs in 0..999) {
+                    break
+                }
+            }
+
+            val zone = ZoneId.systemDefault()
+            val now = ZonedDateTime.now(zone)
+
+            val offset = now.offset.totalSeconds
+            val timestamp = Instant.now().epochSecond + offset + 1
+
+            execute("timestamp $timestamp")
+
+            measureClockOffset()
+        }
     }
 }

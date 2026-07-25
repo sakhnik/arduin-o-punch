@@ -7,7 +7,7 @@
     <string name="from_card">З картки</string>
     <string name="clock_offset">Різниця годинника</string>
     <string name="upload">Вивантажити</string>
-    <string name="url_for_qr_o_punch_upload">URL для вивантаження qr-o-punch</string>
+    <string name="url_for_qr_o_punch_upload">URL для вивантаження o-event</string>
     <string name="card_id">Картка</string>
     <string name="card_id_report">Картка %d</string>
     <string name="key">Ключ</string>
@@ -24,7 +24,7 @@
     <string name="punch_title">Відмітка в картці</string>
     <string name="punch_instruction">Поставити відмітку в картці заданим ID станції (0..255) і теперішнім часом.\nID 0 використовується для звіряння годинників, 10 для старту, 255 для фінішу.</string>
     <string name="read_title">Прочитати картку</string>
-    <string name="read_instruction">Прочитати картку, відобразити відмітки і за вибором вивантажити у QuickEvent, використовуючи протокол qr-o-punch.</string>
+    <string name="read_instruction">Прочитати картку, відобразити відмітки і за вибором вивантажити в o-event.</string>
     <string name="reset_title">Скинути картку</string>
     <string name="reset_instruction">Скинути картку, відновивши початкові ключі шифрування.\nЦе дозволить потім підготувати її до наступних змагань.</string>
     <string name="time">Час</string>
@@ -52,4 +52,10 @@
     <string name="build_type">Тип збірки: %1$s</string>
     <string name="card_operations">Дії з картками</string>
     <string name="station_manager">Керування станціями</string>
+    <string name="command">Команда</string>
+    <string name="send">Надіслати</string>
+    <string name="dt_ms">Δ %1$d мс</string>
+    <string name="measure">Виміряти</string>
+    <string name="synchronize">Синхронізувати</string>
+    <string name="disconnect">Відчепитися</string>
 </resources>

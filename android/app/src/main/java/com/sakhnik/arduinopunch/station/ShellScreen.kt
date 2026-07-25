@@ -1,5 +1,6 @@
 package com.sakhnik.arduinopunch.station
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,8 +26,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.sakhnik.arduinopunch.R
 
 @Composable
 fun ShellScreen(viewModel: StationViewModel) {
@@ -68,7 +71,7 @@ fun ShellScreen(viewModel: StationViewModel) {
                 onValueChange = { command = it },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                label = { Text(text = "Command") },
+                label = { Text(text = stringResource(R.string.command)) },
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Send
                 ),
@@ -92,11 +95,39 @@ fun ShellScreen(viewModel: StationViewModel) {
                     }
                 }
             ) {
-                Text("Send")
+                Text(stringResource(R.string.send))
             }
         }
 
         Spacer(Modifier.height(8.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedButton(
+                onClick = {
+                    viewModel.measureClockOffset()
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    viewModel.clockOffsetMs?.let { stringResource(R.string.dt_ms, it) } ?: stringResource(
+                        R.string.measure
+                    )
+                )
+            }
+
+            Button(
+                onClick = {
+                    viewModel.synchronizeClock()
+                },
+                enabled = viewModel.clockOffsetMs != null,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.synchronize))
+            }
+        }
 
         OutlinedButton(
             onClick = {
@@ -106,7 +137,7 @@ fun ShellScreen(viewModel: StationViewModel) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Disconnect")
+            Text(stringResource(R.string.disconnect))
         }
     }
 }
