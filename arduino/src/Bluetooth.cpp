@@ -13,7 +13,7 @@ static const char *SHELL_SERVICE_UUID   = "16404bac-eab0-422c-955f-fb13799c00fa"
 static const char *SHELL_STDIN_UUID     = "16404bac-eab1-422c-955f-fb13799c00fa";
 static const char *SHELL_STDOUT_UUID    = "16404bac-eab2-422c-955f-fb13799c00fa";
 
-constexpr const int CHUNK_SIZE = 32;
+static uint16_t negotiatedMTU = 23;
 
 NimBLEServer *server = nullptr;
 NimBLECharacteristic *stdinChr = nullptr;
@@ -29,8 +29,8 @@ class ServerCallbacks
 public:
     void onConnect(NimBLEServer *server, NimBLEConnInfo &connInfo) override
     {
-        NimBLEDevice::setMTU(247);
         deviceConnected = true;
+        negotiatedMTU = connInfo.getMTU();
     }
 
     void onDisconnect(NimBLEServer *server, NimBLEConnInfo &connInfo, int reason) override
@@ -128,6 +128,8 @@ void Bluetooth::_TaskEntry(void* arg)
 
 void Bluetooth::_Task()
 {
+    size_t chunkSize = std::max<size_t>(20, negotiatedMTU - 3);
+
     while (!_stopRequested.load()) {
 
         // Wait until there is something to send
@@ -135,7 +137,7 @@ void Bluetooth::_Task()
 
         while (!_stopRequested.load()) {
 
-            auto chunk = (LockGuard{_txMutex}, _outBuffer.Get(CHUNK_SIZE));
+            auto chunk = (LockGuard{_txMutex}, _outBuffer.Get(chunkSize));
             if (!chunk.size) {
                 break;
             }
@@ -146,7 +148,7 @@ void Bluetooth::_Task()
             }
 
             // pacing
-            vTaskDelay(pdMS_TO_TICKS(5));
+            vTaskDelay(pdMS_TO_TICKS(30));
         }
     }
 
