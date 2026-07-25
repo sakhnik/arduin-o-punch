@@ -28,6 +28,7 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
     val lines: List<String> get() = _lines
 
     private val rxBuffer = mutableListOf<Byte>()
+    private val responseBuffer = StringBuilder()
 
     var connectedPeripheral by mutableStateOf<BluetoothPeripheral?>(null)
         private set
@@ -53,25 +54,30 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
             rxBuffer += value.toList()
 
             while (true) {
-                val end = findDelimiter(rxBuffer)
+                val end = findCrlf(rxBuffer)
                 if (end < 0) break
 
-                val packet = rxBuffer.subList(0, end).toByteArray()
-                _lines += packet.decodeToString()
+                val line = rxBuffer.subList(0, end).toByteArray().decodeToString()
 
-                repeat(end + 4) {
-                    rxBuffer.removeAt(0)
+                _lines += line
+                responseBuffer.append(line).append('\n')
+
+                rxBuffer.subList(0, end + 2).clear()
+
+                // Blank line -> end of response
+                if (line.isEmpty()) {
+                    Log.i("BLE", "Complete response:\n$responseBuffer")
+                    responseBuffer.clear()
                 }
             }
         }
     }
 
-    private fun findDelimiter(buffer: List<Byte>): Int {
-        for (i in 0 until buffer.size - 3) {
+    private fun findCrlf(buffer: List<Byte>): Int {
+        for (i in 0 until buffer.size - 1) {
             if (buffer[i] == '\r'.code.toByte() &&
-                buffer[i + 1] == '\n'.code.toByte() &&
-                buffer[i + 2] == '\r'.code.toByte() &&
-                buffer[i + 3] == '\n'.code.toByte()) {
+                buffer[i + 1] == '\n'.code.toByte()
+            ) {
                 return i
             }
         }

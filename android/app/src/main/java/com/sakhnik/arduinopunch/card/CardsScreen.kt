@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
@@ -26,7 +27,7 @@ fun CardScreen(viewModel: CardViewModel, cardNav: NavHostController) {
     val progress by viewModel.progress
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().imePadding(),
     ) {
         Spacer(Modifier.height(8.dp))
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)

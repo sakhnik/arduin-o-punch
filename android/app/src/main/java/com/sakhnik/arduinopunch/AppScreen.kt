@@ -1,6 +1,5 @@
 package com.sakhnik.arduinopunch
 
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -26,7 +25,6 @@ fun AppScreen(cardViewModel: CardViewModel) {
     val currentRoot by rootNav.currentBackStackEntryAsState()
 
     Scaffold(
-        modifier = Modifier.imePadding(), // This modifier moves the BottomAppBar above the keyboard
         topBar = {
             AppTopBar(rootNav, cardViewModel)
         },
@@ -39,7 +37,7 @@ fun AppScreen(cardViewModel: CardViewModel) {
         NavHost(
             rootNav,
             startDestination = RootRoute.CARD,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
         ) {
             composable(RootRoute.CARD) {
                 CardScreen(cardViewModel, cardNav)
