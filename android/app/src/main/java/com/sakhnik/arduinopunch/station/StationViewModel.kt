@@ -2,9 +2,6 @@ package com.sakhnik.arduinopunch.station
 
 import android.app.Application
 import android.bluetooth.BluetoothGattCharacteristic
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,8 +18,6 @@ private val SHELL_STDIN_UUID = UUID.fromString("16404bac-eab1-422c-955f-fb13799c
 private val SHELL_STDOUT_UUID = UUID.fromString("16404bac-eab2-422c-955f-fb13799c00fa")
 
 class StationViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val handler = Handler(Looper.getMainLooper())
 
     private val _lines = mutableStateListOf<String>()
     val lines: List<String> get() = _lines
@@ -66,7 +61,6 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
 
                 // Blank line -> end of response
                 if (line.isEmpty()) {
-                    Log.i("BLE", "Complete response:\n$responseBuffer")
                     responseBuffer.clear()
                 }
             }
@@ -85,7 +79,6 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun send(command: String) {
-        Log.i(null, "Send $command")
         connectedPeripheral?.writeCharacteristic(
             SHELL_SERVICE_UUID,
             SHELL_STDIN_UUID,

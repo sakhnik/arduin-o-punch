@@ -4,7 +4,7 @@ import android.Manifest
 import android.bluetooth.le.ScanResult
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -26,18 +26,27 @@ import com.welie.blessed.BluetoothCentralManager
 import com.welie.blessed.BluetoothCentralManagerCallback
 import com.welie.blessed.BluetoothPeripheral
 import com.welie.blessed.HciStatus
+import kotlinx.coroutines.delay
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun StationScreen() {
     val context = LocalContext.current
     val viewModel: StationViewModel = viewModel()
 
-    val peripherals = remember { mutableStateListOf<BluetoothPeripheral>() }
+    data class DiscoveredPeripheral(
+        val peripheral: BluetoothPeripheral,
+        val rssi: Int,
+        var lastSeen: Long,
+        val lastRssiUpdate: Long
+    )
+
+    val peripherals = remember { mutableStateListOf<DiscoveredPeripheral>() }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        // Check permissions and start scanning
+    ) {
     }
 
     val handler = remember {
@@ -50,24 +59,43 @@ fun StationScreen() {
         object : BluetoothCentralManagerCallback() {
 
             override fun onDisconnected(peripheral: BluetoothPeripheral, status: HciStatus) {
-                Log.i(null, "*** Disconnected ${peripheral.name}")
                 viewModel.setPeripheral(null)
-                central.scanForPeripheralsWithServices(setOf(SHELL_SERVICE_UUID));
+                central.scanForPeripheralsWithServices(setOf(SHELL_SERVICE_UUID))
             }
 
             override fun onDiscovered(peripheral: BluetoothPeripheral, scanResult: ScanResult) {
                 val name = peripheral.name
-                Log.i(null, "onDiscovered $name")
                 if (!name.startsWith("AOP ")) return
 
+                val now = SystemClock.elapsedRealtime()
+
                 val index = peripherals.indexOfFirst {
-                    it.address == peripheral.address
+                    it.peripheral.address == peripheral.address
                 }
 
                 if (index >= 0) {
-                    peripherals[index] = peripheral
+                    val old = peripherals[index]
+
+                    peripherals[index] = if (now - old.lastRssiUpdate >= 500 && abs(scanResult.rssi - old.rssi) >= 5) {
+                        old.copy(
+                            peripheral = peripheral,
+                            rssi = scanResult.rssi,
+                            lastSeen = now,
+                            lastRssiUpdate = now
+                        )
+                    } else {
+                        old.copy(
+                            peripheral = peripheral,
+                            lastSeen = now
+                        )
+                    }
                 } else {
-                    peripherals += peripheral
+                    peripherals += DiscoveredPeripheral(
+                        peripheral = peripheral,
+                        rssi = scanResult.rssi,
+                        lastSeen = now,
+                        lastRssiUpdate = now
+                    )
                 }
             }
         }
@@ -90,8 +118,19 @@ fun StationScreen() {
         )
     }
 
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000.milliseconds)
+
+            val now = SystemClock.elapsedRealtime()
+            peripherals.removeAll {
+                now - it.lastSeen > 5000   // disappear after 5 seconds
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
-        central.scanForPeripheralsWithServices(setOf(SHELL_SERVICE_UUID));
+        central.scanForPeripheralsWithServices(setOf(SHELL_SERVICE_UUID))
 
         onDispose {
             central.stopScan()
@@ -104,23 +143,20 @@ fun StationScreen() {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            items(
-                peripherals,
-                key = { it.address }
-            ) { peripheral ->
+            items(peripherals, key = { it.peripheral.address }) { item ->
                 ListItem(
                     headlineContent = {
-                        Text(peripheral.name)
+                        Text(item.peripheral.name)
                     },
                     supportingContent = {
-                        Text(peripheral.address)
+                        Text("${item.peripheral.address}    ${item.rssi} dBm")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
                             central.stopScan()
-                            viewModel.setPeripheral(peripheral)
-                            central.connect(peripheral, viewModel.peripheralCallback)
+                            viewModel.setPeripheral(item.peripheral)
+                            central.connect(item.peripheral, viewModel.peripheralCallback)
                         }
                 )
             }
