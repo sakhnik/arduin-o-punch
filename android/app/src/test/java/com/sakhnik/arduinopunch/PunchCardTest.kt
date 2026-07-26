@@ -74,7 +74,14 @@ class PunchCardTest {
             if (authSector != blockToSector(blockIndex)) {
                 throw RuntimeException("Auth failure")
             }
-            return blocks[blockIndex].copyOf()
+
+            val data = blocks[blockIndex].copyOf()
+            // Simulate unreadable Key A in sector trailers.
+            if (blockIndex % 4 == 3) {
+                data.fill(0, 0, 6)
+            }
+
+            return data
         }
 
         override fun writeBlock(blockIndex: Int, data: ByteArray) {

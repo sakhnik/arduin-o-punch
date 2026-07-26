@@ -67,6 +67,10 @@ struct TestMifare : AOP::IMifare
         if (BlockToSector(block) != authSector)
             return 1;
         memcpy(data, blocks[block].data(), IMifare::BLOCK_SIZE);
+        if (block % 4 == 3) {
+            // Never leak KeyA
+            memset(data, 0, KEY_SIZE);
+        }
         return 0;
     }
 
