@@ -43,14 +43,14 @@ jobs:
         working-directory: ./android
         run: ./gradlew build
 
-      # Create APK Release
-      - name: Build apk release project (APK) - ${{ env.main_project_module }} module
+      # Create APK Debug
+      - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
         working-directory: ./android
-        run: ./gradlew assemble
+        run: ./gradlew assembleDebug
 
-      # Noted For Output [main_project_module]/build/outputs/apk/release/
-      - name: Upload APK Release - ${{ env.repository_name }}
+      # Noted For Output [main_project_module]/build/outputs/apk/debug/
+      - name: Upload APK Debug - ${{ env.repository_name }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
-          path: android/${{ env.main_project_module }}/build/outputs/apk/release/
+          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) generated
+          path: android/${{ env.main_project_module }}/build/outputs/apk/debug/
