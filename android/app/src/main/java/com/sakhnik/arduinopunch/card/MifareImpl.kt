@@ -1,7 +1,7 @@
 package com.sakhnik.arduinopunch.card
 
 import android.nfc.tech.MifareClassic
-import android.util.Log
+import timber.log.Timber
 
 class MifareImpl(private val mifare: MifareClassic) : IMifare {
     private val debug = false
@@ -25,7 +25,7 @@ class MifareImpl(private val mifare: MifareClassic) : IMifare {
         val keyString = key?.toHexString() ?: "null"
         val result = mifare.authenticateSectorWithKeyA(sectorIndex, key)
         if (debug) {
-            Log.i("Mifare", "AUTH sector=$sectorIndex key=[$keyString] result=$result")
+            Timber.i("AUTH sector=$sectorIndex key=[$keyString] result=$result")
         }
         return result
     }
@@ -33,21 +33,21 @@ class MifareImpl(private val mifare: MifareClassic) : IMifare {
     override fun readBlock(blockIndex: Int): ByteArray? {
         val data = mifare.readBlock(blockIndex)
         if (debug) {
-            Log.i("Mifare", "READ block=$blockIndex data=${data?.toHexString() ?: "null"}")
+            Timber.i("READ block=$blockIndex data=${data?.toHexString() ?: "null"}")
         }
         return data
     }
 
     override fun writeBlock(blockIndex: Int, data: ByteArray) {
         if (debug) {
-            Log.i("Mifare", "WRITE block=$blockIndex data=${data.toHexString()}")
+            Timber.i("WRITE block=$blockIndex data=${data.toHexString()}")
         }
         mifare.writeBlock(blockIndex, data)
 
         if (debug) {
             // Verify what was actually written.
             val verify = mifare.readBlock(blockIndex)
-            Log.i("Mifare", "VERIFY block=$blockIndex data=${verify?.toHexString() ?: "null"}")
+            Timber.i("VERIFY block=$blockIndex data=${verify?.toHexString() ?: "null"}")
         }
     }
 }
