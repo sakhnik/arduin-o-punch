@@ -131,6 +131,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         val blockIndex = 3 + sector * 4
         val trailer = mifare.readBlock(blockIndex) as ByteArray
 
+        key.copyInto(trailer)
         trailer[ID_OFFSET] = id.toByte()
         trailer[ID_OFFSET + 1] = (id shr 8).toByte()
         trailer[SECTOR_OFFSET] = startSector.toByte()
