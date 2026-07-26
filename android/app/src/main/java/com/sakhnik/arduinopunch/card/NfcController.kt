@@ -7,13 +7,13 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.MifareClassic
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import com.sakhnik.arduinopunch.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class NfcController(
     private val activity: ComponentActivity,
@@ -79,7 +79,7 @@ class NfcController(
                 okEffectPlayer.start()
             }
         } catch (ex: Exception) {
-            Log.e("NfcController", "Card error $ex")
+            Timber.e("Card error $ex")
             activity.runOnUiThread {
                 failEffectPlayer.start()
                 Toast.makeText(activity, "${ex.message}", Toast.LENGTH_LONG).show()
