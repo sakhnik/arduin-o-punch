@@ -6,11 +6,13 @@ namespace AOP {
 
 constexpr size_t MAX_PUNCHES = 10000;
 
-struct __attribute__((packed)) PunchRecord
+struct PunchRecord
 {
     uint16_t card;
     uint16_t delta_seconds;
 };
+
+static_assert(sizeof(PunchRecord) == 4);
 
 PunchRecord punches[MAX_PUNCHES] = {};
 
