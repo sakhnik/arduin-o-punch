@@ -1,12 +1,8 @@
 package com.sakhnik.arduinopunch.card
 
-import android.app.PendingIntent
-import android.content.Intent
 import android.media.MediaPlayer
 import android.nfc.NfcAdapter
-import android.nfc.Tag
 import android.nfc.tech.MifareClassic
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
@@ -18,7 +14,6 @@ import timber.log.Timber
 class NfcController(
     private val activity: ComponentActivity,
     private val viewModel: CardViewModel,
-    private val pendingIntent: PendingIntent
 ) {
     private var nfcAdapter: NfcAdapter = NfcAdapter.getDefaultAdapter(activity)
     private var okEffectPlayer: MediaPlayer = MediaPlayer.create(activity, R.raw.ok)
@@ -30,26 +25,9 @@ class NfcController(
     }
 
     fun enable() {
-        nfcAdapter.enableForegroundDispatch(activity, pendingIntent, null, null)
-    }
-
-    fun disable() {
-        nfcAdapter.disableForegroundDispatch(activity)
-    }
-
-    fun handleIntent(intent: Intent) {
-        if (NfcAdapter.ACTION_TAG_DISCOVERED == intent.action) {
-            // A new NFC tag was discovered
-            val tag: Tag? =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
-                }
-
-            // Handle MIFARE Classic 1K cards
-            if (tag != null) {
+        nfcAdapter.enableReaderMode(
+            activity,
+            { tag ->
                 MifareClassic.get(tag).also { card ->
                     activity.lifecycleScope.launch(Dispatchers.IO) {
                         card.use {
@@ -58,8 +36,16 @@ class NfcController(
                         }
                     }
                 }
-            }
-        }
+            },
+            NfcAdapter.FLAG_READER_NFC_A or
+                NfcAdapter.FLAG_READER_NFC_B or
+                NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            null
+        )
+    }
+
+    fun disable() {
+        nfcAdapter.disableReaderMode(activity)
     }
 
     private fun handleMifare(mifare: MifareClassic) {

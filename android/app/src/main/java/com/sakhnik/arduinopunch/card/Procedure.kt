@@ -21,7 +21,7 @@ class Procedure {
     }
 
     // Run all the steps and track the progress
-    fun run(progress: Progress): Unit {
+    fun run(progress: Progress) {
         var currentProgress = 0
 
         val accumulativeProgress: Progress = { cur, _ ->

@@ -2,7 +2,6 @@ package com.sakhnik.arduinopunch.card
 
 import android.app.Application
 import android.nfc.tech.MifareClassic
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.lifecycle.AndroidViewModel
@@ -22,8 +21,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.yaml.snakeyaml.Yaml
+import timber.log.Timber
 import java.time.Duration
 import java.time.LocalTime
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(FlowPreview::class)
 open class CardViewModel(private val repository: Repository, application: Application) : AndroidViewModel(application) {
@@ -59,7 +60,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
         debounceMillis: Long = 500L
     ) {
         flow
-            .debounce(debounceMillis)
+            .debounce(debounceMillis.milliseconds)
             .distinctUntilChanged()
             .onEach { value -> saveAction(value) }
             .launchIn(viewModelScope)
@@ -148,7 +149,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
         val context = getApplication<Application>().applicationContext
         val cardId = runBlocking { cardId.first() }.toInt()
-        Log.d(null, "Format $cardId with key ${key.joinToString("") { "%02X".format(it) }}")
+        Timber.d("Format $cardId with key ${key.joinToString("") { "%02X".format(it) }}")
         val card = PunchCard(MifareImpl(mifare), key, context)
         card.format(cardId, getKnownKeys(), this::setProgress)
     }

@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,7 +32,13 @@ fun CardScreen(viewModel: CardViewModel, cardNav: NavHostController) {
         modifier = Modifier.fillMaxSize().imePadding(),
     ) {
         Spacer(Modifier.height(8.dp))
-        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth(),
+            color = ProgressIndicatorDefaults.linearColor,
+            trackColor = ProgressIndicatorDefaults.linearTrackColor,
+            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+        )
         Spacer(Modifier.height(8.dp))
 
         LaunchedEffect(cardNav) {
@@ -53,7 +61,7 @@ fun CardScreen(viewModel: CardViewModel, cardNav: NavHostController) {
 @Composable
 fun CardScreenPreview() {
     AppTheme {
-        val mockViewModel = MockCardViewModel()
+        val mockViewModel = remember { MockCardViewModel() }
         CardScreen(mockViewModel, rememberNavController())
     }
 }

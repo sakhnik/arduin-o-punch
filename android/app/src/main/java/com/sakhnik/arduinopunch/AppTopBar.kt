@@ -36,6 +36,8 @@ fun AppTopBar(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val exportedMessage = stringResource(R.string.settings_exported)
+    val importedMessage = stringResource(R.string.settings_imported)
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/yaml")
@@ -43,8 +45,7 @@ fun AppTopBar(
         uri?.let {
             val yamlString = runBlocking { viewModel.settingsToYaml() }
             context.contentResolver.openOutputStream(uri)?.use { it.write(yamlString.toByteArray()) }
-            Toast.makeText(context,
-                context.getString(R.string.settings_exported), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, exportedMessage, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -56,8 +57,7 @@ fun AppTopBar(
                 val yamlText = stream.bufferedReader().readText()
                 runBlocking { viewModel.yamlToSettings(yamlText) }
             }
-            Toast.makeText(context,
-                context.getString(R.string.settings_imported), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, importedMessage, Toast.LENGTH_SHORT).show()
         }
     }
 

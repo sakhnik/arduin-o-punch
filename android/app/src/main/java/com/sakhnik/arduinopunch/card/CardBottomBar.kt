@@ -2,10 +2,10 @@ package com.sakhnik.arduinopunch.card
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,7 +51,7 @@ fun CardBottomBar(
 
         NavButton(
             action = CardRoute.READ,
-            icon = Icons.Default.List,
+            icon = Icons.AutoMirrored.Filled.List,
             description = stringResource(id = R.string.read_card),
             selectedAction = selectedAction,
             cardNav

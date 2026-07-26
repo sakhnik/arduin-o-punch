@@ -20,7 +20,7 @@ data class DebugInfo(
 
             val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
 
-            val size = buffer.short.toInt() and 0xFFFF
+            //val size = buffer.short.toInt() and 0xFFFF
             val version = buffer.get().toInt() and 0xFF
             val bootCount = buffer.short.toInt() and 0xFFFF
             val lastResetReason = buffer.get().toInt() and 0xFF

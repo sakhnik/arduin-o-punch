@@ -124,16 +124,19 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                 )
 
                 val context = LocalContext.current
+                val cancelledMessage = stringResource(R.string.cancelled)
+                val notFromQrOPunchMessage = stringResource(R.string.not_from_qr_o_punch)
+
                 val barcodeLauncher = rememberLauncherForActivityResult(contract = ScanContract()) { result ->
                     if (result?.contents == null) {
-                        Toast.makeText(context, context.getString(R.string.cancelled), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, cancelledMessage, Toast.LENGTH_SHORT).show()
                     } else {
                         val regex = Regex("""SetStartNumber (\d+)""")
                         val number = regex.find(result.contents)?.groupValues?.get(1)
                         if (number != null) {
                             cardViewModel.updateCardId(number)
                         } else {
-                            Toast.makeText(context, context.getString(R.string.not_from_qr_o_punch), Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, notFromQrOPunchMessage, Toast.LENGTH_LONG).show()
                         }
                     }
                 }
@@ -200,7 +203,7 @@ fun ScreenHeader(titleId: Int, instructionId: Int) {
 @Composable
 fun FormatScreenPreview() {
     AppTheme {
-        val mockViewModel = MockCardViewModel()
+        val mockViewModel = remember { MockCardViewModel() }
         FormatScreen(mockViewModel)
     }
 }

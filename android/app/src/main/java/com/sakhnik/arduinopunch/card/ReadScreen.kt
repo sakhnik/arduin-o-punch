@@ -1,5 +1,6 @@
 package com.sakhnik.arduinopunch.card
 
+import android.content.ClipData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,12 +33,12 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
+import kotlinx.coroutines.launch
 import java.time.DateTimeException
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -123,7 +125,7 @@ fun ReadScreen(cardViewModel: CardViewModel) {
 fun PunchesTable(viewModel: CardViewModel) {
     val readOut by viewModel.readOut.observeAsState()
     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
 
     val selectedRows = remember { mutableStateListOf<Int>() }
 
@@ -208,6 +210,8 @@ fun PunchesTable(viewModel: CardViewModel) {
 
                     Spacer(modifier = Modifier.width(8.dp))
 
+                    val scope = rememberCoroutineScope()
+
                     Button(
                         onClick = {
                             val selectedText = selectedRows.joinToString("\n") { index ->
@@ -220,7 +224,11 @@ fun PunchesTable(viewModel: CardViewModel) {
                                 }
                                 "${index + 1}\t$station\t$timestamp"
                             }
-                            clipboardManager.setText(AnnotatedString(selectedText))
+                            scope.launch {
+                                clipboard.nativeClipboard.setPrimaryClip(
+                                    ClipData.newPlainText("text", selectedText)
+                                )
+                            }
                         },
                         enabled = selectedRows.isNotEmpty(),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
@@ -310,8 +318,10 @@ fun ReadScreenPreview() {
             Punch(station = 100, timestamp = 10900L),
         )
         val readOut = PunchCard.Info(cardNumber = 123, punches = punches, debugInfo = null)
-        val mockViewModel = MockCardViewModel().apply {
-            setReadOutForPreview(readOut)
+        val mockViewModel = remember {
+            MockCardViewModel().apply {
+                setReadOutForPreview(readOut)
+            }
         }
         ReadScreen(mockViewModel)
     }

@@ -18,7 +18,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         const val SECTOR_OFFSET = 12
         const val PREV_SECTOR_OFFSET = 13
 
-        const val CLEAR_STATION = 0
+        //const val CLEAR_STATION = 0
         const val CHECK_STATION = 1
         const val START_STATION = 10
         const val FINISH_STATION = 255
