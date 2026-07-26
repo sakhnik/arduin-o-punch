@@ -220,6 +220,8 @@ ErrorCode PunchCard::Format(std::optional<uint16_t> id, const KeysT &keysToTry)
             return res;
         }
 
+        // The key can't be read back, so write it again
+        memcpy(trailer, _key.data(), IMifare::KEY_SIZE);
         // Write card ID to KeyB
         if (id.has_value())
             card_id = id.value();
