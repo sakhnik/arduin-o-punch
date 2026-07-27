@@ -310,6 +310,52 @@ class PunchCardTest {
         }
     }
 
+    @Test
+    fun multipleFormat() {
+        val mifare = TestMifare()
+        val punchCard = PunchCard(mifare, TEST_KEY, context)
+
+        fun testPunch(i: Int, j: Int) =
+            Punch(11 + i + j, (100 + i + j).toLong())
+
+        fun cardId(i: Int) = 1000 + i
+
+        for (i in 1 until 100) {
+            punchCard.format(cardId(i), listOf(TEST_KEY))
+
+            repeat(i) { j ->
+                punchCard.punch(testPunch(i, j))
+            }
+
+            // Verify latest run
+            val latest = punchCard.readOut()
+            assertEquals(cardId(i), latest.cardNumber)
+            assertEquals(i, latest.punches.size)
+            repeat(i) { j ->
+                assertEquals(testPunch(i, j), latest.punches[j])
+            }
+
+            // Verify history
+            val allRuns = punchCard.readOut(100)
+
+            assertTrue(allRuns.size <= i)
+
+            for (j in allRuns.indices) {
+                val n = i - j
+                val run = allRuns[j]
+
+                assertEquals(cardId(n), run.cardNumber)
+                assertEquals(n, run.punches.size)
+
+                repeat(n) { k ->
+                    assertEquals(testPunch(n, k), run.punches[k])
+                }
+            }
+        }
+
+        punchCard.reset(listOf(TEST_KEY))
+    }
+
     private fun fromHex(hex: String): ByteArray {
         return hex.chunked(2) { it.toString().toInt(16).toByte() }.toByteArray()
     }

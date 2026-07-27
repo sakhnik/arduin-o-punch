@@ -3,6 +3,7 @@ package com.sakhnik.arduinopunch.card
 import android.content.Context
 import com.sakhnik.arduinopunch.R
 import java.util.Arrays
+import java.util.BitSet
 
 class PunchCard(private val mifare: IMifare, private val key: ByteArray, private val context: Context) {
     private var authSector = -1
@@ -362,50 +363,119 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
     data class Info(val cardNumber: Int, val punches: List<Punch>, val debugInfo: DebugInfo?)
 
-    fun readOut(progress: Progress = Procedure.NO_PROGRESS): Info {
-        val stages = 8
+    fun readOut(progress: Progress = Procedure.NO_PROGRESS): Info =
+        readOut(1, progress).first()
+
+    fun readOut(count: Int = 100, progress: Progress = Procedure.NO_PROGRESS): List<Info> {
+
         progress(0, 1)
 
-        // 1. read card id
-        progress(1, stages)
         authenticate(INDEX_SECTOR)
-        val headerKey = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
-        val cardId = getId(headerKey)
-        val startSector = headerKey[SECTOR_OFFSET].toInt()
+        val indexHeader = mifare.readBlock(INDEX_KEY_BLOCK)!!
+        val startSector = indexHeader[SECTOR_OFFSET].toInt() and 0xff
 
-        // 2. Recover the header
-        val header = recoverHeader(startSector, stages, progress)
-        val count = header[COUNT_OFFSET].toInt() and 0xff
+        val markedBlocks = BitSet()
+        markedBlocks.set(INDEX_KEY_BLOCK)
 
-        // 5. loop over the punches
-        val punches = ArrayList<Punch>()
+        val result = ArrayList<Info>()
 
-        if (count > 0) {
-            var tail = count % PUNCHES_PER_BLOCK
-            if (tail == 0) {
-                tail = PUNCHES_PER_BLOCK
+        var currentSector = startSector
+
+        repeat(count) {
+            val run = readOutRun(currentSector, markedBlocks, progress)
+
+            if (result.isEmpty() || run.info.punches.isNotEmpty()) {
+                result += run.info
             }
-            val wholeBlocks = (count - tail) / PUNCHES_PER_BLOCK
-            for (i in 0 until wholeBlocks) {
-                val block = getPunchBlock(i * PUNCHES_PER_BLOCK, startSector)
-                progress(i, wholeBlocks)
-                authenticate(mifare.blockToSector(block))
-                val punchBlock = mifare.readBlock(block)
-                readPunchesFromBlock(PUNCHES_PER_BLOCK, punchBlock!!, punches)
-            }
-            readPunchesFromBlock(tail, header, punches)
+
+            val nextSector = run.nextSector
+
+            if (nextSector <= 0 ||
+                nextSector >= mifare.sectorCount ||
+                nextSector == currentSector)
+                return@repeat
+
+            currentSector = nextSector
         }
 
-        var debugInfo: DebugInfo? = null
-
-        if (cardId == DEBUG_CARD) {
-            val startBlock = ((startSector + 1) % 16) * 4
-            val raw = readDebugInfo(startBlock)
-            debugInfo = DebugInfo.parse(raw)
+        if (result.size == 1 && result[0].cardNumber == DEBUG_CARD) {
+            val raw = readDebugInfo(((startSector + 1) % mifare.sectorCount) * 4)
+            result[0] = result[0].copy(debugInfo = DebugInfo.parse(raw))
         }
 
         progress(1, 1)
-        return Info(cardId, punches, debugInfo)
+
+        return result
+    }
+
+    private data class RunResult(
+        val info: Info,
+        val nextSector: Int
+    )
+
+    private fun readOutRun(startSector: Int, markedBlocks: BitSet, progress: Progress): RunResult {
+
+        fun checkAndMark(block: Int): Boolean {
+            if (markedBlocks[block]) {
+                return false
+            }
+            markedBlocks.set(block)
+            return true
+        }
+
+        progress(1, 10)
+
+        authenticate(startSector)
+
+        val headerBlock = startSector * 4 + INDEX_KEY_BLOCK
+        if (!checkAndMark(headerBlock)) {
+            return RunResult(Info(cardNumber = 0, punches = emptyList(), debugInfo = null), startSector)
+        }
+
+        val headerKey = mifare.readBlock(headerBlock)!!
+
+        val cardId = getId(headerKey)
+        val nextSector = headerKey[PREV_SECTOR_OFFSET].toInt() and 0xff
+
+        if (!checkAndMark(startSector * 4 + HEADER_BLOCK1)
+            || !checkAndMark(startSector * 4 + HEADER_BLOCK2)) {
+            return RunResult(Info(cardNumber = 0, punches = emptyList(), debugInfo = null), startSector)
+        }
+
+        val header = recoverHeader(startSector, 8, progress)
+
+        val count = header[COUNT_OFFSET].toInt() and 0xff
+
+        val punches = ArrayList<Punch>(count)
+
+        if (count > 0) {
+            var tail = count % PUNCHES_PER_BLOCK
+            if (tail == 0)
+                tail = PUNCHES_PER_BLOCK
+
+            val wholeBlocks = (count - tail) / PUNCHES_PER_BLOCK
+
+            repeat(wholeBlocks) { i ->
+                val block = getPunchBlock(i * PUNCHES_PER_BLOCK, startSector)
+                progress(i, wholeBlocks)
+
+                if (!checkAndMark(block)) {
+                    return RunResult(Info(cardNumber = 0, punches = emptyList(), debugInfo = null), startSector)
+                }
+
+                authenticate(mifare.blockToSector(block))
+                val data = mifare.readBlock(block)!!
+
+                readPunchesFromBlock(PUNCHES_PER_BLOCK, data, punches)
+            }
+
+            readPunchesFromBlock(tail, header, punches)
+        }
+
+        return RunResult(
+            Info(cardId, punches, null),
+            nextSector
+        )
     }
 
     private fun readPunchesFromBlock(count: Int, data: ByteArray, punches: ArrayList<Punch>) {
