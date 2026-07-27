@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Card readout, formatting via shell
 - Cyclic card formatting, reading previous run punches
 - Dedicated station for clearing punches before the start
+- Station configuration in the android App via BLE
 
 ### Changed
 
