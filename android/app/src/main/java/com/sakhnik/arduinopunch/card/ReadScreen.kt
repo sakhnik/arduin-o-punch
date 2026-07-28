@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,31 +44,26 @@ fun ReadScreen(cardViewModel: CardViewModel) {
                 .fillMaxWidth()
                 .padding(4.dp)
         ) {
+            val uploadEnabled by cardViewModel.uploadEnabled.collectAsState(initial = false)
+            val uploadUrl by cardViewModel.uploadUrl.collectAsState(initial = stringResource(id = R.string.https_sakhnik_com_qr_o_punch_card))
+            val isLocked = remember { mutableStateOf(true) }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val uploadEnabled by cardViewModel.uploadEnabled.collectAsState(initial = false)
-
-                Checkbox(
-                    checked = uploadEnabled,
-                    onCheckedChange = {
-                        cardViewModel.updateUploadEnabled(it)
+                IconButton(
+                    onClick = {
+                        cardViewModel.updateUploadEnabled(!uploadEnabled)
                     }
-                )
-                Text(stringResource(id = R.string.upload))
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val uploadUrl by cardViewModel.uploadUrl.collectAsState(initial = stringResource(id = R.string.https_sakhnik_com_qr_o_punch_card))
-                val isLocked = remember { mutableStateOf(true) }
+                ) {
+                    Icon(
+                        imageVector = if (uploadEnabled) Icons.Default.CloudUpload else Icons.Default.CloudOff,
+                        contentDescription = stringResource(R.string.upload)
+                    )
+                }
 
                 TextField(
                     value = uploadUrl,
@@ -77,18 +73,18 @@ fun ReadScreen(cardViewModel: CardViewModel) {
                         }
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    label = { Text(stringResource(id = R.string.url_for_qr_o_punch_upload)) },
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                    label = { Text(stringResource(R.string.url_for_qr_o_punch_upload)) },
                     leadingIcon = {
-                        IconButton(onClick = { isLocked.value = !isLocked.value }) {
+                        IconButton(onClick = { if (uploadEnabled) { isLocked.value = !isLocked.value } } ) {
                             Icon(
-                                imageVector = if (isLocked.value) Icons.Filled.Create else Icons.Filled.Lock,
-                                contentDescription = if (isLocked.value) "Lock" else "Unlock"
+                                imageVector = if (isLocked.value) Icons.Default.Lock else Icons.Default.LockOpen,
+                                contentDescription = null
                             )
                         }
                     },
-                    enabled = !isLocked.value,
+                    enabled = uploadEnabled && !isLocked.value,
                     singleLine = false
                 )
             }
