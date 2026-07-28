@@ -200,14 +200,19 @@ open class CardViewModel(private val repository: Repository, application: Applic
         val runCount = readOutCount.value
         val readOuts = card.readOut(runCount, this::setProgress)
         _readOuts.postValue(readOuts)
-        selectReadOut(0)
+        _selectedReadOut.intValue = 0
+        _readOut.postValue(readOuts.firstOrNull())
 
         val doUpload = runBlocking { uploadEnabled.first() }
         if (doUpload && runCount == 1) {
-            val selected = _readOut.value ?: return
-            val uploadUrl = runBlocking { uploadUrl.first() }
-            Uploader(this).upload(selected, uploadUrl)
+            performUpload()
         }
+    }
+
+    fun performUpload() {
+        val selected = _readOut.value ?: return
+        val uploadUrl = runBlocking { uploadUrl.first() }
+        Uploader(this).upload(selected, uploadUrl)
     }
 
     companion object {

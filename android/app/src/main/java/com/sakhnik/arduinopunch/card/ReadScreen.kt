@@ -1,5 +1,6 @@
 package com.sakhnik.arduinopunch.card
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,11 +32,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
+import timber.log.Timber
 import java.time.DateTimeException
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -133,39 +136,67 @@ fun ReadScreen(cardViewModel: CardViewModel) {
             if (readOutCount > 1 && readOuts.isNotEmpty()) {
                 var expanded by remember { mutableStateOf(false) }
 
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .menuAnchor(
-                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                                enabled = true
-                            )
-                            .fillMaxWidth(),
-                        readOnly = true,
-                        value = formatReadOut(readOuts[selected]),
-                        onValueChange = {},
-                        label = { Text(stringResource(R.string.run)) },
-                        trailingIcon = {
-                            TrailingIcon(expanded)
-                        }
-                    )
-
-                    ExposedDropdownMenu(
+                    ExposedDropdownMenuBox(
+                        modifier = Modifier.weight(1f),
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onExpandedChange = { expanded = !expanded }
                     ) {
-                        readOuts.forEachIndexed { index, info ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(formatReadOut(info))
-                                },
-                                onClick = {
-                                    cardViewModel.selectReadOut(index)
-                                    expanded = false
+                        OutlinedTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(
+                                    ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                    enabled = true
+                                ),
+                            readOnly = true,
+                            value = formatReadOut(readOuts[selected]),
+                            onValueChange = {},
+                            label = { Text(stringResource(R.string.run)) },
+                            trailingIcon = {
+                                TrailingIcon(expanded)
+                            }
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            readOuts.forEachIndexed { index, info ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(formatReadOut(info))
+                                    },
+                                    onClick = {
+                                        cardViewModel.selectReadOut(index)
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    if (uploadEnabled) {
+                        val context = LocalContext.current
+
+                        IconButton(
+                            onClick = {
+                                try {
+                                    cardViewModel.performUpload()
+                                } catch (ex: Exception) {
+                                    Timber.e("Upload error $ex")
+                                    Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
                                 }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudUpload,
+                                contentDescription = stringResource(R.string.upload)
                             )
                         }
                     }
