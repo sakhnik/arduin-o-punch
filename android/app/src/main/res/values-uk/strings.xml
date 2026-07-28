@@ -58,4 +58,6 @@
     <string name="measure">Виміряти</string>
     <string name="synchronize">Синхронізувати</string>
     <string name="disconnect">Відчепитися</string>
+    <string name="runs_to_read">Скільки забігів прочитати:</string>
+    <string name="run">Забіг</string>
 </resources>

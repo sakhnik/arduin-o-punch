@@ -60,4 +60,6 @@
     <string name="measure">Measure</string>
     <string name="synchronize">Synchronize</string>
     <string name="disconnect">Disconnect</string>
+    <string name="runs_to_read">Runs to read:</string>
+    <string name="run">Run</string>
 </resources>

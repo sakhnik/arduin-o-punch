@@ -43,7 +43,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun PunchesTable(viewModel: CardViewModel) {
-    val readOut by viewModel.selectedReadOut.observeAsState()
+    val readOut by viewModel.readOut.observeAsState()
     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
     val clipboard = LocalClipboard.current
 

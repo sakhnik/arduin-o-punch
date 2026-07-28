@@ -10,17 +10,25 @@ import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,8 +36,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
+import java.time.DateTimeException
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import kotlin.collections.emptyList
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadScreen(cardViewModel: CardViewModel) {
     Column(
@@ -90,13 +103,15 @@ fun ReadScreen(cardViewModel: CardViewModel) {
             }
 
             val readOutCount by cardViewModel.readOutCount
+            val readOuts by cardViewModel.readOuts.observeAsState(emptyList())
+            val selected by cardViewModel.selectedReadOut
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Runs to read:",
+                    text = stringResource(R.string.runs_to_read),
                     modifier = Modifier.weight(1f)
                 )
 
@@ -115,9 +130,65 @@ fun ReadScreen(cardViewModel: CardViewModel) {
                 steps = 8
             )
 
+            if (readOutCount > 1 && readOuts.isNotEmpty()) {
+                var expanded by remember { mutableStateOf(false) }
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            )
+                            .fillMaxWidth(),
+                        readOnly = true,
+                        value = formatReadOut(readOuts[selected]),
+                        onValueChange = {},
+                        label = { Text(stringResource(R.string.run)) },
+                        trailingIcon = {
+                            TrailingIcon(expanded)
+                        }
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        readOuts.forEachIndexed { index, info ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(formatReadOut(info))
+                                },
+                                onClick = {
+                                    cardViewModel.selectReadOut(index)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             PunchesTable(viewModel = cardViewModel)
         }
     }
+}
+
+private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+private fun formatReadOut(info: PunchCard.Info): String {
+    val timestamp = info.punches.firstOrNull()?.let { punch ->
+        try {
+            LocalTime.ofSecondOfDay(punch.timestamp).format(timeFormatter)
+        } catch (_: DateTimeException) {
+            "--:--"
+        }
+    } ?: "--:--"
+
+    return "${info.cardNumber}, $timestamp, x${info.punches.size}"
 }
 
 @Preview(showBackground = true)

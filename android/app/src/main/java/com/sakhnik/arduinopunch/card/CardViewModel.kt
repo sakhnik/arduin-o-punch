@@ -34,14 +34,30 @@ open class CardViewModel(private val repository: Repository, application: Applic
     private val _progress = mutableFloatStateOf(0f)
     val progress: State<Float> = _progress
 
+    private val _readOutCount = mutableIntStateOf(1)
+    val readOutCount: State<Int> = _readOutCount
+    fun updateReadOutCount(value: Int) {
+        _readOutCount.intValue = value.coerceIn(1, 10)
+    }
+
     private val _readOuts: MutableLiveData<List<PunchCard.Info>> = MutableLiveData(listOf())
     val readOuts: LiveData<List<PunchCard.Info>> get() = _readOuts
 
-    private val _selectedReadOut = MutableLiveData(PunchCard.Info(0, listOf(), debugInfo = null))
-    val selectedReadOut: LiveData<PunchCard.Info> get() = _selectedReadOut
+    fun selectReadOut(index: Int) {
+        val info = _readOuts.value?.getOrNull(index) ?: return
+        _selectedReadOut.intValue = index
+        _readOut.postValue(info)
+    }
+
+    private val _selectedReadOut = mutableIntStateOf(0)
+    val selectedReadOut: State<Int> = _selectedReadOut
+
+    private val _readOut = MutableLiveData(PunchCard.Info(0, listOf(), debugInfo = null))
+    val readOut: LiveData<PunchCard.Info> get() = _readOut
+
     // Helper method for preview
     fun setReadOutForPreview(readOut: PunchCard.Info) {
-        _selectedReadOut.value = readOut
+        _readOut.value = readOut
     }
 
     private val _toastMessage = MutableLiveData<String>()
@@ -90,12 +106,6 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
     fun updateStationId(value: String) {
         _stationId.value = value
-    }
-
-    private val _readOutCount = mutableIntStateOf(1)
-    val readOutCount: State<Int> = _readOutCount
-    fun updateReadOutCount(value: Int) {
-        _readOutCount.intValue = value.coerceIn(1, 10)
     }
 
     val uploadEnabled: Flow<Boolean> = repository.uploadEnabledFlow
@@ -190,11 +200,11 @@ open class CardViewModel(private val repository: Repository, application: Applic
         val runCount = readOutCount.value
         val readOuts = card.readOut(runCount, this::setProgress)
         _readOuts.postValue(readOuts)
-        _selectedReadOut.postValue(readOuts.firstOrNull())
+        selectReadOut(0)
 
         val doUpload = runBlocking { uploadEnabled.first() }
         if (doUpload && runCount == 1) {
-            val selected = _selectedReadOut.value ?: return
+            val selected = _readOut.value ?: return
             val uploadUrl = runBlocking { uploadUrl.first() }
             Uploader(this).upload(selected, uploadUrl)
         }
