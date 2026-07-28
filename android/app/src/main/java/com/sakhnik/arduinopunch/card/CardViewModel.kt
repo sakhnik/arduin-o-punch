@@ -4,6 +4,7 @@ import android.app.Application
 import android.nfc.tech.MifareClassic
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -33,11 +34,14 @@ open class CardViewModel(private val repository: Repository, application: Applic
     private val _progress = mutableFloatStateOf(0f)
     val progress: State<Float> = _progress
 
-    private val _readOut = MutableLiveData(PunchCard.Info(0, listOf(), debugInfo = null))
-    val readOut: LiveData<PunchCard.Info> get() = _readOut
+    private val _readOuts: MutableLiveData<List<PunchCard.Info>> = MutableLiveData(listOf())
+    val readOuts: LiveData<List<PunchCard.Info>> get() = _readOuts
+
+    private val _selectedReadOut = MutableLiveData(PunchCard.Info(0, listOf(), debugInfo = null))
+    val selectedReadOut: LiveData<PunchCard.Info> get() = _selectedReadOut
     // Helper method for preview
     fun setReadOutForPreview(readOut: PunchCard.Info) {
-        _readOut.value = readOut
+        _selectedReadOut.value = readOut
     }
 
     private val _toastMessage = MutableLiveData<String>()
@@ -87,6 +91,9 @@ open class CardViewModel(private val repository: Repository, application: Applic
     fun updateStationId(value: String) {
         _stationId.value = value
     }
+
+    private val _readOutCount = mutableIntStateOf(1)
+    val readOutCount: State<Int> = _readOutCount
 
     val uploadEnabled: Flow<Boolean> = repository.uploadEnabledFlow
 
@@ -177,13 +184,16 @@ open class CardViewModel(private val repository: Repository, application: Applic
         val key = getKey()
         val context = getApplication<Application>().applicationContext
         val card = PunchCard(MifareImpl(mifareClassic), key, context)
-        val readOut = card.readOut(this::setProgress)
-        _readOut.postValue(readOut)
+        val runCount = readOutCount.value
+        val readOuts = card.readOut(runCount, this::setProgress)
+        _readOuts.postValue(readOuts)
+        _selectedReadOut.postValue(readOuts.firstOrNull())
 
         val doUpload = runBlocking { uploadEnabled.first() }
-        if (doUpload) {
+        if (doUpload && runCount == 1) {
+            val selected = _selectedReadOut.value ?: return
             val uploadUrl = runBlocking { uploadUrl.first() }
-            Uploader(this).upload(readOut, uploadUrl)
+            Uploader(this).upload(selected, uploadUrl)
         }
     }
 

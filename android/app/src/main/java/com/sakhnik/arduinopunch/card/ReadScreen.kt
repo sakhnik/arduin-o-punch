@@ -123,7 +123,7 @@ fun ReadScreen(cardViewModel: CardViewModel) {
 
 @Composable
 fun PunchesTable(viewModel: CardViewModel) {
-    val readOut by viewModel.readOut.observeAsState()
+    val readOut by viewModel.selectedReadOut.observeAsState()
     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
     val clipboard = LocalClipboard.current
 
