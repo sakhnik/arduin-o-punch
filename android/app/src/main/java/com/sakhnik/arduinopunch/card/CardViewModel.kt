@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import timber.log.Timber
 import java.time.Duration
@@ -224,10 +225,19 @@ open class CardViewModel(private val repository: Repository, application: Applic
     suspend fun settingsToYaml(): String {
         val map = mapOf(
             KEY_KEY_HEX to repository.keyHexFlow.first(),
-            KEY_KNOWN_KEYS to repository.knownKeysFlow.first(),
+            KEY_KNOWN_KEYS to repository.knownKeysFlow.first()
+                .split(',')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() },
             KEY_UPLOAD_URL to repository.uploadUrlFlow.first()
         )
-        return Yaml().dump(map)
+
+        val options = DumperOptions().apply {
+            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+            isPrettyFlow = true
+        }
+
+        return Yaml(options).dump(map)
     }
 
     suspend fun yamlToSettings(yamlText: String) {
@@ -237,7 +247,13 @@ open class CardViewModel(private val repository: Repository, application: Applic
             _keyHex.value = newValue
             repository.saveKeyHex(newValue)
         }
-        data[KEY_KNOWN_KEYS]?.let { repository.saveKnownKeys2(it.toString()) }
+        data[KEY_KNOWN_KEYS]?.let {
+            val value = when (it) {
+                is List<*> -> it.joinToString(",") { item -> item.toString() }
+                else -> it.toString()
+            }
+            repository.saveKnownKeys2(value)
+        }
         data[KEY_UPLOAD_URL]?.let {
             val newValue = it.toString()
             _uploadUrl.value = newValue
