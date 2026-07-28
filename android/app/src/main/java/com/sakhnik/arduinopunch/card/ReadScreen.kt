@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
+import kotlin.math.roundToInt
 
 @Composable
 fun ReadScreen(cardViewModel: CardViewModel) {
@@ -89,6 +92,32 @@ fun ReadScreen(cardViewModel: CardViewModel) {
                     singleLine = false
                 )
             }
+
+            val readOutCount by cardViewModel.readOutCount
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Runs to read:",
+                    modifier = Modifier.weight(1f)
+                )
+
+                Text(
+                    text = readOutCount.toString(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Slider(
+                value = readOutCount.toFloat(),
+                onValueChange = {
+                    cardViewModel.updateReadOutCount(it.roundToInt())
+                },
+                valueRange = 1f..10f,
+                steps = 8
+            )
 
             PunchesTable(viewModel = cardViewModel)
         }

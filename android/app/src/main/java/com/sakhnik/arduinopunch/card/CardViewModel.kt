@@ -94,6 +94,9 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
     private val _readOutCount = mutableIntStateOf(1)
     val readOutCount: State<Int> = _readOutCount
+    fun updateReadOutCount(value: Int) {
+        _readOutCount.intValue = value.coerceIn(1, 10)
+    }
 
     val uploadEnabled: Flow<Boolean> = repository.uploadEnabledFlow
 
