@@ -2,7 +2,7 @@ include <BOSL2/std.scad>
 
 $fn = 90;
 
-length = 105;
+length = 106;
 width = 80;
 bottom_thickness = 4;
 platform_thickness = 4;
@@ -11,10 +11,10 @@ lid_thickness = 6;
 
 battery_d = 19;
 battery_h = 66;
-battery_y = 30;
+battery_y = 32;
 
 pcb_offset_y = 17;  // back
-rfid_offset_y = 40; // fwd
+rfid_offset_y = 35; // fwd
 rfid_offset_z = lid_height - lid_thickness;
 
 inner_width = width - 2 * lid_thickness;
@@ -36,8 +36,8 @@ module pcb_model() {
     pcb_hole_offset = 3;
     pcb_led_offset_y = 6;
     pcb_pad_size = 4;
-    pcb_pad_offset = 8;
-    pcb_wire_width = 3;
+    pcb_pad_offset = 9;
+    pcb_wire_width = 4;
 
     hole_x = pcb_width * 0.5 - pcb_hole_offset;
     hole_y = pcb_length * 0.5 - pcb_hole_offset;
@@ -50,7 +50,11 @@ module pcb_model() {
 
             // hole for the LED
             fwd(pcb_length * 0.5 - pcb_led_offset_y)
-                cylinder(h=lid_height, r=1.5, anchor=BOTTOM);
+                union() {
+                    cylinder(h=lid_height, r=1.72, anchor=BOTTOM);
+                    up(lid_height)
+                        cylinder(h=2, r=2, anchor=TOP);
+                }
 
             // holes for the pad wires
             move([pad_x, -pcb_length * 0.5, 0])
@@ -60,9 +64,9 @@ module pcb_model() {
 
             // holes for the pads
             move([pad_x, -(pcb_length/2 - pcb_pad_size/2), 0])
-                cylinder(h=lid_height, r=1, anchor=TOP);
+                cylinder(h=lid_height, r=1.72, anchor=TOP);
             move([pcb_width/2 - pcb_pad_size/2, -pad_y, 0])
-                cylinder(h=lid_height, r=1, anchor=TOP);
+                cylinder(h=lid_height, r=1.72, anchor=TOP);
         }
 
         // holes
@@ -81,13 +85,13 @@ module pcb() {
 
 module rfid_model() {
     rfid_width = 40;
-    rfid_length = 60;
+    rfid_length = 61;
     rfid_height = 5;
 
     rfid_hole_r = 1.5;
-    rfid_hole1_offset = 6;
-    rfid_hole2_offset_x = 2;
-    rfid_hole2_offset_y = 15;
+    rfid_hole1_offset = 8;
+    rfid_hole2_offset_x = 3;
+    rfid_hole2_offset_y = 16;
 
     hole1_x = rfid_width/2 - rfid_hole1_offset;
     hole1_y = rfid_length - rfid_hole1_offset;
@@ -153,7 +157,7 @@ module screw_holes() {
     for (dx = [-1:2:1]) {
         for (dy = [-1:2:1]) {
             move([dx * screw_x, dy * screw_y, -bottom_thickness])
-            cylinder(h=lid_height-lid_thickness+bottom_thickness, r=1);
+            cylinder(h=lid_height-lid_thickness+bottom_thickness, r1=1.72, r2=0.5);
         }
     }
 }
@@ -162,7 +166,7 @@ module counter_sinks() {
     for (dx = [-1:2:1]) {
         for (dy = [-1:2:1]) {
             move([dx * screw_x, dy * screw_y, -bottom_thickness])
-            cylinder(h=2, r1=3, r2=1, anchor=BOTTOM);
+            cylinder(h=2.5, r1=3.5, r2=1, anchor=BOTTOM);
         }
     }
 
