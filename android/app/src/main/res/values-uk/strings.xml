@@ -60,4 +60,5 @@
     <string name="disconnect">Відчепитися</string>
     <string name="runs_to_read">Скільки забігів прочитати:</string>
     <string name="run">Забіг</string>
+    <string name="assign_card_id">Задати номер картки</string>
 </resources>

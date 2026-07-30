@@ -95,6 +95,13 @@ open class CardViewModel(private val repository: Repository, application: Applic
         }
     }
 
+    private val _useCardId = MutableStateFlow(false)
+    val useCardId: StateFlow<Boolean> = _useCardId
+
+    fun updateUseCardId(use: Boolean) {
+        _useCardId.value = use
+    }
+
     private val _cardId = MutableStateFlow(runBlocking { repository.cardIdFlow.first() })
     val cardId: StateFlow<String> get() = _cardId
 
@@ -169,10 +176,19 @@ open class CardViewModel(private val repository: Repository, application: Applic
         updateKnownKeys()
 
         val context = getApplication<Application>().applicationContext
-        val cardId = runBlocking { cardId.first() }.toInt()
-        Timber.d("Format $cardId with key ${key.joinToString("") { "%02X".format(it) }}")
+        val newCardId = if (useCardId.value) {
+            cardId.value.toInt()
+        } else {
+            null
+        }
+
+        if (newCardId != null) {
+            Timber.d("Format $newCardId with key ${key.joinToString("") { "%02X".format(it) }}")
+        } else {
+            Timber.d("Clear with key ${key.joinToString("") { "%02X".format(it) }}")
+        }
         val card = PunchCard(MifareImpl(mifare), key, context)
-        card.format(cardId, getKnownKeys(), this::setProgress)
+        card.format(newCardId, getKnownKeys(), this::setProgress)
     }
 
     private fun punchCard(mifare: MifareClassic) {

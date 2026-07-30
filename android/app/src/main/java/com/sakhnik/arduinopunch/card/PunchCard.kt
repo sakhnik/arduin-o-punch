@@ -56,7 +56,8 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
     }
 
-    fun format(id: Int, keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS) {
+    // If id isn't given, the previous id is kept (the card is cleared)
+    fun format(newCardId: Int?, keysToTry: List<ByteArray>, progress: Progress = Procedure.NO_PROGRESS) {
         val procedure = Procedure()
         val goodKeys = ArrayList<ByteArray>()
 
@@ -67,6 +68,7 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
 
         var startSector = 1
         var prevStartSector = 1
+        var cardId = 0
 
         // Configure KeyA, access bits and write card ID to KeyB
         procedure.add(mifare.sectorCount) { p ->
@@ -79,8 +81,12 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
             val trailer = mifare.readBlock(INDEX_KEY_BLOCK) as ByteArray
             startSector = trailer[SECTOR_OFFSET].toInt() and 0xff
             prevStartSector = trailer[PREV_SECTOR_OFFSET].toInt() and 0xff
+            cardId = getId(trailer)
+            if (newCardId != null) {
+                cardId = newCardId;
+            }
 
-            if (id == DEBUG_CARD || startSector !in 1 until mifare.sectorCount) {
+            if (cardId == DEBUG_CARD || startSector !in 1 until mifare.sectorCount) {
                 startSector = 1
                 prevStartSector = 1
                 return@add
@@ -115,8 +121,8 @@ class PunchCard(private val mifare: IMifare, private val key: ByteArray, private
         }
 
         procedure.add(2) {
-            writeSector(startSector, id, startSector, prevStartSector)
-            writeSector(INDEX_SECTOR, id, startSector, prevStartSector)
+            writeSector(startSector, cardId, startSector, prevStartSector)
+            writeSector(INDEX_SECTOR, cardId, startSector, prevStartSector)
         }
 
         procedure.add(3) { p ->

@@ -62,4 +62,5 @@
     <string name="disconnect">Disconnect</string>
     <string name="runs_to_read">Runs to read:</string>
     <string name="run">Run</string>
+    <string name="assign_card_id">Assign card ID</string>
 </resources>

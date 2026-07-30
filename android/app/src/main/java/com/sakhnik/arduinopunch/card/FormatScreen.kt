@@ -6,14 +6,17 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -96,53 +99,70 @@ fun FormatScreen(cardViewModel: CardViewModel) {
                 }
             }
 
+            // EditText equivalent (TextField) for cardId
+            val cardId by cardViewModel.cardId.collectAsState(initial = stringResource(id = R.string._1))
+            val useCardId by cardViewModel.useCardId.collectAsState(initial = false)
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // EditText equivalent (TextField) for cardId
-                val cardId by cardViewModel.cardId.collectAsState(initial = stringResource(id = R.string._1))
-
-                TextField(
-                    value = cardId,
-                    onValueChange = {
-                        cardViewModel.updateCardId(it)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    label = { Text(stringResource(id = R.string.card_id)) },
-                    //maxLength = 5,
-                    singleLine = true
+                Checkbox(
+                    checked = useCardId,
+                    onCheckedChange = { cardViewModel.updateUseCardId(it) }
                 )
 
-                val context = LocalContext.current
-                val cancelledMessage = stringResource(R.string.cancelled)
-                val notFromQrOPunchMessage = stringResource(R.string.not_from_qr_o_punch)
+                Text(stringResource(R.string.assign_card_id))
+            }
 
-                val barcodeLauncher = rememberLauncherForActivityResult(contract = ScanContract()) { result ->
-                    if (result?.contents == null) {
-                        Toast.makeText(context, cancelledMessage, Toast.LENGTH_SHORT).show()
-                    } else {
-                        val regex = Regex("""SetStartNumber (\d+)""")
-                        val number = regex.find(result.contents)?.groupValues?.get(1)
-                        if (number != null) {
-                            cardViewModel.updateCardId(number)
+            if (useCardId) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    TextField(
+                        value = cardId,
+                        onValueChange = cardViewModel::updateCardId,
+                        modifier = Modifier
+                            .weight(1f),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        label = { Text(stringResource(R.string.card_id)) },
+                        singleLine = true
+                    )
+
+                    val context = LocalContext.current
+                    val cancelledMessage = stringResource(R.string.cancelled)
+                    val notFromQrOPunchMessage = stringResource(R.string.not_from_qr_o_punch)
+
+                    val barcodeLauncher = rememberLauncherForActivityResult(contract = ScanContract()) { result ->
+                        if (result?.contents == null) {
+                            Toast.makeText(context, cancelledMessage, Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, notFromQrOPunchMessage, Toast.LENGTH_LONG).show()
+                            val regex = Regex("""SetStartNumber (\d+)""")
+                            val number = regex.find(result.contents)?.groupValues?.get(1)
+                            if (number != null) {
+                                cardViewModel.updateCardId(number)
+                            } else {
+                                Toast.makeText(context, notFromQrOPunchMessage, Toast.LENGTH_LONG).show()
+                            }
                         }
                     }
-                }
 
-                // Button for scanButton
-                Button(
-                    onClick = { barcodeLauncher.launch(ScanOptions()) },
-                    modifier = Modifier.weight(0.5f)
-                ) {
-                    Text(stringResource(id = R.string.scan_qr))
+                    Button(
+                        onClick = { barcodeLauncher.launch(ScanOptions()) },
+                        modifier = Modifier.weight(0.5f)
+                    ) {
+                        Text(stringResource(R.string.scan_qr))
+                    }
                 }
             }
         }
