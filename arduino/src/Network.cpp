@@ -87,6 +87,7 @@ void Network::SwitchOn()
 {
     assert(!_taskHandle);
 
+    _lastActivityTimeMs.store(millis());
     _Start();
 
     xTaskCreate(_TaskEntry, "wifi", 8192, this, 1, &_taskHandle);
