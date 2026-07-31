@@ -13,8 +13,8 @@ battery_d = 19;
 battery_h = 66;
 battery_y = 32;
 
-pcb_offset_y = 17;  // back
-rfid_offset_y = 35; // fwd
+pcb_offset_y = 16;  // back
+rfid_offset_y = -25; // fwd
 rfid_offset_z = lid_height - lid_thickness;
 
 inner_width = width - 2 * lid_thickness;
@@ -53,7 +53,7 @@ module pcb_model() {
                 union() {
                     cylinder(h=lid_height, r=1.72, anchor=BOTTOM);
                     up(lid_height)
-                        cylinder(h=2, r=2, anchor=TOP);
+                        cylinder(h=2.5, r=2.5, anchor=TOP);
                 }
 
             // holes for the pad wires
@@ -80,7 +80,7 @@ module pcb_model() {
 }
 
 module pcb() {
-    back(pcb_offset_y) pcb_model();
+    back(pcb_offset_y) zrot(180) pcb_model();
 }
 
 module rfid_model() {
@@ -89,7 +89,7 @@ module rfid_model() {
     rfid_height = 5;
 
     rfid_hole_r = 1.5;
-    rfid_hole1_offset = 8;
+    rfid_hole1_offset = 7.5;
     rfid_hole2_offset_x = 3;
     rfid_hole2_offset_y = 16;
 
@@ -114,7 +114,7 @@ module rfid_model() {
 
 module rfid() {
     move([0, rfid_offset_y, rfid_offset_z])
-        rfid_model();
+        zrot(180) rfid_model();
 }
 
 module screw_supports() {
