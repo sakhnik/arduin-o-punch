@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import timber.log.Timber
@@ -68,18 +67,49 @@ open class CardViewModel(private val repository: Repository, application: Applic
         _toastMessage.postValue(message)
     }
 
-    private val _keyHex = MutableStateFlow(runBlocking { repository.keyHexFlow.first() })
-    val keyHex: StateFlow<String> get() = _keyHex
+    private val _keyHex = mutableSetting("", repository.keyHexFlow, repository::saveKeyHex)
+    val keyHex: StateFlow<String> = _keyHex
 
-    fun updateKeyHex(value: String) {
-        _keyHex.value = value
+    private val _knownKeys = mutableSetting("", repository.knownKeysFlow, repository::saveKnownKeys2)
+    val knownKeys: StateFlow<String> = _knownKeys
+
+    private val _cardId = mutableSetting("", repository.cardIdFlow, repository::saveCardId)
+    val cardId: StateFlow<String> = _cardId
+
+    private val _stationId = mutableSetting("", repository.stationIdFlow, repository::saveStationId)
+    val stationId: StateFlow<String> = _stationId
+
+    private val _uploadUrl = mutableSetting("", repository.uploadUrlFlow, repository::saveUploadUrl)
+    val uploadUrl: StateFlow<String> = _uploadUrl
+
+    private val _uploadEnabled = mutableSetting(false, repository.uploadEnabledFlow, repository::saveUploadEnabled)
+    val uploadEnabled: StateFlow<Boolean> = _uploadEnabled
+
+    fun updateKeyHex(value: String) =
+        updateSetting(_keyHex, value, repository::saveKeyHex)
+
+    fun updateCardId(value: String) =
+        updateSetting(_cardId, value, repository::saveCardId)
+
+    fun updateStationId(value: String) =
+        updateSetting(_stationId, value, repository::saveStationId)
+
+    fun updateUploadUrl(value: String) =
+        updateSetting(_uploadUrl, value, repository::saveUploadUrl)
+
+    fun updateUploadEnabled(value: Boolean) =
+        updateSetting(_uploadEnabled, value, repository::saveUploadEnabled)
+
+    private fun <T> mutableSetting(initialValue: T, source: Flow<T>, save: suspend (T) -> Unit): MutableStateFlow<T> {
+        return MutableStateFlow(initialValue).also { state ->
+            viewModelScope.launch {
+                state.value = source.first()
+            }
+            trackAndSave(state, save)
+        }
     }
 
-    private fun <T> trackAndSave(
-        flow: StateFlow<T>,
-        saveAction: suspend (T) -> Unit,
-        debounceMillis: Long = 500L
-    ) {
+    private fun <T> trackAndSave(flow: StateFlow<T>, saveAction: suspend (T) -> Unit, debounceMillis: Long = 500L) {
         flow
             .debounce(debounceMillis.milliseconds)
             .distinctUntilChanged()
@@ -87,11 +117,17 @@ open class CardViewModel(private val repository: Repository, application: Applic
             .launchIn(viewModelScope)
     }
 
-    val knownKeys: Flow<String> = repository.knownKeysFlow
+    private fun <T> updateSetting(state: MutableStateFlow<T>, value: T, save: suspend (T) -> Unit) {
+        state.value = value
+        viewModelScope.launch {
+            save(value)
+        }
+    }
 
     private fun updateKnownKeys() {
         viewModelScope.launch {
             repository.saveKnownKeys()
+            _knownKeys.value = repository.knownKeysFlow.first()
         }
     }
 
@@ -100,42 +136,6 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
     fun updateUseCardId(use: Boolean) {
         _useCardId.value = use
-    }
-
-    private val _cardId = MutableStateFlow(runBlocking { repository.cardIdFlow.first() })
-    val cardId: StateFlow<String> get() = _cardId
-
-    fun updateCardId(value: String) {
-        _cardId.value = value
-    }
-
-    private val _stationId = MutableStateFlow(runBlocking { repository.stationIdFlow.first() })
-    val stationId: StateFlow<String> get() = _stationId
-
-    fun updateStationId(value: String) {
-        _stationId.value = value
-    }
-
-    val uploadEnabled: Flow<Boolean> = repository.uploadEnabledFlow
-
-    fun updateUploadEnabled(value: Boolean) {
-        viewModelScope.launch {
-            repository.saveUploadEnabled(value)
-        }
-    }
-
-    private val _uploadUrl = MutableStateFlow(runBlocking { repository.uploadUrlFlow.first() })
-    val uploadUrl: StateFlow<String> get() = _uploadUrl
-
-    fun updateUploadUrl(value: String) {
-        _uploadUrl.value = value
-    }
-
-    init {
-        trackAndSave(_keyHex, { repository.saveKeyHex(it) })
-        trackAndSave(_cardId, { repository.saveCardId(it) })
-        trackAndSave(_stationId, { repository.saveStationId(it) })
-        trackAndSave(_uploadUrl, { repository.saveUploadUrl(it) })
     }
 
     fun getStringFromResources(resourceId: Int): String {
@@ -164,11 +164,11 @@ open class CardViewModel(private val repository: Repository, application: Applic
     }
 
     private fun getKnownKeys(): List<ByteArray> {
-        return runBlocking { knownKeys.first() }.split(",").filter { it.isNotEmpty() }.map { RepositoryImpl.parseKey(it) }
+        return knownKeys.value.split(",").filter { it.isNotEmpty() }.map { RepositoryImpl.parseKey(it) }
     }
 
     private fun getKey(): ByteArray {
-        return runBlocking { RepositoryImpl.parseKey(keyHex.first()) }
+        return RepositoryImpl.parseKey(keyHex.value)
     }
 
     private fun formatCard(mifare: MifareClassic) {
@@ -194,7 +194,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
     private fun punchCard(mifare: MifareClassic) {
         val key = getKey()
         val context = getApplication<Application>().applicationContext
-        val station = runBlocking { stationId.first() }.toInt()
+        val station = stationId.value.toInt()
         val card = PunchCard(MifareImpl(mifare), key, context)
         card.punch(Punch(station, getTimestamp()), this::setProgress)
     }
@@ -220,7 +220,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
         _selectedReadOut.intValue = 0
         _readOut.postValue(readOuts.firstOrNull())
 
-        val doUpload = runBlocking { uploadEnabled.first() }
+        val doUpload = uploadEnabled.value
         if (doUpload && runCount == 1) {
             performUpload()
         }
@@ -228,7 +228,7 @@ open class CardViewModel(private val repository: Repository, application: Applic
 
     fun performUpload() {
         val selected = _readOut.value ?: return
-        val uploadUrl = runBlocking { uploadUrl.first() }
+        val uploadUrl = uploadUrl.value
         Uploader(this).upload(selected, uploadUrl)
     }
 

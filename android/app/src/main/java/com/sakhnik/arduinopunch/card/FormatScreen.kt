@@ -40,8 +40,6 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.sakhnik.arduinopunch.R
 import com.sakhnik.arduinopunch.ui.theme.AppTheme
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 @Composable
 fun FormatScreen(cardViewModel: CardViewModel) {
@@ -170,8 +168,8 @@ fun FormatScreen(cardViewModel: CardViewModel) {
 }
 
 private fun showPreviousKeys(cardViewModel: CardViewModel, context: Context) {
-    val keyHex = runBlocking { cardViewModel.keyHex.first() }
-    var knownKeys = runBlocking { cardViewModel.knownKeys.first() }
+    val keyHex = cardViewModel.keyHex.value
+    var knownKeys = cardViewModel.knownKeys.value
     // knownKeys contains the actual key too, skip it
     if (knownKeys.startsWith(keyHex)) {
         knownKeys = knownKeys.subSequence(keyHex.length, knownKeys.length).toString()

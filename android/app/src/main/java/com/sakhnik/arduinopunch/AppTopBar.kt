@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -26,7 +27,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sakhnik.arduinopunch.card.CardViewModel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +41,15 @@ fun AppTopBar(
     val context = LocalContext.current
     val exportedMessage = stringResource(R.string.settings_exported)
     val importedMessage = stringResource(R.string.settings_imported)
+    val scope = rememberCoroutineScope()
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/yaml")
     ) { uri ->
-        uri?.let {
-            val yamlString = runBlocking { viewModel.settingsToYaml() }
+        uri ?: return@rememberLauncherForActivityResult
+
+        scope.launch {
+            val yamlString = viewModel.settingsToYaml()
             context.contentResolver.openOutputStream(uri)?.use { it.write(yamlString.toByteArray()) }
             Toast.makeText(context, exportedMessage, Toast.LENGTH_SHORT).show()
         }
@@ -52,12 +58,19 @@ fun AppTopBar(
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
-        uri?.let {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                val yamlText = stream.bufferedReader().readText()
-                runBlocking { viewModel.yamlToSettings(yamlText) }
+        uri ?: return@rememberLauncherForActivityResult
+
+        scope.launch {
+            val yamlText = withContext(Dispatchers.IO) {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    stream.bufferedReader().readText()
+                }
             }
-            Toast.makeText(context, importedMessage, Toast.LENGTH_SHORT).show()
+
+            yamlText?.let {
+                viewModel.yamlToSettings(it)
+                Toast.makeText(context, importedMessage, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
