@@ -4,10 +4,10 @@ $fn = 90;
 
 length = 106;
 width = 80;
-bottom_thickness = 4;
+bottom_thickness = 5;
 platform_thickness = 4;
 lid_height = 25;
-lid_thickness = 6;
+lid_thickness = 5;
 
 battery_d = 19;
 battery_h = 66;
@@ -16,6 +16,7 @@ battery_y = 32;
 pcb_offset_y = 16;  // back
 rfid_offset_y = -25; // fwd
 rfid_offset_z = lid_height - lid_thickness;
+notch_height = 3;
 
 inner_width = width - 2 * lid_thickness;
 inner_length = length - 2 * lid_thickness;
@@ -29,10 +30,10 @@ module battery() {
 }
 
 module pcb_model() {
-    pcb_width = 46;
-    pcb_length = 56;
+    pcb_width = 45.5;
+    pcb_length = 55.5;
     pcb_height = 7;
-    pcb_hole_r = 0.75;
+    pcb_hole_r = 0.9;
     pcb_hole_offset = 3;
     pcb_led_offset_y = 6;
     pcb_pad_size = 4;
@@ -53,7 +54,7 @@ module pcb_model() {
                 union() {
                     cylinder(h=lid_height, r=1.72, anchor=BOTTOM);
                     up(lid_height)
-                        cylinder(h=2.5, r=2.5, anchor=TOP);
+                        cylinder(h=1.5, r=2, anchor=TOP);
                 }
 
             // holes for the pad wires
@@ -63,19 +64,25 @@ module pcb_model() {
                 cuboid([pcb_wire_width, pcb_wire_width, pcb_height], anchor=BOTTOM+LEFT);
 
             // holes for the pads
-            move([pad_x, -(pcb_length/2 - pcb_pad_size/2), 0])
+            move([pad_x, -(pcb_length/2 - pcb_pad_size/2 - 1), 0])
                 cylinder(h=lid_height, r=1.72, anchor=TOP);
-            move([pcb_width/2 - pcb_pad_size/2, -pad_y, 0])
+            move([pcb_width/2 - pcb_pad_size/2 - 1, -pad_y, 0])
                 cylinder(h=lid_height, r=1.72, anchor=TOP);
         }
 
         // holes
-        for (dx = [-1:2:1]) {
-            for (dy = [-1:2:1]) {
-                move([dx * hole_x, dy * hole_y, 0])
-                cylinder(h=10, r=pcb_hole_r);
-            }
-        }
+        //for (dx = [-1:2:1]) {
+        //    for (dy = [-1:2:1]) {
+        //        move([dx * hole_x, dy * hole_y, 0])
+        //        cylinder(h=10, r=pcb_hole_r);
+        //    }
+        //}
+
+        // notches
+        //left(pcb_width/2) up(notch_height)
+        //    cylinder(r=1, h=20, anchor=CENTER, orient=FRONT);
+        //right(pcb_width/2) up(notch_height)
+        //    cylinder(r=1, h=20, anchor=CENTER, orient=FRONT);
     }
 }
 
@@ -109,6 +116,12 @@ module rfid_model() {
             cylinder(h=rfid_height+1, r=rfid_hole_r, anchor=TOP);
         move([-hole2_x, -rfid_hole2_offset_y, 0])
             cylinder(h=rfid_height+1, r=rfid_hole_r, anchor=TOP);
+
+        // notches
+        //move([-rfid_width/2, -rfid_length/2, -notch_height])
+        //    cylinder(r=1, h=20, anchor=CENTER, orient=FRONT);
+        //move([rfid_width/2, -rfid_length/2, -notch_height])
+        //    cylinder(r=1, h=20, anchor=CENTER, orient=FRONT);
     }
 }
 
@@ -117,12 +130,18 @@ module rfid() {
         zrot(180) rfid_model();
 }
 
+module screw_support(x, y) {
+    move([x, y, 0])
+    cylinder(h=inner_height, r=5);
+
+}
+
 module screw_supports() {
     for (dx = [-1:2:1]) {
         for (dy = [-1:2:1]) {
-            move([dx * screw_x, dy * screw_y, 0])
-            cylinder(h=inner_height, r=5);
+            screw_support(dx * screw_x, dy * screw_y);
         }
+        screw_support(dx * screw_x, 0);
     }
 }
 
@@ -153,30 +172,29 @@ module outer_lid() {
     cuboid([inner_width, inner_length, platform_thickness], anchor=TOP);
 };
 
+module screw_hole(x, y) {
+    move([x, y, 0])
+    cylinder(h=lid_height-lid_thickness+bottom_thickness, r1=1.72, r2=0.5);
+
+    // Counter sink
+    move([x, y, 0])
+    cylinder(h=2.5, r1=3.5, r2=1, anchor=BOTTOM);
+}
+
 module screw_holes() {
     for (dx = [-1:2:1]) {
         for (dy = [-1:2:1]) {
-            move([dx * screw_x, dy * screw_y, -bottom_thickness])
-            cylinder(h=lid_height-lid_thickness+bottom_thickness, r1=1.72, r2=0.5);
+            screw_hole(dx * screw_x, dy * screw_y);
         }
+        screw_hole(dx * screw_x, 0);
     }
-}
-
-module counter_sinks() {
-    for (dx = [-1:2:1]) {
-        for (dy = [-1:2:1]) {
-            move([dx * screw_x, dy * screw_y, -bottom_thickness])
-            cylinder(h=2.5, r1=3.5, r2=1, anchor=BOTTOM);
-        }
-    }
-
 }
 
 module lid() {
     difference() {
         outer_lid();
 
-        screw_holes();
+        down(bottom_thickness) screw_holes();
         battery();
         pcb();
         rfid();
@@ -205,7 +223,6 @@ module base() {
 
         down(bottom_thickness)
             screw_holes();
-        counter_sinks();
     }
 }
 
