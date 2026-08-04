@@ -9,8 +9,8 @@ platform_thickness = 4;
 lid_height = 25;
 lid_thickness = 5;
 
-battery_d = 19;
-battery_h = 66;
+battery_d = 18.3;
+battery_h = 65.3;
 battery_y = 32;
 
 pcb_offset_y = 16;  // back
@@ -30,8 +30,8 @@ module battery() {
 }
 
 module pcb_model() {
-    pcb_width = 45.5;
-    pcb_length = 55.5;
+    pcb_width = 45.3;
+    pcb_length = 55.3;
     pcb_height = 7;
     pcb_hole_r = 0.9;
     pcb_hole_offset = 3;
@@ -52,9 +52,9 @@ module pcb_model() {
             // hole for the LED
             fwd(pcb_length * 0.5 - pcb_led_offset_y)
                 union() {
-                    cylinder(h=lid_height, r=1.72, anchor=BOTTOM);
+                    cylinder(h=lid_height, r=1.6, anchor=BOTTOM);
                     up(lid_height)
-                        cylinder(h=1.5, r=2, anchor=TOP);
+                        cylinder(h=1, r=2, anchor=TOP);
                 }
 
             // holes for the pad wires
@@ -92,7 +92,7 @@ module pcb() {
 
 module rfid_model() {
     rfid_width = 40;
-    rfid_length = 61;
+    rfid_length = 60.5;
     rfid_height = 5;
 
     rfid_hole_r = 1.5;
@@ -174,7 +174,7 @@ module outer_lid() {
 
 module screw_hole(x, y) {
     move([x, y, 0])
-    cylinder(h=lid_height-lid_thickness+bottom_thickness, r1=1.72, r2=0.5);
+    cylinder(h=lid_height-lid_thickness+bottom_thickness, r1=1.72, r2=0.7);
 
     // Counter sink
     move([x, y, 0])
