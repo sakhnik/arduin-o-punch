@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include <BLEOTA.h>
 #include <memory>
 
 namespace {
@@ -18,6 +19,7 @@ static uint16_t negotiatedMTU = 23;
 NimBLEServer *server = nullptr;
 NimBLECharacteristic *stdinChr = nullptr;
 NimBLECharacteristic *stdoutChr = nullptr;
+BLEOTAClass BLEOTA;
 
 bool deviceConnected = false;
 
@@ -133,7 +135,10 @@ void Bluetooth::_Task()
     while (!_stopRequested.load()) {
 
         // Wait until there is something to send
-        xSemaphoreTake(_txSignal, portMAX_DELAY);
+        if (!xSemaphoreTake(_txSignal, pdMS_TO_TICKS(500))) {
+            BLEOTA.process();
+            continue;
+        }
 
         while (!_stopRequested.load()) {
 
@@ -192,6 +197,15 @@ bool Bluetooth::_Start()
 
     NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
     adv->addServiceUUID(SHELL_SERVICE_UUID);
+
+    BLEOTA.begin(server);
+    BLEOTA.setModel("AOP");
+    BLEOTA.setHWVersion("v0.5");
+    BLEOTA.setFWVersion(PROJECT_VERSION "-" GIT_REVISION);
+    BLEOTA.setManufactuer("sakhnik");
+    BLEOTA.init();
+    adv->addServiceUUID(BLEOTA.getBLEOTAuuid());
+
     adv->setName(localName);
     adv->start();
 
