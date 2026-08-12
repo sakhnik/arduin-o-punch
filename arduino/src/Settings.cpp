@@ -56,8 +56,10 @@ int8_t Settings::Setup()
     _active_ms = 60000ul * _active_minutes;
     _eco_minutes = prefs.getUShort(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
     _eco_ms = 60000ul * _eco_minutes;
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
     _wifi_pass = prefs.getString(PREF_WIFI_PASS).c_str();
+#endif
     prefs.end();
 
     // Prepare to record the punches
@@ -240,6 +242,7 @@ void Settings::SetEcoMinutes(uint32_t minutes)
     NotifyWatchers();
 }
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
 std::string Settings::GetWifiSsid()
 {
     LockGuard lock{_dataMx};
@@ -281,6 +284,7 @@ void Settings::SetWifiPass(std::string_view pass)
 
     NotifyWatchers();
 }
+#endif
 
 size_t Settings::Subscribe(OnChangeT on_change)
 {

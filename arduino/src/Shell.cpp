@@ -171,10 +171,12 @@ void Shell::_Process(const String &buffer)
         _outMux.println(F("timestamp 12345   Set date and time with UNIX timestamp"));
         _outMux.println(F("rec               List punched cards"));
         _outMux.println(F("rec 123           Print punch count for a card"));
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
         _outMux.println(F("wifissid          Print current WiFi SSID"));
         _outMux.println(F("wifissid ssid     Set WiFi SSID to connect to"));
         _outMux.println(F("wifipass          Print WiFi password"));
         _outMux.println(F("wifipass pass     Set WiFi password"));
+#endif
         if (_operation) {
             _outMux.println(F("stats             Print energy consumption stats"));
             _outMux.println(F("stats-reset       Reset energy consumption stats"));
@@ -201,8 +203,10 @@ void Shell::_Process(const String &buffer)
         _PrintDate(now);
         _outMux.print(F("time="));
         _PrintTime(now);
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
         _outMux.print(F("wifissid="));
         _PrintWifiSsid();
+#endif
         _outMux.print(F("card-mode="));
         switch (_settings.GetActiveCardMode()) {
         case Settings::CardMode::Punch:
@@ -255,6 +259,7 @@ void Shell::_Process(const String &buffer)
         _RecorderCheck(buffer.c_str() + 4);
     } else if (buffer.startsWith(F("rec"))) {
         _RecorderList();
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     } else if (buffer.startsWith("wifissid ")) {
         _SetWifiSsid(buffer.c_str() + 9);
     } else if (buffer.startsWith("wifissid")) {
@@ -263,6 +268,7 @@ void Shell::_Process(const String &buffer)
         _SetWifiPass(buffer.c_str() + 9);
     } else if (buffer.startsWith("wifipass")) {
         _PrintWifiPass();
+#endif
     } else if (buffer.startsWith("card-punch")) {
         _settings.ActivateCardPunchMode();
     } else if (buffer.startsWith("card-readout")) {
@@ -480,6 +486,7 @@ void Shell::_RecorderList()
     _settings.GetRecorder().List(printer, &printer);
 }
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
 void Shell::_SetWifiSsid(const char *str)
 {
     _settings.SetWifiSsid(str);
@@ -501,6 +508,7 @@ void Shell::_PrintWifiPass()
 {
     _outMux.println(_settings.GetWifiPass().c_str());
 }
+#endif
 
 void Shell::_PrintKnownKeys()
 {

@@ -50,11 +50,13 @@ public:
 
     AOP::Recorder& GetRecorder() { return _recorder; }
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     std::string GetWifiSsid();
     void SetWifiSsid(std::string_view ssid);
 
     std::string GetWifiPass();
     void SetWifiPass(std::string_view pass);
+#endif
 
     using OnChangeT = std::function<void(void)>;
     size_t Subscribe(OnChangeT);
@@ -91,8 +93,10 @@ private:
     uint16_t _eco_minutes = DEFAULT_ECO_MINUTES;
     uint32_t _eco_ms = 60000ul * _eco_minutes;
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     std::string _wifi_ssid;
     std::string _wifi_pass;
+#endif
 
     AOP::Recorder _recorder;
 

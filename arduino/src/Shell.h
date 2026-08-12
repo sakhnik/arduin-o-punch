@@ -53,10 +53,12 @@ private:
     void _RecorderCheck(const char *str);
     void _RecorderList();
     void _PrintDD(uint8_t d);
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     void _SetWifiSsid(const char *str);
     void _PrintWifiSsid();
     void _SetWifiPass(const char *str);
     void _PrintWifiPass();
+#endif
     void _PrintKnownKeys();
     void _SetKnownKeys(const char *str);
 };
