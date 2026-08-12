@@ -5,16 +5,16 @@
 from datetime import datetime, timedelta, timezone
 import argparse
 from connection import Connection, SerialConnection, TcpConnection
+from ble_connection import BleConnection
 
 serial_port = '/dev/ttyACM0'
 baud_rate = 115200
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port", help=f"serial port {serial_port}",
-                    type=str)
+parser.add_argument("-p", "--port", help=f"serial port {serial_port}", type=str)
 parser.add_argument("-t", "--tcp", help="TCP connection", type=str)
-parser.add_argument("-s", "--script", help="file with additional commands",
-                    type=str)
+parser.add_argument("-b", "--ble", help="BLE connection", action="store_true")
+parser.add_argument("-s", "--script", help="file with additional commands", type=str)
 parser.add_argument("--id", help="set station id", type=int)
 args = parser.parse_args()
 
@@ -46,20 +46,21 @@ def next_line():
 
 
 def run(conn: Connection):
-    # Wait for a clear prompt
-    conn.write(b'\r')
-    idle_count = 0
-    while True:
-        line = conn.read()
-        echo_output(line)
-        if b'Arduin-o-punch> ' == line:
-            break
-        if line:
-            idle_count = 0
-            continue
-        idle_count += 1
-        if idle_count == 3:
-            break
+    if not args.ble:
+        # Wait for a clear prompt
+        conn.write(b'\r')
+        idle_count = 0
+        while True:
+            line = conn.read()
+            echo_output(line)
+            if b'Arduin-o-punch> ' == line:
+                break
+            if line:
+                idle_count = 0
+                continue
+            idle_count += 1
+            if idle_count == 3:
+                break
 
     # Get current time before interacting with Arduino
     start = get_current_time()
@@ -107,7 +108,10 @@ def run(conn: Connection):
                 echo_output(resp)
 
 
-if args.tcp:
+if args.ble:
+    with BleConnection() as conn:
+        run(conn)
+elif args.tcp:
     with TcpConnection(args.tcp) as conn:
         run(conn)
 else:
