@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "Shell.h"
 #include "Buzzer.h"
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
 #include "Utils.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -12,15 +13,19 @@
 WiFiServer shellServer{23};
 WiFiClient shellClient;
 WebServer webServer{80};
+#endif
 
 Network::Network(OutMux &outMux, Settings &settings, Shell &shell, Buzzer &buzzer)
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     : _outMux{outMux}
     , _settings{settings}
     , _shell{shell}
     , _buzzer{buzzer}
+#endif
 {
 }
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
 namespace {
 
 void handleUpdateEnd()
@@ -101,6 +106,11 @@ void Network::SwitchOff()
 
     vTaskDelete(_taskHandle);
     _taskHandle = nullptr;
+}
+
+unsigned Network::GetInactivitySeconds()
+{
+    return (millis() - _lastActivityTimeMs.load()) / 1000;
 }
 
 bool Network::_Start()
@@ -224,13 +234,6 @@ void Network::_Task()
     }
 }
 
-void Network::Write(const uint8_t *buffer, size_t size)
-{
-    if (shellClient && shellClient.connected()) {
-        shellClient.write(buffer, size);
-    }
-}
-
 void Network::_HandleGetSettings()
 {
     String response;
@@ -324,7 +327,13 @@ void Network::_HandleClock()
     }
 }
 
-unsigned Network::GetInactivitySeconds()
+#endif
+
+void Network::Write(const uint8_t *buffer, size_t size)
 {
-    return (millis() - _lastActivityTimeMs.load()) / 1000;
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
+    if (shellClient && shellClient.connected()) {
+        shellClient.write(buffer, size);
+    }
+#endif
 }

@@ -15,6 +15,7 @@ class Network
 public:
     Network(OutMux &, Settings &, Shell &, Buzzer &);
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     void Setup();
     void SwitchOn();
     void SwitchOff();
@@ -34,13 +35,14 @@ private:
     bool _Start();
     bool _Stop();
 
-    // MuxOut::IClient
-    void Write(const uint8_t *buffer, size_t size) override;
-
     static void _TaskEntry(void* arg);
     void _Task();
     void _HandleGetSettings();
     void _HandleSettings();
     void _HandleRecord();
     void _HandleClock();
+#endif
+
+    // MuxOut::IClient
+    void Write(const uint8_t *buffer, size_t size) override;
 };

@@ -15,7 +15,7 @@ OutMux outMux;
 Shell shell{outMux, settings, buzzer};
 
 Bluetooth bluetooth{outMux, settings, shell};
-Network network {outMux, settings, shell, buzzer};
+Network network{outMux, settings, shell, buzzer};
 Operation operation{buzzer, settings, bluetooth, network};
 Puncher puncher{settings, operation, buzzer, outMux};
 
@@ -45,7 +45,9 @@ void setup()
     shell.Setup();
     shell.SetOperation(&operation);
     bluetooth.Setup();
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     network.Setup();
+#endif
 
     operation.SetupLate();
 

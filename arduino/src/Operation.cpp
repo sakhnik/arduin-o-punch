@@ -105,8 +105,10 @@ Operation::Mode Operation::GetNextMode()
     case Mode::Eco:
         return Mode::BLE;
     case Mode::BLE:
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
         return Mode::WiFi;
     case Mode::WiFi:
+#endif
         return Mode::Eco;
     default:
         break;
@@ -123,9 +125,11 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
     case Mode::BLE:
         bluetooth.SwitchOff();
         break;
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     case Mode::WiFi:
         network.SwitchOff();
         break;
+#endif
     default:
         break;
     }
@@ -159,6 +163,7 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
         }
         bluetooth.SwitchOn();
         break;
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     case Mode::WiFi:
         SetCpuFreq(80);
         // It takes a second or so to initialize WiFi. The CPU will be busy.
@@ -168,6 +173,7 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
             buzzer.SignalWifi();
         }
         break;
+#endif
     case Mode::Sleep:
         EnterSleep();
         break;
@@ -246,11 +252,13 @@ bool Operation::CheckSnooze()
         return false;
     }
 
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
     if (mode == Mode::WiFi && network.GetInactivitySeconds() > 120) {
         TransitionTo(Mode::Eco);
         prevCardTimeMs = millisNow;
         return false;
     }
+#endif
 
     if (mode == Mode::Eco && millisNow - prevCardTimeMs >= settings.GetEcoMs()) {
         TransitionTo(Mode::Sleep);
