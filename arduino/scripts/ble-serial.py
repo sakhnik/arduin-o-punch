@@ -24,7 +24,7 @@ async def main():
         print("Device not found")
         return
 
-    print(f"Connecting to {target.address}...")
+    print(f"Connecting to {target.name} ({target.address})...")
 
     async with BleakClient(target.address, bluez={"adapter": "hci0"}) as client:
         print("Connected")
