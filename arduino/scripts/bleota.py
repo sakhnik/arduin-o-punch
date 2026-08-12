@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import struct
+import zlib
 from binascii import crc_hqx
 from pathlib import Path
 from typing import Callable
@@ -441,6 +442,8 @@ class BleOtaClient:
 
         firmware = Path(firmware)
         image = firmware.read_bytes()
+        if not image.startswith(b"\x78"):
+            image = zlib.compress(image, level=9)
 
         total = len(image)
         command = CMD_SPIFFS if spiffs else CMD_FLASH
