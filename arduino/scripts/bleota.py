@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import struct
+from binascii import crc_hqx
 from pathlib import Path
 from typing import Callable
 
@@ -32,30 +33,6 @@ MTU_CANDIDATES = [510, 247, 185, 122, 23]
 
 
 # -----------------------------------------------------------------------------
-# CRC16 CCITT
-# -----------------------------------------------------------------------------
-
-
-def crc16(data: bytes | bytearray | memoryview, init: int = 0) -> int:
-    crc = init
-
-    for b in data:
-        crc ^= b << 8
-
-        for _ in range(8):
-            if crc & 0x8000:
-                crc = ((crc << 1) ^ 0x1021) & 0xFFFF
-            else:
-                crc = (crc << 1) & 0xFFFF
-
-    return crc & 0xFFFF
-
-
-def crc16_incremental(previous: int, chunk: bytes) -> int:
-    return crc16(chunk, previous)
-
-
-# -----------------------------------------------------------------------------
 # Packet builders
 # -----------------------------------------------------------------------------
 
@@ -76,18 +53,14 @@ def build_command(cmd: int, payload: bytes = b"") -> bytes:
     payload = payload[:16]
     packet[2:2 + len(payload)] = payload
 
-    crc = crc16(packet[:18])
+    crc = crc_hqx(packet[:18], 0)
 
     struct.pack_into("<H", packet, 18, crc)
 
     return bytes(packet)
 
 
-def build_sector_packets(
-    sector: bytes,
-    sector_index: int,
-    mtu_payload: int,
-) -> list[bytes]:
+def build_sector_packets(sector: bytes, sector_index: int, mtu_payload: int) -> list[bytes]:
 
     packets: list[bytes] = []
 
@@ -101,11 +74,9 @@ def build_sector_packets(
 
         chunk = sector[offset:offset + size]
         offset += size
-
-        crc = crc16_incremental(crc, chunk)
+        crc = crc_hqx(chunk, crc)
 
         last = offset >= len(sector)
-
         if last:
             pkt = bytearray(3 + len(chunk) + 2)
         else:
@@ -114,14 +85,12 @@ def build_sector_packets(
         struct.pack_into("<H", pkt, 0, sector_index)
 
         pkt[2] = 0xFF if last else sequence
-
         pkt[3:3 + len(chunk)] = chunk
 
         if last:
             struct.pack_into("<H", pkt, 3 + len(chunk), crc)
 
         packets.append(bytes(pkt))
-
         sequence += 1
 
     return packets
@@ -134,13 +103,7 @@ def build_sector_packets(
 
 class BleOtaClient:
 
-    def __init__(
-        self,
-        device: str | BLEDevice,
-        adapter='hci1',
-        *,
-        progress: Callable[[int, int], None] | None = None,
-    ):
+    def __init__(self, device: str | BLEDevice, adapter='hci1', *, progress: Callable[[int, int], None] | None = None):
         self._device = device
         self._adapter = adapter
         self._progress = progress
@@ -187,7 +150,7 @@ class BleOtaClient:
         else:
             device = self._device
 
-        self.client = BleakClient(device, adapter=self._adapter)
+        self.client = BleakClient(device, bluez={"adapter": self._adapter})
 
         await self.client.connect()
         await self.client.start_notify(CMD_CHAR, self._on_command_notification,)
@@ -249,17 +212,15 @@ class BleOtaClient:
 
         crc_received = struct.unpack_from("<H", data, 18)[0]
 
-        if crc16(data[:18]) != crc_received:
+        if crc_hqx(data[:18], 0) != crc_received:
             return
 
         cmd = struct.unpack_from("<H", data, 0)[0]
-
         if cmd != CMD_ACK:
             return
 
         for_cmd = struct.unpack_from("<H", data, 2)[0]
         answer = struct.unpack_from("<H", data, 4)[0]
-
         if for_cmd != self._expected_cmd:
             return
 
@@ -342,10 +303,7 @@ class BleOtaClient:
     # ------------------------------------------------------------------
     #
 
-    async def _wait_for_command(
-        self,
-        timeout: float,
-    ) -> int:
+    async def _wait_for_command(self, timeout: float) -> int:
 
         if self._cmd_future is None:
             raise RuntimeError("No command pending")
@@ -359,10 +317,7 @@ class BleOtaClient:
     # ------------------------------------------------------------------
     #
 
-    async def _wait_for_sector(
-        self,
-        timeout: float,
-    ) -> bool:
+    async def _wait_for_sector(self, timeout: float) -> bool:
 
         if self._fw_future is None:
             raise RuntimeError("No sector pending")
@@ -376,12 +331,7 @@ class BleOtaClient:
     # ------------------------------------------------------------------
     #
 
-    async def _send_command(
-        self,
-        command: int,
-        payload: bytes = b"",
-        timeout: float = 15,
-    ):
+    async def _send_command(self, command: int, payload: bytes = b"", timeout: float = 15):
 
         assert self.client is not None
 
@@ -412,11 +362,7 @@ class BleOtaClient:
     # ------------------------------------------------------------------
     #
 
-    async def _send_sector_once(
-        self,
-        sector: bytes,
-        sector_index: int,
-    ) -> bool:
+    async def _send_sector_once(self, sector: bytes, sector_index: int) -> bool:
 
         assert self.client is not None
 
@@ -455,12 +401,7 @@ class BleOtaClient:
     # ------------------------------------------------------------------
     #
 
-    async def _send_sector(
-        self,
-        sector: bytes,
-        sector_index: int,
-        retries: int = 3,
-    ):
+    async def _send_sector(self, sector: bytes, sector_index: int, retries: int = 3):
 
         for attempt in range(retries):
 
@@ -493,12 +434,7 @@ class BleOtaClient:
     # ------------------------------------------------------------------
     #
 
-    async def flash(
-        self,
-        firmware: str | Path,
-        *,
-        spiffs: bool = False,
-    ):
+    async def flash(self, firmware: str | Path, *, spiffs: bool = False):
         """
         Upload firmware using the BLEOTA protocol.
         """
@@ -556,30 +492,17 @@ class BleOtaClient:
 
 
 async def discover() -> list[BLEDevice]:
-
     devices = await BleakScanner(bluez={"adapter": "hci1"}).discover(return_adv=True)
-    print(devices)
-
     return [d for name, d in devices.values() if OTA_SVC in [u.lower() for u in d.service_uuids]]
 
 
-async def flash(
-    device: str,
-    firmware: str,
-):
+async def flash(device: str, firmware: str):
 
     def progress(done: int, total: int):
-
         pct = done * 100 // total
-
         print(f"\r{pct:3d}%  {done}/{total} bytes", end="", flush=True,)
 
-    async with BleOtaClient(
-        device,
-        'hci1',
-        progress=progress,
-    ) as ota:
-
+    async with BleOtaClient(device, 'hci1', progress=progress) as ota:
         print("Connected")
 
         try:
