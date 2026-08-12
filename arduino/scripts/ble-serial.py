@@ -10,7 +10,7 @@ STDOUT_UUID = "16404bac-eab2-422c-955f-fb13799c00fa"
 
 async def main():
     print("Scanning...")
-    scanner = BleakScanner(bluez={"adapter": "hci1"})
+    scanner = BleakScanner(bluez={"adapter": "hci0"})
     devices = await scanner.discover(return_adv=True)
 
     target = None
@@ -26,7 +26,7 @@ async def main():
 
     print(f"Connecting to {target.address}...")
 
-    async with BleakClient(target.address, bluez={"adapter": "hci1"}) as client:
+    async with BleakClient(target.address, bluez={"adapter": "hci0"}) as client:
         print("Connected")
 
         # callback для stdout

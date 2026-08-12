@@ -103,7 +103,7 @@ def build_sector_packets(sector: bytes, sector_index: int, mtu_payload: int) -> 
 
 class BleOtaClient:
 
-    def __init__(self, device: str | BLEDevice, adapter='hci1', *, progress: Callable[[int, int], None] | None = None):
+    def __init__(self, device: str | BLEDevice, adapter='hci0', *, progress: Callable[[int, int], None] | None = None):
         self._device = device
         self._adapter = adapter
         self._progress = progress
@@ -492,7 +492,7 @@ class BleOtaClient:
 
 
 async def discover() -> list[BLEDevice]:
-    devices = await BleakScanner(bluez={"adapter": "hci1"}).discover(return_adv=True)
+    devices = await BleakScanner(bluez={"adapter": "hci0"}).discover(return_adv=True)
     return [d for name, d in devices.values() if OTA_SVC in [u.lower() for u in d.service_uuids]]
 
 
@@ -502,7 +502,7 @@ async def flash(device: str, firmware: str):
         pct = done * 100 // total
         print(f"\r{pct:3d}%  {done}/{total} bytes", end="", flush=True,)
 
-    async with BleOtaClient(device, 'hci1', progress=progress) as ota:
+    async with BleOtaClient(device, 'hci0', progress=progress) as ota:
         print("Connected")
 
         try:
