@@ -11,7 +11,7 @@ class Puncher
 {
 public:
     Puncher(Settings &, Operation &, Buzzer &, OutMux &);
-    void Setup();
+    int Setup();
     ErrorCode Punch();
 
     void AntennaOff();

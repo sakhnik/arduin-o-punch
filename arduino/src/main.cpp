@@ -27,7 +27,7 @@ void setup()
 
     buzzer.Setup();
 
-    if (operation.Setup() || settings.Setup()) {
+    if (operation.Setup() || settings.Setup() || puncher.Setup()) {
         while (true) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.println(F("Failed to initialize"));
@@ -41,7 +41,6 @@ void setup()
         initialization_ok = false;
     }
 
-    puncher.Setup();
     shell.Setup();
     shell.SetOperation(&operation);
     bluetooth.Setup();

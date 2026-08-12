@@ -90,6 +90,10 @@ constexpr uint8_t P_L = 25;
 const uint8_t RTC_FAIL_SEQUENCE[] = {START, DIT, P, DAH, P, DIT, P_L,    DAH, P_L,    DAH, P, DIT, P, DAH, P, DIT, P, 0};
 const Buzzer::Melody RTC_FAIL{RTC_FAIL_SEQUENCE, 255};
 
+// MFRC = -- ..-. .-. -.-.
+const uint8_t MFRC_FAIL_SEQUENCE[] = {START, /*M*/DAH, P, DAH, P_L, /*F*/DIT, P, DIT, P, DAH, P, DIT, P_L, /*R*/DIT, P, DAH, P, DIT, P_L, /*C*/DAH, P, DIT, P, DAH, P, DIT, P, 0};
+const Buzzer::Melody MFRC_FAIL{MFRC_FAIL_SEQUENCE, 255};
+
 // KEY = -.- . -.--
 const uint8_t KEY_DEF_SEQUENCE[] = {START, DAH, P, DIT, P, DAH, P_L,    DIT, P_L,    DAH, P, DIT, P, DAH, P, DAH, P, 0};
 const Buzzer::Melody KEY_DEF{KEY_DEF_SEQUENCE, 255};
@@ -158,6 +162,11 @@ const Buzzer::Melody Digits[] = {
 void Buzzer::SignalRTCFail()
 {
     Play(Morse::RTC_FAIL);
+}
+
+void Buzzer::SignalMFRCFail()
+{
+    Play(Morse::MFRC_FAIL);
 }
 
 void Buzzer::SignalDefaultKey()

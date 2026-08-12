@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dedicated station for clearing punches before the start
 - Station configuration in the android App via BLE
 - BLE OTA update
+- Self-test during startup
 
 ### Changed
 

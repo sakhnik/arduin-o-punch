@@ -32,6 +32,7 @@ public:
     void ConfirmPunch();
     void ConfirmDebug();
     void SignalRTCFail();
+    void SignalMFRCFail();
     void SignalDefaultKey();
     void SignalCardFull();
     void SignalOk();
