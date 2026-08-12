@@ -25,6 +25,29 @@ bool deviceConnected = false;
 
 char localName[16] = "AOP ";
 
+struct BleOtaCb : BLEOTACallbacks
+{
+    using CbT = std::function<void(void)>;
+
+    void SetCb(CbT cb)
+    {
+        _cb = cb;
+    }
+
+	void beforeStartOTA(void) override
+    {
+        if (_cb)
+            _cb();
+    }
+
+	void beforeStartSPIFFS(void) override { }
+	void afterStop(void) override { }
+	void afterAbort(void) override { }
+
+private:
+    CbT _cb;
+} bleOtaCb;
+
 class ServerCallbacks
     : public NimBLEServerCallbacks
 {
@@ -199,6 +222,8 @@ bool Bluetooth::_Start()
     adv->addServiceUUID(SHELL_SERVICE_UUID);
 
     BLEOTA.begin(server);
+    BLEOTA.setCallbacks(&bleOtaCb);
+    bleOtaCb.SetCb([this]() { _lastStdinTimeMs.store(millis()); });
     BLEOTA.setModel("AOP");
     BLEOTA.setHWVersion("v0.5");
     BLEOTA.setFWVersion(PROJECT_VERSION "-" GIT_REVISION);
@@ -220,6 +245,8 @@ bool Bluetooth::_Start()
 
 bool Bluetooth::_Stop()
 {
+    bleOtaCb.SetCb({});
+
     _outMux.SetClient(nullptr);
     _settings.Unsubscribe(_subscription_handle);
     _subscription_handle = -1;
