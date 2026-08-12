@@ -10,6 +10,7 @@ from typing import Callable
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
 
+ADAPTER = 'hci0'
 
 OTA_SVC = "00008018-0000-1000-8000-00805f9b34fb"
 RECV_CHAR = "00008020-0000-1000-8000-00805f9b34fb"
@@ -104,7 +105,7 @@ def build_sector_packets(sector: bytes, sector_index: int, mtu_payload: int) -> 
 
 class BleOtaClient:
 
-    def __init__(self, device: str | BLEDevice, adapter='hci0', *, progress: Callable[[int, int], None] | None = None):
+    def __init__(self, device: str | BLEDevice, adapter=ADAPTER, *, progress: Callable[[int, int], None] | None = None):
         self._device = device
         self._adapter = adapter
         self._progress = progress
@@ -495,8 +496,18 @@ class BleOtaClient:
 
 
 async def discover() -> list[BLEDevice]:
-    devices = await BleakScanner(bluez={"adapter": "hci0"}).discover(return_adv=True)
-    return [d for name, d in devices.values() if OTA_SVC in [u.lower() for u in d.service_uuids]]
+    devices = await BleakScanner.discover(timeout=5, return_adv=True, bluez={"adapter": ADAPTER})
+    return [d for d, adv in devices.values() if d.name and d.name.startswith("AOP ")]
+
+
+async def find_available_device() -> BLEDevice:
+    candidates = await discover()
+    if not candidates:
+        raise RuntimeError("No BLEOTA device found")
+    if len(candidates) > 1:
+        names = ", ".join(f"{d.name or '<unnamed>'} ({d.address})" for d in candidates)
+        raise RuntimeError(f"Multiple BLEOTA devices found: {names}; specify a device")
+    return candidates[0]
 
 
 async def flash(device: str, firmware: str):
@@ -505,7 +516,10 @@ async def flash(device: str, firmware: str):
         pct = done * 100 // total
         print(f"\r{pct:3d}%  {done}/{total} bytes", end="", flush=True,)
 
-    async with BleOtaClient(device, 'hci0', progress=progress) as ota:
+    if device is None:
+        device = await find_available_device()
+
+    async with BleOtaClient(device, ADAPTER, progress=progress) as ota:
         print("Connected")
 
         try:
@@ -531,12 +545,24 @@ async def main():
 
     import argparse
 
+    DEFAULT_FIRMWARE = ".pio/build/esp32c3/firmware.bin"
+
     parser = argparse.ArgumentParser()
-    sub = parser.add_subparsers(dest="cmd", required=True,)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
     sub.add_parser("scan")
+
     p = sub.add_parser("flash")
-    p.add_argument("device", help="BLE device name",)
-    p.add_argument("firmware",)
+    p.add_argument(
+        "device",
+        nargs="?",
+        help="BLE device name/address; automatically select an active device if omitted",
+    )
+    p.add_argument(
+        "firmware",
+        nargs="?",
+        default=DEFAULT_FIRMWARE,
+    )
 
     args = parser.parse_args()
 
