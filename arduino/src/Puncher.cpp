@@ -39,15 +39,23 @@ int Puncher::Setup()
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, SPI_SS);
     mfrc522.PCD_Init();  // Init MFRC522 board.
 
-    // Test MFRC522 connectivity
-    auto v = mfrc522.PCD_GetVersion();
-    Serial.printf("MFRC522 version=0x%02x\n", (int)v);
-    if (v != MFRC522Constants::Version_2_0) {
-        Serial.println("MFRC522 doesn't work");
-        Serial.flush();
-        _buzzer.SignalMFRCFail();
-        return -1;
+    bool signalled = false;
+    while (true) {
+        // Test MFRC522 connectivity
+        auto v = mfrc522.PCD_GetVersion();
+        Serial.printf("MFRC522 version=0x%02x\n", (int)v);
+        if (v == MFRC522Constants::Version_2_0) {
+            return 0;
+        }
+
+        if (!signalled) {
+            signalled = true;
+            _buzzer.SignalMFRCFail();
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
+
     return 0;
 }
 
