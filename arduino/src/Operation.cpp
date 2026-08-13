@@ -98,8 +98,8 @@ void Operation::SetupLate()
         TransitionTo(Mode::Active, /*silent=*/true);
     }
 
-    // Stay up 2 minutes unless a card has been punched
-    prevCardTimeMs = millis() + 2 * 60000 - settings.GetEcoMs();
+    // Stay up 10 seconds unless a card has been punched
+    prevCardTimeMs = millis() + 10'000 - settings.GetEcoMs();
 }
 
 void Operation::Loop()
