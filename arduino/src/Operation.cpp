@@ -54,7 +54,7 @@ int Operation::Setup()
     // Power on the RFID reader
     digitalWrite(MOSFET_PIN, LOW);
 
-    Wire.begin(I2C_SDA, I2C_SCL);
+    Wire.setPins(I2C_SDA, I2C_SCL);
     if (!rtc.begin()) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
