@@ -1,7 +1,6 @@
 
 #include "Buzzer.h"
 #include "Settings.h"
-#include "Puncher.h"
 #include "Shell.h"
 #include "Bluetooth.h"
 #include "Network.h"
@@ -16,8 +15,7 @@ Shell shell{outMux, settings, buzzer};
 
 Bluetooth bluetooth{outMux, settings, shell};
 Network network{outMux, settings, shell, buzzer};
-Operation operation{buzzer, settings, bluetooth, network};
-Puncher puncher{settings, operation, buzzer, outMux};
+Operation operation{buzzer, settings, outMux, bluetooth, network};
 
 void setup()
 {
@@ -27,7 +25,7 @@ void setup()
 
     buzzer.Setup();
 
-    if (operation.Setup() || settings.Setup() || puncher.Setup()) {
+    if (operation.Setup() || settings.Setup()) {
         while (true) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.println(F("Failed to initialize"));
@@ -58,7 +56,6 @@ void setup()
 void loop()
 {
     // Check the serial for input and prohibit light sleep while the serial is active.
-    auto nowMs = millis();
     while (Serial.available()) {
         auto ch = Serial.read();
         if (0 < ch && ch < 0xf0) {
@@ -67,31 +64,5 @@ void loop()
         }
     }
 
-    for (int i = 0; i < 2; ++i) {
-        auto res = puncher.Punch();
-        if (!res) {
-            operation.TransitionToActive();
-            buzzer.ConfirmPunch();
-        } /*else {
-            if (res == ErrorCode::NO_CARD) {
-                Serial.print('.');
-            } else {
-                Serial.println((int)res);
-            }
-            Serial.flush();
-        }*/
-
-        if (res == ErrorCode::CARD_IS_FULL) {
-            operation.TransitionToActive();
-            buzzer.SignalCardFull();
-        } else if (res == ErrorCode::SERVICE_CARD) {
-            operation.TransitionToNext();
-        } else if (res == ErrorCode::DEBUG_CARD) {
-            buzzer.ConfirmDebug();
-        }
-    }
-
-    if (operation.CheckSnooze()) {
-        puncher.Setup();
-    }
+    operation.Loop();
 }

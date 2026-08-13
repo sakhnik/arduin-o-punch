@@ -32,11 +32,12 @@ constexpr const char *const PREF_TIMES = "times";
 
 } //namespace;
 
-Operation::Operation(Buzzer &buzzer, Settings &settings, Bluetooth &bluetooth, Network &network)
+Operation::Operation(Buzzer &buzzer, Settings &settings, OutMux &outMux, Bluetooth &bluetooth, Network &network)
     : buzzer{buzzer}
     , settings{settings}
     , bluetooth{bluetooth}
     , network{network}
+    , puncher{settings, *this, buzzer, outMux}
 {
 }
 
@@ -60,6 +61,9 @@ int Operation::Setup()
         buzzer.SignalRTCFail();
         return -1;
     }
+
+    if (puncher.Setup())
+        return -1;
 
     if (RtcLog::IsReliable()) {
         // Restore the previous mode to preserve the accurate statistics
@@ -96,6 +100,37 @@ void Operation::SetupLate()
 
     // Stay up 2 minutes unless a card has been punched
     prevCardTimeMs = millis() + 2 * 60000 - settings.GetEcoMs();
+}
+
+void Operation::Loop()
+{
+    for (int i = 0; i < 2; ++i) {
+        auto res = puncher.Punch();
+        if (!res) {
+            TransitionToActive();
+            buzzer.ConfirmPunch();
+        } /*else {
+            if (res == ErrorCode::NO_CARD) {
+                Serial.print('.');
+            } else {
+                Serial.println((int)res);
+            }
+            Serial.flush();
+        }*/
+
+        if (res == ErrorCode::CARD_IS_FULL) {
+            TransitionToActive();
+            buzzer.SignalCardFull();
+        } else if (res == ErrorCode::SERVICE_CARD) {
+            TransitionToNext();
+        } else if (res == ErrorCode::DEBUG_CARD) {
+            buzzer.ConfirmDebug();
+        }
+    }
+
+    if (CheckSnooze()) {
+        puncher.Setup();
+    }
 }
 
 Operation::Mode Operation::GetNextMode()

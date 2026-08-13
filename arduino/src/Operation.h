@@ -3,6 +3,7 @@
 #include "Mutex.h"
 #include "OperationMode.h"
 #include "Stats.h"
+#include "Puncher.h"
 #include <array>
 
 class Buzzer;
@@ -13,11 +14,11 @@ class Settings;
 class Operation
 {
 public:
-    Operation(Buzzer &, Settings &, Bluetooth &, Network &);
+    Operation(Buzzer &, Settings &, OutMux &, Bluetooth &, Network &);
 
     int Setup();
     void SetupLate();
-
+    void Loop();
 
     void TransitionToActive();
     void TransitionToNext();
@@ -31,6 +32,7 @@ private:
     Settings &settings;
     Bluetooth &bluetooth;
     Network &network;
+    Puncher puncher;
     // Start in the sleep mode to record the sleep time
     using Mode = OperationMode;
     Mode mode = Mode::Sleep;
