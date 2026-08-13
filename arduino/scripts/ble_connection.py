@@ -1,4 +1,5 @@
 import asyncio
+import re
 import threading
 
 from bleak import BleakClient, BleakScanner
@@ -11,6 +12,7 @@ STDIN_UUID   = "16404bac-eab1-422c-955f-fb13799c00fa"
 STDOUT_UUID  = "16404bac-eab2-422c-955f-fb13799c00fa"
 
 ADAPTER = "hci0"
+NAME_RE = re.compile(r"^AOP \d+$")
 
 
 class BleConnection(Connection):
@@ -26,21 +28,24 @@ class BleConnection(Connection):
 
         asyncio.run_coroutine_threadsafe(self._connect(), self._loop).result()
 
+    async def find_available_device(self):
+        future = asyncio.get_running_loop().create_future()
+
+        def callback(device, adv):
+            if device.name and device.name.startswith("AOP "):
+                if not future.done():
+                    future.set_result(device)
+
+        scanner = BleakScanner(bluez={"adapter": ADAPTER}, detection_callback=callback)
+        await scanner.start()
+
+        try:
+            return await future
+        finally:
+            await scanner.stop()
+
     async def _connect(self):
-        scanner = BleakScanner(bluez={"adapter": ADAPTER})
-        devices = await scanner.discover(return_adv=True)
-
-        target = next(
-            (
-                device
-                for device, adv in devices.values()
-                if SERVICE_UUID.lower() in [
-                    u.lower() for u in (adv.service_uuids or [])
-                ]
-            ),
-            None,
-        )
-
+        target = await self.find_available_device()
         if not target:
             raise RuntimeError("BLE device not found")
 

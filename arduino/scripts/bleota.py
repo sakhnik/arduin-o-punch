@@ -501,23 +501,30 @@ async def discover() -> list[BLEDevice]:
 
 
 async def find_available_device() -> BLEDevice:
-    candidates = await discover()
-    if not candidates:
-        raise RuntimeError("No BLEOTA device found")
-    if len(candidates) > 1:
-        names = ", ".join(f"{d.name or '<unnamed>'} ({d.address})" for d in candidates)
-        raise RuntimeError(f"Multiple BLEOTA devices found: {names}; specify a device")
-    return candidates[0]
+    future = asyncio.get_running_loop().create_future()
+
+    def callback(device, adv):
+        if device.name and device.name.startswith("AOP "):
+            if not future.done():
+                future.set_result(device)
+
+    scanner = BleakScanner(detection_callback=callback, bluez={"adapter": ADAPTER})
+    await scanner.start()
+
+    try:
+        return await future
+    finally:
+        await scanner.stop()
 
 
 async def flash(device: str, firmware: str):
 
+    if device is None:
+        device = await find_available_device()
+
     def progress(done: int, total: int):
         pct = done * 100 // total
         print(f"\r{pct:3d}%  {done}/{total} bytes", end="", flush=True,)
-
-    if device is None:
-        device = await find_available_device()
 
     async with BleOtaClient(device, ADAPTER, progress=progress) as ota:
         print("Connected")
