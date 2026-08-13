@@ -42,9 +42,9 @@ int Puncher::Setup()
     bool signalled = false;
     while (true) {
         // Test MFRC522 connectivity
-        auto v = mfrc522.PCD_GetVersion();
-        Serial.printf("MFRC522 version=0x%02x\n", (int)v);
-        if (v == MFRC522Constants::Version_2_0) {
+        byte version = driver.PCD_ReadRegister(MFRC522Constants::VersionReg);
+        Serial.printf("MFRC522 version=0x%02x\n", (int)version);
+        if (version != 0x00 && version != 0xff) {
             return 0;
         }
 
