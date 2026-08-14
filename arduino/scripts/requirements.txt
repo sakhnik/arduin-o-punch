@@ -1,2 +1,3 @@
+bleak
+intelhex
 pyserial
-ble-serial
