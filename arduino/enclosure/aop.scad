@@ -198,6 +198,15 @@ module lid() {
         battery();
         pcb();
         rfid();
+
+        // Optional: a cable hole
+        //cable_r = 2.5;
+
+        //left(width/2) back(10) up(platform_thickness + cable_r)
+        //union() {
+        //    cylinder(h=lid_thickness*2, r=cable_r, orient=LEFT, anchor=CENTER);
+        //    cuboid([lid_thickness*2, cable_r*2, bottom_thickness+platform_thickness], anchor=TOP);
+        //}
     }
 }
 
