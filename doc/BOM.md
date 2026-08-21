@@ -14,6 +14,7 @@
 | PCB            | 55.00 ₴    |                   |             |                                                               |
 | Bat protection | 7.80 ₴     |                   | 3.2 Lifepo4 | https://www.aliexpress.com/item/1005001732120817.html         |
 | Lifepo4 cell   | 150.00 ₴   |                   |             | https://prom.ua/ua/p2566621781-akumulyatori-litij-zalizo.html |
+| Wires  | 11.00 ₴   | 24awg                  | 6x4cm yellow, 10cm black, 10cm red           | https://www.aliexpress.com/item/1005009794836849.html |
 
 
-Total        426.20 ₴
+Total        437.20 ₴
