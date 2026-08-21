@@ -7,7 +7,7 @@
 | DS3231SN       | 57.00 ₴    |                   |             | https://www.aliexpress.com/item/1005004427508473.html         |
 | Vibr sensor    | 4.00 ₴     | SW-18015P         |             | https://www.aliexpress.com/item/32952461413.html              |
 | Buzzer         | 12.25 ₴     |                   |             | https://www.aliexpress.com/item/1005004478902150.html                                                              |
-| Led            | 1.00 ₴     |                   |             |                                                               |
+| Led            | 0.30 ₴     |                   |             | https://www.aliexpress.com/item/32985163457.html                                                              |
 | R              | 3.00 ₴     |                   |             |                                                               |
 | DC plug        | 5.00 ₴     | DC 5.5x2.1        |             | https://prom.ua/ua/p733432376-gnezdo-pitaniya-55x21.html      |
 | PCB            | 55.00 ₴    |                   |             |                                                               |
@@ -16,4 +16,4 @@
 | Wires  | 11.00 ₴   | 24awg                  | 6x4cm yellow, 10cm black, 10cm red           | https://www.aliexpress.com/item/1005009794836849.html |
 
 
-Total        438.55 ₴
+Total        437.85 ₴
