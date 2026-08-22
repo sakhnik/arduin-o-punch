@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Start station doesn't clear the punches
 - Punch record will keep the time of the individual punches
 - WiFi capability is optional during build time
+- OK (punch mode) just `dit` (E)
 
 ### Removed
 
