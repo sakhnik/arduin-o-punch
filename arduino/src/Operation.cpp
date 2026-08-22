@@ -98,8 +98,19 @@ void Operation::SetupLate()
         TransitionTo(Mode::Active, /*silent=*/true);
     }
 
-    // Stay up 10 seconds unless a card has been punched
-    prevCardTimeMs = millis() + 10'000 - settings.GetEcoMs();
+    // Stay up for at least some time
+    EnsureSmallAwake(true);
+}
+
+void Operation::EnsureSmallAwake(bool force)
+{
+    constexpr uint32_t SMALL_AWAKE_MS = 10'000;
+
+    auto now = millis();
+    if (force || now - prevCardTimeMs < SMALL_AWAKE_MS) {
+        prevCardTimeMs = millis() + SMALL_AWAKE_MS - settings.GetEcoMs();
+    }
+
 }
 
 void Operation::Loop()
@@ -123,6 +134,7 @@ void Operation::Loop()
             buzzer.SignalCardFull();
         } else if (res == ErrorCode::SERVICE_CARD) {
             TransitionToNext();
+            EnsureSmallAwake();
         } else if (res == ErrorCode::DEBUG_CARD) {
             buzzer.ConfirmDebug();
         }

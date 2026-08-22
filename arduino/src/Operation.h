@@ -45,4 +45,5 @@ private:
     void TransitionTo(OperationMode, bool silent = false);
     OperationMode GetNextMode();
     void EnterSleep();
+    void EnsureSmallAwake(bool force = false);
 };
