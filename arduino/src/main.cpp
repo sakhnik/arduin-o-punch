@@ -49,7 +49,11 @@ void setup()
     operation.SetupLate();
 
     if (initialization_ok) {
-        buzzer.SignalOk();
+        if (esp_reset_reason() == ESP_RST_DEEPSLEEP) {
+            buzzer.SignalE();
+        } else {
+            buzzer.SignalOk();
+        }
     }
 }
 

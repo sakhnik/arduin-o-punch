@@ -36,6 +36,7 @@ public:
     void SignalDefaultKey();
     void SignalCardFull();
     void SignalOk();
+    void SignalE();
     void SignalBluetooth();
     void SignalWifi();
     void SignalDit();
