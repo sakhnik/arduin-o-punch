@@ -111,9 +111,12 @@ const uint8_t CARD_FULL_SEQUENCE[] = {START, DIT, P, DIT, P, DAH, P, DIT, P, 0};
 const Buzzer::Melody CARD_FULL{CARD_FULL_SEQUENCE, 255};
 
 // OK = --- -.-
-//const uint8_t OK_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P_L,    DAH, P, DIT, P, DAH, P, 0};
-const uint8_t OK_SEQUENCE[] = {START, DIT, P, 0};
+const uint8_t OK_SEQUENCE[] = {START, DAH, P, DAH, P, DAH, P_L,    DAH, P, DIT, P, DAH, P, 0};
 const Buzzer::Melody OK{OK_SEQUENCE, 255};
+
+// E = .
+const uint8_t E_SEQUENCE[] = {START, DIT, P, 0};
+const Buzzer::Melody E{E_SEQUENCE, 255};
 
 // BT = -... -
 const uint8_t BT_SEQUENCE[] = {START, DAH, P, DIT, P, DIT, P, DIT, P_L,   DAH, P,   0};
@@ -193,6 +196,11 @@ void Buzzer::SignalCardFull()
 void Buzzer::SignalOk()
 {
     Play(Morse::OK);
+}
+
+void Buzzer::SignalE()
+{
+    Play(Morse::E);
 }
 
 void Buzzer::SignalBluetooth()
