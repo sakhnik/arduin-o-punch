@@ -142,6 +142,7 @@ class StationViewModel(application: Application) : AndroidViewModel(application)
         stopScan()
         setPeripheral(item.peripheral)
         central.connect(item.peripheral, peripheralCallback)
+        clockOffsetMs = null
     }
 
     fun disconnect() {
