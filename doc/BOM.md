@@ -7,6 +7,7 @@
 | DS3231SN       | 73.00 ₴    |                   |             | https://www.aliexpress.com/item/1005004427508473.html         |
 | Vibr sensor    | 4.00 ₴     | SW-18015P         |             | https://www.aliexpress.com/item/32952461413.html              |
 | Buzzer         | 12.25 ₴    |                   |             | https://www.aliexpress.com/item/1005004478902150.html         |
+| Light guide    | 4.95 ₴     | FIX-LEM-87        |             | https://imrad.com.ua/ua/fix-lem-87-6                          |
 | Led            | 0.30 ₴     |                   |             | https://www.aliexpress.com/item/32985163457.html              |
 | R1 100K        | 0.25 ₴     |                   |             | https://imrad.com.ua/ua/smd1206-100k-1--1                     |
 | R2 1K          | 0.20 ₴     |                   |             | https://imrad.com.ua/ua/1206s4f1001t5e-2                      |
@@ -21,4 +22,4 @@
 | Wires          | 11.00 ₴    | 24awg       | Y 6x4cm, R+B 10cm | https://www.aliexpress.com/item/1005009794836849.html         |
 
 
-Total        442.85 ₴
+Total        447.80 ₴
