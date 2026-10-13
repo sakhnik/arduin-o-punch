@@ -12,7 +12,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(DocTest)
 include_directories(${doctest_SOURCE_DIR})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 add_definitions(-DBUILD_TEST)
 add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
@@ -47,6 +47,11 @@ add_executable(aop-cli
 target_compile_definitions(aop-cli PRIVATE BUILD_CLI)
 target_link_libraries(aop-cli aop)
 
+add_executable(aop-tui
+    tui.cpp
+)
+target_compile_definitions(aop-tui PRIVATE BUILD_TUI)
+target_link_libraries(aop-tui aop)
 enable_testing()
 
 add_test(aop test-aop)
