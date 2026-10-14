@@ -9,7 +9,6 @@
 #include <ctime>
 #include <format>
 #include <iostream>
-#include <memory>
 #include <sstream>
 #include <string>
 
@@ -239,7 +238,6 @@ int main()
 {
     VirtualMifare mifare;
     Mifare::KeyT key = Mifare::KEY_DEFAULT;
-    auto card = std::make_unique<AOP::PunchCard>(&mifare, key);
 
     Help();
 
@@ -292,7 +290,6 @@ int main()
                 continue;
             }
 
-            card = std::make_unique<AOP::PunchCard>(&mifare, key);
             std::cout << "Key updated.\n";
             continue;
         }
@@ -317,7 +314,8 @@ int main()
                 }
             }
 
-            result = card->Format(static_cast<uint16_t>(id), {Mifare::KEY_DEFAULT});
+            AOP::PunchCard card{&mifare, key};
+            result = card.Format(static_cast<uint16_t>(id), {Mifare::KEY_DEFAULT});
         } else if (command == "punch") {
             std::string stationText, timeText;
             unsigned station, timestamp;
@@ -343,12 +341,15 @@ int main()
                 continue;
             }
 
-            result = card->Punch(AOP::Punch{static_cast<uint8_t>(station), timestamp});
+            AOP::PunchCard card{&mifare, key};
+            result = card.Punch(AOP::Punch{static_cast<uint8_t>(station), timestamp});
         } else if (command == "clear") {
-            result = card->Format({}, {Mifare::KEY_DEFAULT});
+            AOP::PunchCard card{&mifare, key};
+            result = card.Format({}, {Mifare::KEY_DEFAULT});
         } else if (command == "readout") {
+            AOP::PunchCard card{&mifare, key};
             AOP::PunchCard::CardReadOut readOut;
-            result = card->ReadOut(readOut);
+            result = card.ReadOut(readOut);
 
             if (result == 0) {
                 std::cout << std::format("Card ID: {}\n#\tStation\t\tTime\n", readOut.cardId);
