@@ -13,13 +13,17 @@
 | R2 1K          | 0.20 ₴     |                   |             | https://imrad.com.ua/ua/1206s4f1001t5e-2                      |
 | R3 100         | 0.25 ₴     |                   |             | https://imrad.com.ua/ua/rc1206fr-07100rl-0                    |
 | R4, R5 4K7     | 0.70 ₴     |                   |             | https://imrad.com.ua/ua/rc1206fr-074k7l-1                     |
-| C1 470uF       | 4.00 ₴     |                   | Low ESR     | https://imrad.com.ua/ua/jrg-470u-10-1                         |
 | C2 1uF         | 2.40 ₴     |                   |             | https://imrad.com.ua/ua/cc1206kkx7r9bb105-3                   |
 | C3 100nF       | 2.10 ₴     |                   |             | https://imrad.com.ua/ua/cc1206krx7r9bb104-9                   |
+| L1 2.2uH       | 9.10 ₴     |                   |             | https://imrad.com.ua/ua/lqh44pn2r2mp0l-4                      |
+| C  22uF        | 1.75 ₴     |                   |             | https://imrad.com.ua/ua/cl31a226kqhnnne-cercap-22-6-3v-1206-x5r- |
+| C  47uF        | 8.10 ₴     |                   |             | https://imrad.com.ua/ua/cl31a476mqhnnne-9                     |
+| R 36.5K        | 0.15 ₴     |                   |             | https://imrad.com.ua/ua/rc0805fr-0736k5l-4                    |
+| TPS63900       | 53.70 ₴    |                   |             | https://www.aliexpress.com/item/1005011825860499.html         |
 | PCB            | 42.00 ₴    |                   |             | JLCPCB                                                        |
 | Bat protection | 7.80 ₴     |                   | 3.2 Lifepo4 | https://www.aliexpress.com/item/1005001732120817.html         |
 | Lifepo4 cell   | 150.00 ₴   |                   |             | https://prom.ua/ua/p2566621781-akumulyatori-litij-zalizo.html |
 | Wires          | 11.00 ₴    | 24awg       | Y 6x4cm, R+B 10cm | https://www.aliexpress.com/item/1005009794836849.html         |
 
 
-Total        447.80 ₴
+Total        516.60 ₴
