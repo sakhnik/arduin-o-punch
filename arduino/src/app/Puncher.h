@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include "ErrorCode.h"
 
 class Settings;
@@ -27,3 +29,5 @@ private:
     ErrorCode DoReadOut();
     ErrorCode DoFormat();
 };
+
+#endif //ESP32

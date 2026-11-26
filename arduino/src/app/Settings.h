@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include "Recorder.h"
 #include "Mutex.h"
 #include "PunchCard.h"
@@ -107,3 +109,5 @@ private:
 
     friend struct RecorderAccess;
 };
+
+#endif //ESP32

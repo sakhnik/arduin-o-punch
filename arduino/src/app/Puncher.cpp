@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "Puncher.h"
 #include "Settings.h"
 #include "IMifare.h"
@@ -367,3 +369,5 @@ ErrorCode Puncher::DoFormat()
     _outMux.println();
     return ErrorCode::OK;
 }
+
+#endif //ESP32

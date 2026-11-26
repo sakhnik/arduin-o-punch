@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include "Mutex.h"
 #include "OperationMode.h"
 #include "Stats.h"
@@ -47,3 +49,5 @@ private:
     void EnterSleep();
     void EnsureSmallAwake(bool force = false);
 };
+
+#endif //ESP32

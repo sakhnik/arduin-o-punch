@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "Operation.h"
 #include "Buzzer.h"
 #include "Settings.h"
@@ -361,3 +363,5 @@ Stats Operation::GetStats()
 
     return stats;
 }
+
+#endif //ESP32

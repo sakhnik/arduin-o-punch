@@ -1,3 +1,4 @@
+#ifdef ESP32
 #include "Network.h"
 #include "Settings.h"
 #include "Shell.h"
@@ -337,3 +338,4 @@ void Network::Write(const uint8_t *buffer, size_t size)
     }
 #endif
 }
+#endif //ESP32

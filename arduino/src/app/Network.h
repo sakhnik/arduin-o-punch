@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include "OutMux.h"
 #include <atomic>
 #include <freertos/FreeRTOS.h>
@@ -46,3 +48,5 @@ private:
     // MuxOut::IClient
     void Write(const uint8_t *buffer, size_t size) override;
 };
+
+#endif //ESP32

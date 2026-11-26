@@ -1,3 +1,4 @@
+#ifdef ESP32
 #include "Settings.h"
 #include "Buzzer.h"
 #include <RTClib.h>
@@ -332,3 +333,4 @@ void Settings::ActivateCardFormatMode(std::string_view arg)
     }
     _cardModeArg = arg;
 }
+#endif //ESP32

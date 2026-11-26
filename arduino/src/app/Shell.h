@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -62,3 +64,5 @@ private:
     void _PrintKnownKeys();
     void _SetKnownKeys(const char *str);
 };
+
+#endif //ESP32

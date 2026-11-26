@@ -1,3 +1,4 @@
+#ifdef ESP32
 #include "Shell.h"
 #include "Settings.h"
 #include "Buzzer.h"
@@ -546,3 +547,4 @@ void Shell::_SetKnownKeys(const char *str)
 
     _settings.SetKnownKeys(std::move(keys));
 }
+#endif //ESP32

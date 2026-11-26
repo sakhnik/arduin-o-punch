@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(BUILD_TEST) || defined(BUILD_WA)
+#if !defined(ESP32)
 # include <cstdint>
 #else
 # include <Arduino.h>

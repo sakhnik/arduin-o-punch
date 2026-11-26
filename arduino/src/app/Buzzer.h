@@ -1,10 +1,7 @@
 #pragma once
 
-#pragma once
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/queue.h>
+#include "hal/task.h"
+#include "hal/queue.h"
 
 class Buzzer
 {
@@ -45,8 +42,8 @@ public:
     void SignalNumber(uint16_t);
 
 private:
-    QueueHandle_t _queue;
-    TaskHandle_t _taskHandle = nullptr;
+    Hal::Queue _queue;
+    Hal::Task _task;
 
     static void TaskEntry(void *arg);
     void TaskLoop();

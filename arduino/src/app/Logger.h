@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include <Arduino.h>
 
 class Logger
@@ -15,3 +17,5 @@ public:
     void Out(const char *s);
     void Out(const uint8_t *data, uint8_t size);
 };
+
+#endif //ESP32

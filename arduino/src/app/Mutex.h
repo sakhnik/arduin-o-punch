@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
@@ -53,3 +55,5 @@ public:
 private:
     Mutex &mutex;
 };
+
+#endif //ESP32

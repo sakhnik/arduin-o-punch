@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include <esp_system.h>
 
 struct RtcLog
@@ -26,3 +28,5 @@ public:
 private:
     static bool isRTCReliable;
 };
+
+#endif //ESP32

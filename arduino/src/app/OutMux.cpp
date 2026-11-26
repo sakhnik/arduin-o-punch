@@ -1,5 +1,7 @@
 #include "OutMux.h"
 
+#ifdef ESP32
+
 OutMux::OutMux()
     : HardwareSerial{Serial}
 {
@@ -35,3 +37,5 @@ int OutMux::availableForWrite(void)
 {
     return Serial.availableForWrite();
 }
+
+#endif //ESP32

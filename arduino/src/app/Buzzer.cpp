@@ -1,7 +1,8 @@
 #include "Buzzer.h"
 #include "defs.h"
 #include "ActivityCounter.h"
-#include <Arduino.h>
+#include "hal/gpio.h"
+#include "hal/time.h"
 
 Buzzer::Buzzer()
 {
@@ -9,22 +10,22 @@ Buzzer::Buzzer()
 
 void Buzzer::Setup()
 {
-    pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, HIGH);
+    Hal::GpioModeOutput(BUZZER_PIN);
+    Hal::GpioWrite(BUZZER_PIN, true);
 
-    _queue = xQueueCreate(8, sizeof(Melody));
+    _queue.Setup(8, sizeof(Melody));
 
-    xTaskCreate(TaskEntry, "buzzer", 2048, this, 1, &_taskHandle);
+    _task.Setup(TaskEntry, this, "buzzer", 2048, 1);
 }
 
 void Buzzer::Play(const Melody &melody)
 {
-    xQueueSend(_queue, &melody, 0);
+    _queue.Send(&melody, 0);
 }
 
 bool Buzzer::IsIdle()
 {
-    return uxQueueMessagesWaiting(_queue) == 0;
+    return _queue.Size() == 0;
 }
 
 void Buzzer::TaskEntry(void *arg)
@@ -38,38 +39,38 @@ void Buzzer::TaskLoop()
 
     while (true) {
         // Wait for first melody
-        if (xQueueReceive(_queue, &melody, portMAX_DELAY) != pdTRUE)
+        if (!_queue.Receive(&melody))
             continue;
 
         ActivityCounter::Scoped activity;
 
         uint8_t idx = 0;
-        uint8_t state = HIGH;
+        bool state = true;
 
         while (true) {
             uint8_t duration = melody.sequence[idx];
 
             if (duration == 0) {
-                digitalWrite(BUZZER_PIN, HIGH);
+                Hal::GpioWrite(BUZZER_PIN, true);
                 break; // melody finished
             }
 
             if (idx >= melody.interrupt_idx) {
                 Melody next;
-                if (xQueueReceive(_queue, &next, 0) == pdTRUE) {
+                if (!_queue.Receive(&next, 0)) {
                     melody = next;
                     idx = 0;
-                    state = HIGH;
+                    state = true;
                     continue;
                 }
             }
 
-            digitalWrite(BUZZER_PIN, state);
+            Hal::GpioWrite(BUZZER_PIN, state);
 
             state = !state;
             idx++;
 
-            vTaskDelay(pdMS_TO_TICKS(duration * 8));
+            Hal::Delay(duration * 8);
         }
     }
 }

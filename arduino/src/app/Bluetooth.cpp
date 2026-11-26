@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "Bluetooth.h"
 #include "Settings.h"
 #include "Shell.h"
@@ -281,3 +283,5 @@ unsigned Bluetooth::GetInactivitySeconds()
 {
     return (millis() - _lastStdinTimeMs.load()) / 1000;
 }
+
+#endif //ESP32

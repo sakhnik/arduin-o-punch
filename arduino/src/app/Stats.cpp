@@ -2,6 +2,8 @@
 #include "OutMux.h"
 #include <endian.h>
 
+#ifdef ESP32
+
 void Stats::ToN()
 {
     size = htole16(size);
@@ -99,3 +101,5 @@ void Stats::DumpTimeStats(OutMux &outMux)
     outMux.print(buf);
     outMux.println(" mA");
 }
+
+#endif //ESP32

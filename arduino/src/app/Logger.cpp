@@ -1,5 +1,7 @@
 #include "Logger.h"
 
+#ifdef ESP32
+
 namespace {
 constexpr const char *const DIGITS = "0123456789ABCDEF";
 } //namespace;
@@ -39,3 +41,5 @@ void Logger::Out(const uint8_t *data, uint8_t size)
         buf += DIGITS[data[i] & 0xF];
     }
 }
+
+#endif //ESP32

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ESP32
+
 #include <Arduino.h>
 
 class OutMux : public HardwareSerial
@@ -25,3 +27,5 @@ private:
     size_t write(const uint8_t *buffer, size_t size) override;
     int availableForWrite(void) override;
 };
+
+#endif //ESP32
