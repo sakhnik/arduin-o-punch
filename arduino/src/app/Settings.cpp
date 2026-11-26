@@ -29,39 +29,39 @@ Settings::Settings(Buzzer &buzzer)
 {
 }
 
-int8_t Settings::Setup()
+void Settings::Setup()
 {
-    {
-        HAL::Prefs prefs(PREF_CONFIG, true);
 
-        _id = prefs.GetU8(PREF_ID, 1);
-        if (_id == AOP::PunchCard::CLEAR_STATION) {
-            _cardMode = CardMode::Format;
-        }
+    HAL::Prefs prefs(PREF_CONFIG, true);
 
-        prefs.GetBytes(PREF_KEY, _key.data(), KEY_SIZE);
-
-        auto prevKeysLen = prefs.GetBytesLength(PREF_KNOWN_KEYS);
-        auto prevKeysSize = prevKeysLen / KEY_SIZE;
-        _knownKeys.resize(prevKeysSize + 1);
-        prefs.GetBytes(PREF_KNOWN_KEYS, reinterpret_cast<uint8_t *>(_knownKeys.data()), prevKeysLen);
-        _knownKeys.resize(prevKeysSize);
-
-        _active_minutes = prefs.GetU16(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
-        _active_ms = 60000ul * _active_minutes;
-        _eco_minutes = prefs.GetU16(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
-        _eco_ms = 60000ul * _eco_minutes;
-#if defined(ENABLE_WIFI) && ENABLE_WIFI
-        _wifi_ssid = prefs.GetString(PREF_WIFI_SSID);
-        _wifi_pass = prefs.GetString(PREF_WIFI_PASS);
-#endif
+    _id = prefs.GetU8(PREF_ID, 1);
+    if (_id == AOP::PunchCard::CLEAR_STATION) {
+        _cardMode = CardMode::Format;
     }
 
+    prefs.GetBytes(PREF_KEY, _key.data(), KEY_SIZE);
+
+    auto prevKeysLen = prefs.GetBytesLength(PREF_KNOWN_KEYS);
+    auto prevKeysSize = prevKeysLen / KEY_SIZE;
+    _knownKeys.resize(prevKeysSize + 1);
+    prefs.GetBytes(PREF_KNOWN_KEYS, reinterpret_cast<uint8_t *>(_knownKeys.data()), prevKeysLen);
+    _knownKeys.resize(prevKeysSize);
+
+    _active_minutes = prefs.GetU16(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
+    _active_ms = 60000ul * _active_minutes;
+    _eco_minutes = prefs.GetU16(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
+    _eco_ms = 60000ul * _eco_minutes;
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
+    _wifi_ssid = prefs.GetString(PREF_WIFI_SSID);
+    _wifi_pass = prefs.GetString(PREF_WIFI_PASS);
+#endif
+}
+
+void Settings::SetupLate()
+{
     // Prepare to record the punches
     uint32_t now = GetClock(nullptr) / 1000;
     _recorder.Setup(now);
-
-    return 0;
 }
 
 bool Settings::IsKeyDefault()

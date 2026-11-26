@@ -29,14 +29,17 @@ void setup()
 #endif //ESP32
 
     buzzer.Setup();
+    settings.Setup();
 
 #ifdef ESP32
-    if (operation.Setup() || settings.Setup()) {
+    if (operation.Setup()) {
         while (true) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             Serial.println(F("Failed to initialize"));
         }
     }
+
+    settings.SetupLate();
 #endif
 
     bool initialization_ok = true;

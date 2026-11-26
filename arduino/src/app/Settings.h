@@ -18,7 +18,8 @@ public:
 
     Buzzer& GetBuzzer() const { return *_buzzer; }
 
-    int8_t Setup();
+    void Setup();
+    void SetupLate();
 
     static constexpr const size_t KEY_SIZE = 6;
     using KeyT = AOP::IMifare::KeyT;

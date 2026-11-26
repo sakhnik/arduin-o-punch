@@ -23,9 +23,7 @@ Prefs::Prefs(const char *name, bool readOnly)
     , readOnly{readOnly}
 {
     if (!db) {
-        int flags = readOnly
-            ? SQLITE_OPEN_READONLY
-            : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+        int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
         if (sqlite3_open_v2("prefs.db", &db, flags, nullptr) != SQLITE_OK) {
             std::string msg = sqlite3_errmsg(db);
