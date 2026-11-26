@@ -1,15 +1,13 @@
-#ifdef ESP32
 #include "Settings.h"
 #include "Buzzer.h"
 #include "hal/rtc.h"
+#include "hal/prefs.h"
+#include "hal/time.h"
 #include "TZ.h"
 #include <algorithm>
 #include <stddef.h>
-#include <Preferences.h>
 
 namespace {
-
-Preferences prefs;
 
 constexpr const size_t EEPROM_SIZE = 32 * 1024;
 
@@ -33,30 +31,31 @@ Settings::Settings(Buzzer &buzzer)
 
 int8_t Settings::Setup()
 {
-    prefs.begin(PREF_CONFIG, true);
+    {
+        HAL::Prefs prefs(PREF_CONFIG, true);
 
-    _id = prefs.getUChar(PREF_ID, 1);
-    if (_id == AOP::PunchCard::CLEAR_STATION) {
-        _cardMode = CardMode::Format;
-    }
+        _id = prefs.GetU8(PREF_ID, 1);
+        if (_id == AOP::PunchCard::CLEAR_STATION) {
+            _cardMode = CardMode::Format;
+        }
 
-    prefs.getBytes(PREF_KEY, _key.data(), KEY_SIZE);
+        prefs.GetBytes(PREF_KEY, _key.data(), KEY_SIZE);
 
-    auto prevKeysLen = prefs.getBytesLength(PREF_KNOWN_KEYS);
-    auto prevKeysSize = prevKeysLen / KEY_SIZE;
-    _knownKeys.resize(prevKeysSize + 1);
-    prefs.getBytes(PREF_KNOWN_KEYS, _knownKeys.data(), prevKeysLen);
-    _knownKeys.resize(prevKeysSize);
+        auto prevKeysLen = prefs.GetBytesLength(PREF_KNOWN_KEYS);
+        auto prevKeysSize = prevKeysLen / KEY_SIZE;
+        _knownKeys.resize(prevKeysSize + 1);
+        prefs.GetBytes(PREF_KNOWN_KEYS, reinterpret_cast<uint8_t *>(_knownKeys.data()), prevKeysLen);
+        _knownKeys.resize(prevKeysSize);
 
-    _active_minutes = prefs.getUShort(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
-    _active_ms = 60000ul * _active_minutes;
-    _eco_minutes = prefs.getUShort(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
-    _eco_ms = 60000ul * _eco_minutes;
+        _active_minutes = prefs.GetU16(PREF_T_ACT_M, DEFAULT_ACTIVE_MINUTES);
+        _active_ms = 60000ul * _active_minutes;
+        _eco_minutes = prefs.GetU16(PREF_T_ECO_M, DEFAULT_ECO_MINUTES);
+        _eco_ms = 60000ul * _eco_minutes;
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-    _wifi_ssid = prefs.getString(PREF_WIFI_SSID).c_str();
-    _wifi_pass = prefs.getString(PREF_WIFI_PASS).c_str();
+        _wifi_ssid = prefs.GetString(PREF_WIFI_SSID);
+        _wifi_pass = prefs.GetString(PREF_WIFI_PASS);
 #endif
-    prefs.end();
+    }
 
     // Prepare to record the punches
     uint32_t now = GetClock(nullptr) / 1000;
@@ -88,9 +87,8 @@ void Settings::SetKey(const KeyT &key)
         if (_key == key)
             return;
         _key = key;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putBytes(PREF_KEY, _key.data(), KEY_SIZE);
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutBytes(PREF_KEY, _key.data(), KEY_SIZE);
     }
 
     NotifyWatchers();
@@ -108,9 +106,8 @@ void Settings::SetKnownKeys(KeysT &&keys)
         if (_knownKeys == keys)
             return;
         _knownKeys = std::move(keys);
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putBytes(PREF_KNOWN_KEYS, _knownKeys.data(), KEY_SIZE * _knownKeys.size());
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutBytes(PREF_KNOWN_KEYS, reinterpret_cast<const uint8_t *>(_knownKeys.data()), KEY_SIZE * _knownKeys.size());
     }
 
     NotifyWatchers();
@@ -133,7 +130,7 @@ uint32_t Settings::GetClock(const AOP::DateTime *date_time) const
     clock = clock * 60 + date_time->second;
     // We take milliseconds from arduino clock. This is only useful if we copare
     // close clock readings. Otherwise, the milliseconds should be ignored.
-    return clock * 1000 + millis() % 1000;
+    return clock * 1000 + HAL::Millis() % 1000;
 }
 
 void Settings::SetClock(uint32_t clock)
@@ -170,9 +167,8 @@ void Settings::SetId(uint8_t id)
         if (_id == id)
             return;
         _id = id;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putUChar(PREF_ID, _id);
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutU8(PREF_ID, _id);
     }
 
     NotifyWatchers();
@@ -198,9 +194,8 @@ void Settings::SetActiveMinutes(uint32_t minutes)
             return;
         _active_minutes = minutes;
         _active_ms = 60000ul * _active_minutes;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putUShort(PREF_T_ACT_M, _active_minutes);
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutU16(PREF_T_ACT_M, _active_minutes);
     }
 
     NotifyWatchers();
@@ -226,9 +221,8 @@ void Settings::SetEcoMinutes(uint32_t minutes)
             return;
         _eco_minutes = minutes;
         _eco_ms = 60000ul * _eco_minutes;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putUShort(PREF_T_ECO_M, _eco_minutes);
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutU16(PREF_T_ECO_M, _eco_minutes);
     }
 
     NotifyWatchers();
@@ -248,9 +242,8 @@ void Settings::SetWifiSsid(std::string_view ssid)
         if (_wifi_ssid == ssid)
             return;
         _wifi_ssid = ssid;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putString(PREF_WIFI_SSID, _wifi_ssid.c_str());
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutString(PREF_WIFI_SSID, _wifi_ssid.c_str());
     }
 
     NotifyWatchers();
@@ -269,9 +262,8 @@ void Settings::SetWifiPass(std::string_view pass)
         if (_wifi_pass == pass)
             return;
         _wifi_pass = pass;
-        prefs.begin(PREF_CONFIG, false);
-        prefs.putString(PREF_WIFI_PASS, _wifi_pass.c_str());
-        prefs.end();
+        HAL::Prefs prefs(PREF_CONFIG, false);
+        prefs.PutString(PREF_WIFI_PASS, _wifi_pass.c_str());
     }
 
     NotifyWatchers();
@@ -324,4 +316,3 @@ void Settings::ActivateCardFormatMode(std::string_view arg)
     }
     _cardModeArg = arg;
 }
-#endif

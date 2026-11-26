@@ -9,9 +9,9 @@
 #include "app/RtcLog.h"
 
 Buzzer buzzer;
+Settings settings{buzzer};
 
 #ifdef ESP32
-Settings settings{buzzer};
 OutMux outMux;
 Shell shell{outMux, settings, buzzer};
 
