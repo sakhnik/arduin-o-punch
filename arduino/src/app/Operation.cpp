@@ -54,7 +54,7 @@ int Operation::Setup()
     // Power on the RFID reader
     digitalWrite(MOSFET_PIN, LOW);
 
-    if (!Hal::RTC::Setup()) {
+    if (!HAL::RTC::Setup()) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
         buzzer.SignalRTCFail();
@@ -67,7 +67,7 @@ int Operation::Setup()
     if (RtcLog::IsReliable()) {
         // Restore the previous mode to preserve the accurate statistics
         prefs.begin(PREF_STATS, true);
-        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, Hal::RTC::Now().ToUnix());
+        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, HAL::RTC::Now().ToUnix());
         auto prevMode = prefs.getInt(PREF_PREV_MODE, static_cast<int>(Mode::Sleep));
         if (prevMode < static_cast<int>(Mode::Count)) {
             mode = static_cast<Mode>(prevMode);
@@ -75,7 +75,7 @@ int Operation::Setup()
         prefs.getBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));
         prefs.end();
     } else {
-        prevTransitionTime = Hal::RTC::Now().ToUnix();
+        prevTransitionTime = HAL::RTC::Now().ToUnix();
     }
 
     prevCardTimeMs = millis();
@@ -181,9 +181,9 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
     }
 
     // Record the time spent in the previous mode
-    auto now = Hal::RTC::Now().ToUnix();
+    auto now = HAL::RTC::Now().ToUnix();
     {
-        Hal::LockGuard lock{mutex};
+        HAL::LockGuard lock{mutex};
         timeStats[static_cast<size_t>(mode)] += now - prevTransitionTime;
         prevTransitionTime = now;
         prefs.begin(PREF_STATS, false);
@@ -334,8 +334,8 @@ bool Operation::CheckSnooze()
 
 void Operation::ResetStats()
 {
-    Hal::LockGuard lock{mutex};
-    prevTransitionTime = Hal::RTC::Now().ToUnix();
+    HAL::LockGuard lock{mutex};
+    prevTransitionTime = HAL::RTC::Now().ToUnix();
     timeStats.fill(0);
 }
 
@@ -345,9 +345,9 @@ Stats Operation::GetStats()
     stats.bootCount = RtcLog::bootCount;
     stats.lastResetReason = RtcLog::lastReset;
 
-    auto now = Hal::RTC::Now().ToUnix();
+    auto now = HAL::RTC::Now().ToUnix();
     {
-        Hal::LockGuard lock{mutex};
+        HAL::LockGuard lock{mutex};
         for (int i = 0; i < static_cast<int>(OperationMode::Count); ++i) {
             stats.timeStats[i] = timeStats[i];
         }

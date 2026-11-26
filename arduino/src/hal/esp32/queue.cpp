@@ -3,7 +3,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 
-namespace Hal {
+namespace HAL {
 
 Queue::~Queue()
 {
@@ -65,4 +65,4 @@ size_t Queue::Size() const
     return uxQueueMessagesWaiting(static_cast<QueueHandle_t>(_handle));
 }
 
-}
+} //namespace HAL;

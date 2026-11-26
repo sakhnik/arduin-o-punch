@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Hal {
+namespace HAL {
 
 class Mutex
 {
@@ -39,4 +39,4 @@ private:
     Mutex &mutex;
 };
 
-} //namespace Hal;
+} //namespace HAL;

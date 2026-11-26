@@ -2,7 +2,7 @@
 
 #include "DateTime.h"
 
-namespace Hal {
+namespace HAL {
 
 class RTC
 {
@@ -12,4 +12,4 @@ public:
     static void Adjust(const AOP::DateTime &);
 };
 
-} //namespace Hal;
+} //namespace HAL;

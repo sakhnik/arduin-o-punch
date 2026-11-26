@@ -7,7 +7,7 @@
 #include <atomic>
 #include <new>
 
-namespace Hal {
+namespace HAL {
 
 struct TaskImpl
 {
@@ -103,4 +103,4 @@ bool Task::IsRunning() const
     return impl && impl->running.load(std::memory_order_acquire);
 }
 
-} //namespace Hal;
+} //namespace HAL;

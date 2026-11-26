@@ -7,7 +7,7 @@
 #include <new>
 #include <limits>
 
-namespace Hal {
+namespace HAL {
 
 struct QueueImpl
 {
@@ -146,4 +146,4 @@ size_t Queue::Size() const
     return impl->count;
 }
 
-} //namespace Hal;
+} //namespace HAL;

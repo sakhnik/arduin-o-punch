@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-namespace Hal {
+namespace HAL {
 
 void Delay(uint32_t ms);
 
-} //namespace Hal;
+} //namespace HAL;

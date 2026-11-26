@@ -7,7 +7,7 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/thread-mainloop.h>
 
-namespace Hal {
+namespace HAL {
 
 static BuzzerSim buzzer;
 
@@ -27,4 +27,4 @@ void GpioWrite(int pin, bool value)
     printf("GPIO %d: %s\n", pin, value ? "HIGH" : "LOW");
 }
 
-} //namespace std;
+} //namespace HAL;

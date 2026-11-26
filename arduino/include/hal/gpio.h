@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Hal {
+namespace HAL {
 
 void GpioWrite(int pin, bool value);
 void GpioModeOutput(int pin);
 
-} //namespace Hal;
+} //namespace HAL;

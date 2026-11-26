@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace Hal {
+namespace HAL {
 
 class Queue
 {
@@ -28,4 +28,4 @@ private:
     void *_handle = nullptr;
 };
 
-} //namespace Hal;
+} //namespace HAL;

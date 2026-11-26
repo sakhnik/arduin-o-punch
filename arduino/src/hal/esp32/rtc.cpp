@@ -2,7 +2,7 @@
 #include "defs.h"
 #include <RTClib.h>
 
-namespace Hal {
+namespace HAL {
 
 RTC_DS3231 rtc;
 
@@ -23,4 +23,4 @@ void RTC::Adjust(const AOP::DateTime &dt)
     rtc.adjust({dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second});
 }
 
-} //namespace Hal;
+} //namespace HAL;

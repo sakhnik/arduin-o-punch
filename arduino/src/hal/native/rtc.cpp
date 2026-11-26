@@ -3,7 +3,7 @@
 #include <chrono>
 #include <mutex>
 
-namespace Hal {
+namespace HAL {
 
 using namespace std::chrono;
 
@@ -33,4 +33,4 @@ void RTC::Adjust(const AOP::DateTime &dt)
     rtc_reference = steady_clock::now();
 }
 
-} // namespace Hal
+} // namespace HAL

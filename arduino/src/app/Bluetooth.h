@@ -29,7 +29,7 @@ private:
     std::atomic<bool> _stopRequested{false};
     AOP::RingBuffer<1024> _outBuffer;
     std::atomic<unsigned long> _lastStdinTimeMs = 0;
-    Hal::Mutex _txMutex;
+    HAL::Mutex _txMutex;
     SemaphoreHandle_t _txSignal = nullptr;
     TaskHandle_t _taskHandle = nullptr;
     size_t _subscription_handle = -1;

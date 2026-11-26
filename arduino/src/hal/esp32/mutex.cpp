@@ -3,7 +3,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
-namespace Hal {
+namespace HAL {
 
 struct Impl
 {
@@ -37,4 +37,4 @@ void Mutex::unlock()
     xSemaphoreGive(impl->handle);
 }
 
-} //namespace Hal;
+} //namespace HAL;

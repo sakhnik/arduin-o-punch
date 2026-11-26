@@ -79,10 +79,10 @@ public:
 
 private:
     Buzzer *_buzzer;
-    Hal::Mutex _watchersMx;
+    HAL::Mutex _watchersMx;
     std::array<OnChangeT, 4> watchers = {};
 
-    Hal::Mutex _dataMx;
+    HAL::Mutex _dataMx;
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     KeysT _knownKeys;

@@ -67,7 +67,7 @@ int8_t Settings::Setup()
 
 bool Settings::IsKeyDefault()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     for (int i = 0; i < KEY_SIZE; ++i) {
         if (_key[i] != 0xff)
             return false;
@@ -77,14 +77,14 @@ bool Settings::IsKeyDefault()
 
 Settings::KeyT Settings::GetKey()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _key;
 }
 
 void Settings::SetKey(const KeyT &key)
 {
     {
-        Hal::LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_key == key)
             return;
         _key = key;
@@ -104,7 +104,7 @@ const Settings::KeysT& Settings::GetKnownKeys()
 void Settings::SetKnownKeys(KeysT &&keys)
 {
     {
-        Hal::LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_knownKeys == keys)
             return;
         _knownKeys = std::move(keys);
@@ -118,7 +118,7 @@ void Settings::SetKnownKeys(KeysT &&keys)
 
 AOP::DateTime Settings::GetDateTime() const
 {
-    return AOP::TZ::ToLocal(Hal::RTC::Now());
+    return AOP::TZ::ToLocal(HAL::RTC::Now());
 }
 
 uint32_t Settings::GetClock(const AOP::DateTime *date_time) const
@@ -147,26 +147,26 @@ void Settings::SetClock(uint32_t clock)
     clock /= 60;
     AOP::DateTime adjusted(now.year, now.month, now.day, clock, min, sec);
     adjusted = AOP::TZ::ToStandard(adjusted);
-    Hal::RTC::Adjust(adjusted);
+    HAL::RTC::Adjust(adjusted);
 }
 
 void Settings::SetDateTime(uint32_t timestamp)
 {
     auto adjusted = AOP::DateTime::FromUnix(timestamp);
     adjusted = AOP::TZ::ToStandard(adjusted);
-    Hal::RTC::Adjust(adjusted);
+    HAL::RTC::Adjust(adjusted);
 }
 
 uint8_t Settings::GetId()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _id;
 }
 
 void Settings::SetId(uint8_t id)
 {
     {
-        Hal::LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_id == id)
             return;
         _id = id;
@@ -180,20 +180,20 @@ void Settings::SetId(uint8_t id)
 
 uint32_t Settings::GetActiveMinutes()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _active_minutes;
 }
 
 uint32_t Settings::GetActiveMs()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _active_ms;
 }
 
 void Settings::SetActiveMinutes(uint32_t minutes)
 {
     {
-        Hal::LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_active_minutes == minutes)
             return;
         _active_minutes = minutes;
@@ -208,20 +208,20 @@ void Settings::SetActiveMinutes(uint32_t minutes)
 
 uint32_t Settings::GetEcoMinutes()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _eco_minutes;
 }
 
 uint32_t Settings::GetEcoMs()
 {
-    Hal::LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _eco_ms;
 }
 
 void Settings::SetEcoMinutes(uint32_t minutes)
 {
     {
-        Hal::LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_eco_minutes == minutes)
             return;
         _eco_minutes = minutes;
@@ -280,7 +280,7 @@ void Settings::SetWifiPass(std::string_view pass)
 
 size_t Settings::Subscribe(OnChangeT on_change)
 {
-    Hal::LockGuard lock{_watchersMx};
+    HAL::LockGuard lock{_watchersMx};
     auto it = std::find_if(watchers.begin(), watchers.end(), [](OnChangeT w) { return !w; });
     if (it != watchers.end()) {
         *it = on_change;
@@ -290,14 +290,14 @@ size_t Settings::Subscribe(OnChangeT on_change)
 
 void Settings::Unsubscribe(size_t idx)
 {
-    Hal::LockGuard lock{_watchersMx};
+    HAL::LockGuard lock{_watchersMx};
     if (idx < watchers.size())
         watchers[idx] = {};
 }
 
 void Settings::NotifyWatchers()
 {
-    Hal::LockGuard lock{_watchersMx};
+    HAL::LockGuard lock{_watchersMx};
     for (const auto &w : watchers) {
         if (w) {
             w();

@@ -10,8 +10,8 @@ Buzzer::Buzzer()
 
 void Buzzer::Setup()
 {
-    Hal::GpioModeOutput(BUZZER_PIN);
-    Hal::GpioWrite(BUZZER_PIN, true);
+    HAL::GpioModeOutput(BUZZER_PIN);
+    HAL::GpioWrite(BUZZER_PIN, true);
 
     _queue.Setup(8, sizeof(Melody));
 
@@ -51,7 +51,7 @@ void Buzzer::TaskLoop()
             uint8_t duration = melody.sequence[idx];
 
             if (duration == 0) {
-                Hal::GpioWrite(BUZZER_PIN, true);
+                HAL::GpioWrite(BUZZER_PIN, true);
                 break; // melody finished
             }
 
@@ -65,12 +65,12 @@ void Buzzer::TaskLoop()
                 }
             }
 
-            Hal::GpioWrite(BUZZER_PIN, state);
+            HAL::GpioWrite(BUZZER_PIN, state);
 
             state = !state;
             idx++;
 
-            Hal::Delay(duration * 8);
+            HAL::Delay(duration * 8);
         }
     }
 }

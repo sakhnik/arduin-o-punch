@@ -42,8 +42,8 @@ public:
     void SignalNumber(uint16_t);
 
 private:
-    Hal::Queue _queue;
-    Hal::Task _task;
+    HAL::Queue _queue;
+    HAL::Task _task;
 
     static void TaskEntry(void *arg);
     void TaskLoop();

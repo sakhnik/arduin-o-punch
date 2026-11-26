@@ -1,7 +1,7 @@
 #include "hal/mutex.h"
 #include <mutex>
 
-namespace Hal {
+namespace HAL {
 
 struct Impl
 {
@@ -28,4 +28,4 @@ void Mutex::unlock()
     static_cast<Impl *>(_impl)->mutex.unlock();
 }
 
-} //namespace Hal;
+} //namespace HAL;

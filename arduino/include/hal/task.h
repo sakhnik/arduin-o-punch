@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace Hal {
+namespace HAL {
 
 class Task
 {
@@ -25,4 +25,4 @@ private:
     void *_handle = nullptr;
 };
 
-} //namespace Hal;
+} //namespace HAL;

@@ -1,7 +1,7 @@
 #include "hal/gpio.h"
 #include <Arduino.h>
 
-namespace Hal {
+namespace HAL {
 
 void GpioModeOutput(int pin)
 {
@@ -13,4 +13,4 @@ void GpioWrite(int pin, bool value)
     digitalWrite(pin, value ? HIGH : LOW);
 }
 
-} //namespace Hal;
+} //namespace HAL;

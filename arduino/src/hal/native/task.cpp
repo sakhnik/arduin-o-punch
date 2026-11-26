@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <new>
 
-namespace Hal {
+namespace HAL {
 
 struct TaskImpl {
     pthread_t thread{};
@@ -114,4 +114,4 @@ bool Task::IsRunning() const
     return impl && impl->running.load(std::memory_order_acquire);
 }
 
-}
+} //namespace HAL;
