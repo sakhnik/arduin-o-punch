@@ -5,8 +5,8 @@
 #include "Recorder.h"
 #include "hal/mutex.h"
 #include "PunchCard.h"
+#include "DateTime.h"
 
-#include <RTClib.h>
 #include <array>
 #include <functional>
 #include <string_view>
@@ -32,8 +32,8 @@ public:
     const KeysT& GetKnownKeys();
     void SetKnownKeys(KeysT &&);
 
-    DateTime GetDateTime() const;
-    uint32_t GetClock(const DateTime *date_time) const;
+    AOP::DateTime GetDateTime() const;
+    uint32_t GetClock(const AOP::DateTime *date_time) const;
     void SetClock(uint32_t clock);
     void SetDateTime(uint32_t timestamp);
 

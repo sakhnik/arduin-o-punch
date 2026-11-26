@@ -18,6 +18,7 @@ add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 
 add_library(aop
+    DateTime.h
     ErrorCode.cpp
     ErrorCode.h
     IMifare.cpp
@@ -28,6 +29,7 @@ add_library(aop
     Recorder.cpp
     Recorder.h
     RingBuffer.h
+    TZ.h
     Utils.cpp
     Utils.h
 )
@@ -37,6 +39,7 @@ add_executable(test-aop
     PunchTest.cpp
     RecorderTest.cpp
     RingBufferTest.cpp
+    TZTest.cpp
     test.cpp
 )
 target_link_libraries(test-aop aop)

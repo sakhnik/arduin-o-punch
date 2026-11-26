@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DateTime.h"
+
 #ifdef ESP32
 
 #include <Arduino.h>
@@ -47,11 +49,11 @@ private:
     void _PrintEco();
     void _PrintKey();
     void _SetClock(const char *str);
-    void _PrintClock(const DateTime &time);
+    void _PrintClock(const AOP::DateTime &time);
     void _SetTimestamp(const char *str);
     void _PrintTimestamp();
-    void _PrintDate(const DateTime &time);
-    void _PrintTime(const DateTime &time);
+    void _PrintDate(const AOP::DateTime &time);
+    void _PrintTime(const AOP::DateTime &time);
     void _RecorderCheck(const char *str);
     void _RecorderList();
     void _PrintDD(uint8_t d);

@@ -379,7 +379,7 @@ void Shell::_SetClock(const char *str)
     _settings.SetClock(ParseNum<uint32_t>(str));
 }
 
-void Shell::_PrintClock(const DateTime &time)
+void Shell::_PrintClock(const AOP::DateTime &time)
 {
     _outMux.println(_settings.GetClock(&time));
 }
@@ -392,7 +392,7 @@ void Shell::_SetTimestamp(const char *str)
 
 void Shell::_PrintTimestamp()
 {
-    _outMux.println(_settings.GetDateTime().unixtime());
+    _outMux.println(_settings.GetDateTime().ToUnix());
 }
 
 void Shell::_PrintDD(uint8_t d)
@@ -402,23 +402,23 @@ void Shell::_PrintDD(uint8_t d)
     _outMux.print(d);
 }
 
-void Shell::_PrintDate(const DateTime &date)
+void Shell::_PrintDate(const AOP::DateTime &date)
 {
-    _outMux.print(date.year());
+    _outMux.print(date.year);
     _outMux.print(F("-"));
-    _PrintDD(date.month());
+    _PrintDD(date.month);
     _outMux.print(F("-"));
-    _PrintDD(date.day());
+    _PrintDD(date.day);
     _outMux.println();
 }
 
-void Shell::_PrintTime(const DateTime &time)
+void Shell::_PrintTime(const AOP::DateTime &time)
 {
-    _PrintDD(time.hour());
+    _PrintDD(time.hour);
     _outMux.print(F(":"));
-    _PrintDD(time.minute());
+    _PrintDD(time.minute);
     _outMux.print(F(":"));
-    _PrintDD(time.second());
+    _PrintDD(time.second);
     _outMux.println();
 }
 

@@ -2,7 +2,7 @@
 #include "Settings.h"
 #include "Buzzer.h"
 #include <RTClib.h>
-#include <flex_DST.h>
+#include "TZ.h"
 #include <stddef.h>
 #include <Preferences.h>
 
@@ -12,9 +12,6 @@ extern RTC_DS3231 rtc;
 namespace {
 
 Preferences prefs;
-
-// EEST DST rules: last Sunday of March to last Sunday of October
-flex_DST dst{5, 3, 5, 10};
 
 constexpr const size_t EEPROM_SIZE = 32 * 1024;
 
@@ -121,21 +118,22 @@ void Settings::SetKnownKeys(KeysT &&keys)
     NotifyWatchers();
 }
 
-DateTime Settings::GetDateTime() const
+AOP::DateTime Settings::GetDateTime() const
 {
-    return dst.calculateTime(rtc.now());
+    auto dt = rtc.now();
+    return AOP::TZ::ToLocal(AOP::DateTime{dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second()});
 }
 
-uint32_t Settings::GetClock(const DateTime *date_time) const
+uint32_t Settings::GetClock(const AOP::DateTime *date_time) const
 {
     if (!date_time) {
-        auto now = dst.calculateTime(rtc.now());
-        return GetClock(&now);
+        auto dt = GetDateTime();
+        return GetClock(&dt);
     }
     // TODO: subsecond resolution
-    uint32_t clock = date_time->hour();
-    clock = clock * 60 + date_time->minute();
-    clock = clock * 60 + date_time->second();
+    uint32_t clock = date_time->hour;
+    clock = clock * 60 + date_time->minute;
+    clock = clock * 60 + date_time->second;
     // We take milliseconds from arduino clock. This is only useful if we copare
     // close clock readings. Otherwise, the milliseconds should be ignored.
     return clock * 1000 + millis() % 1000;
@@ -143,27 +141,23 @@ uint32_t Settings::GetClock(const DateTime *date_time) const
 
 void Settings::SetClock(uint32_t clock)
 {
-    auto now = dst.calculateTime(rtc.now());
+    auto now = GetDateTime();
     //auto ms = clock % 1000;
     clock /= 1000;
     auto sec = clock % 60;
     clock /= 60;
     auto min = clock % 60;
     clock /= 60;
-    DateTime adjusted(now.year(), now.month(), now.day(), clock, min, sec);
-    if (dst.checkDST(adjusted)) {
-        adjusted = adjusted.unixtime() - 3600;
-    }
-    rtc.adjust(adjusted);
+    AOP::DateTime adjusted(now.year, now.month, now.day, clock, min, sec);
+    adjusted = AOP::TZ::ToStandard(adjusted);
+    rtc.adjust(adjusted.ToUnix());
 }
 
 void Settings::SetDateTime(uint32_t timestamp)
 {
-    DateTime adjusted{timestamp};
-    if (dst.checkDST(adjusted)) {
-        adjusted = adjusted.unixtime() - 3600;
-    }
-    rtc.adjust(adjusted);
+    auto adjusted = AOP::DateTime::FromUnix(timestamp);
+    adjusted = AOP::TZ::ToStandard(adjusted);
+    rtc.adjust(adjusted.ToUnix());
 }
 
 uint8_t Settings::GetId()
