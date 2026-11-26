@@ -2,7 +2,7 @@
 
 #ifdef ESP32
 
-#include "Mutex.h"
+#include "hal/mutex.h"
 #include "OperationMode.h"
 #include "Stats.h"
 #include "Puncher.h"
@@ -38,7 +38,7 @@ private:
     // Start in the sleep mode to record the sleep time
     using Mode = OperationMode;
     Mode mode = Mode::Sleep;
-    Mutex mutex;
+    Hal::Mutex mutex;
     uint32_t prevCardTimeMs = 0;
     uint32_t prevTransitionTime = 0;
     using StatsT = std::array<uint32_t, static_cast<size_t>(Mode::Count)>;

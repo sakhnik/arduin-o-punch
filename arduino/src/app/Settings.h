@@ -3,7 +3,7 @@
 #ifdef ESP32
 
 #include "Recorder.h"
-#include "Mutex.h"
+#include "hal/mutex.h"
 #include "PunchCard.h"
 
 #include <RTClib.h>
@@ -80,10 +80,10 @@ public:
 
 private:
     Buzzer *_buzzer;
-    Mutex _watchersMx;
+    Hal::Mutex _watchersMx;
     std::array<OnChangeT, 4> watchers = {};
 
-    Mutex _dataMx;
+    Hal::Mutex _dataMx;
     uint8_t _id = 1;
     KeyT _key = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     KeysT _knownKeys;

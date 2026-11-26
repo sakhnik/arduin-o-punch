@@ -167,7 +167,7 @@ void Bluetooth::_Task()
 
         while (!_stopRequested.load()) {
 
-            auto chunk = (LockGuard{_txMutex}, _outBuffer.Get(chunkSize));
+            auto chunk = (Hal::LockGuard{_txMutex}, _outBuffer.Get(chunkSize));
             if (!chunk.size) {
                 break;
             }
@@ -274,7 +274,7 @@ void Bluetooth::Write(const uint8_t *buffer, size_t size)
         return;
     }
 
-    LockGuard{_txMutex}, _outBuffer.Add(buffer, size);
+    Hal::LockGuard{_txMutex}, _outBuffer.Add(buffer, size);
 
     xSemaphoreGive(_txSignal);  // wake TX task
 }

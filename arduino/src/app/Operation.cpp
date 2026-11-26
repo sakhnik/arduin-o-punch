@@ -186,7 +186,7 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
     // Record the time spent in the previous mode
     auto now = rtc.now().unixtime();
     {
-        LockGuard lock{mutex};
+        Hal::LockGuard lock{mutex};
         timeStats[static_cast<size_t>(mode)] += now - prevTransitionTime;
         prevTransitionTime = now;
         prefs.begin(PREF_STATS, false);
@@ -337,7 +337,7 @@ bool Operation::CheckSnooze()
 
 void Operation::ResetStats()
 {
-    LockGuard lock{mutex};
+    Hal::LockGuard lock{mutex};
     prevTransitionTime = rtc.now().unixtime();
     timeStats.fill(0);
 }
@@ -350,7 +350,7 @@ Stats Operation::GetStats()
 
     auto now = rtc.now().unixtime();
     {
-        LockGuard lock{mutex};
+        Hal::LockGuard lock{mutex};
         for (int i = 0; i < static_cast<int>(OperationMode::Count); ++i) {
             stats.timeStats[i] = timeStats[i];
         }
