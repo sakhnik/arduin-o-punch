@@ -9,14 +9,12 @@
 #include "defs.h"
 #include "ActivityCounter.h"
 #include "RtcLog.h"
+#include "hal/rtc.h"
 #include <SPI.h>
+#include <Wire.h>
 #include <esp_sleep.h>
 #include <driver/gpio.h>
-#include <RTClib.h>
 #include <Preferences.h>
-
-// Should always keep non-DST time
-RTC_DS3231 rtc;
 
 namespace {
 
@@ -56,8 +54,7 @@ int Operation::Setup()
     // Power on the RFID reader
     digitalWrite(MOSFET_PIN, LOW);
 
-    Wire.setPins(I2C_SDA, I2C_SCL);
-    if (!rtc.begin()) {
+    if (!Hal::RTC::Setup()) {
         Serial.println("Couldn't find RTC");
         Serial.flush();
         buzzer.SignalRTCFail();
@@ -70,7 +67,7 @@ int Operation::Setup()
     if (RtcLog::IsReliable()) {
         // Restore the previous mode to preserve the accurate statistics
         prefs.begin(PREF_STATS, true);
-        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, rtc.now().unixtime());
+        prevTransitionTime = prefs.getULong(PREF_PREV_TRANSITION, Hal::RTC::Now().ToUnix());
         auto prevMode = prefs.getInt(PREF_PREV_MODE, static_cast<int>(Mode::Sleep));
         if (prevMode < static_cast<int>(Mode::Count)) {
             mode = static_cast<Mode>(prevMode);
@@ -78,7 +75,7 @@ int Operation::Setup()
         prefs.getBytes(PREF_TIMES, timeStats.data(), sizeof(timeStats));
         prefs.end();
     } else {
-        prevTransitionTime = rtc.now().unixtime();
+        prevTransitionTime = Hal::RTC::Now().ToUnix();
     }
 
     prevCardTimeMs = millis();
@@ -184,7 +181,7 @@ void Operation::TransitionTo(Mode nextMode, bool silent)
     }
 
     // Record the time spent in the previous mode
-    auto now = rtc.now().unixtime();
+    auto now = Hal::RTC::Now().ToUnix();
     {
         Hal::LockGuard lock{mutex};
         timeStats[static_cast<size_t>(mode)] += now - prevTransitionTime;
@@ -338,7 +335,7 @@ bool Operation::CheckSnooze()
 void Operation::ResetStats()
 {
     Hal::LockGuard lock{mutex};
-    prevTransitionTime = rtc.now().unixtime();
+    prevTransitionTime = Hal::RTC::Now().ToUnix();
     timeStats.fill(0);
 }
 
@@ -348,7 +345,7 @@ Stats Operation::GetStats()
     stats.bootCount = RtcLog::bootCount;
     stats.lastResetReason = RtcLog::lastReset;
 
-    auto now = rtc.now().unixtime();
+    auto now = Hal::RTC::Now().ToUnix();
     {
         Hal::LockGuard lock{mutex};
         for (int i = 0; i < static_cast<int>(OperationMode::Count); ++i) {

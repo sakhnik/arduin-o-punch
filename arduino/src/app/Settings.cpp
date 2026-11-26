@@ -1,13 +1,11 @@
 #ifdef ESP32
 #include "Settings.h"
 #include "Buzzer.h"
-#include <RTClib.h>
+#include "hal/rtc.h"
 #include "TZ.h"
+#include <algorithm>
 #include <stddef.h>
 #include <Preferences.h>
-
-// Should always keep non-DST time
-extern RTC_DS3231 rtc;
 
 namespace {
 
@@ -120,8 +118,7 @@ void Settings::SetKnownKeys(KeysT &&keys)
 
 AOP::DateTime Settings::GetDateTime() const
 {
-    auto dt = rtc.now();
-    return AOP::TZ::ToLocal(AOP::DateTime{dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second()});
+    return AOP::TZ::ToLocal(Hal::RTC::Now());
 }
 
 uint32_t Settings::GetClock(const AOP::DateTime *date_time) const
@@ -150,14 +147,14 @@ void Settings::SetClock(uint32_t clock)
     clock /= 60;
     AOP::DateTime adjusted(now.year, now.month, now.day, clock, min, sec);
     adjusted = AOP::TZ::ToStandard(adjusted);
-    rtc.adjust(adjusted.ToUnix());
+    Hal::RTC::Adjust(adjusted);
 }
 
 void Settings::SetDateTime(uint32_t timestamp)
 {
     auto adjusted = AOP::DateTime::FromUnix(timestamp);
     adjusted = AOP::TZ::ToStandard(adjusted);
-    rtc.adjust(adjusted.ToUnix());
+    Hal::RTC::Adjust(adjusted);
 }
 
 uint8_t Settings::GetId()
@@ -327,4 +324,4 @@ void Settings::ActivateCardFormatMode(std::string_view arg)
     }
     _cardModeArg = arg;
 }
-#endif //ESP32
+#endif
