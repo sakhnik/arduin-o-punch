@@ -1,7 +1,7 @@
 
 #ifdef BUILD_TUI
 
-#include "PunchCard.h"
+#include "aop/PunchCard.h"
 
 #include <algorithm>
 #include <array>

@@ -1,9 +1,7 @@
 #ifdef BUILD_TEST
 
 #include <doctest/doctest.h>
-#include "Recorder.h"
-#include <string>
-#include <random>
+#include "aop/Recorder.h"
 
 using namespace AOP;
 

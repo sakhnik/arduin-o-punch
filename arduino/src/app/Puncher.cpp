@@ -2,8 +2,8 @@
 
 #include "Puncher.h"
 #include "Settings.h"
-#include "IMifare.h"
-#include "PunchCard.h"
+#include "aop/IMifare.h"
+#include "aop/PunchCard.h"
 #include "Buzzer.h"
 #include "Operation.h"
 #include "OutMux.h"

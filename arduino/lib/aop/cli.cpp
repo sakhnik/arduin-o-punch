@@ -1,6 +1,6 @@
 #ifdef BUILD_CLI
 
-#include "PunchCard.h"
+#include "aop/PunchCard.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>

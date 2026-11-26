@@ -17,22 +17,7 @@ add_definitions(-DBUILD_TEST)
 add_compile_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address>")
 
-add_library(aop
-    DateTime.h
-    ErrorCode.cpp
-    ErrorCode.h
-    IMifare.cpp
-    IMifare.h
-    Punch.h
-    PunchCard.cpp
-    PunchCard.h
-    Recorder.cpp
-    Recorder.h
-    RingBuffer.h
-    TZ.h
-    Utils.cpp
-    Utils.h
-)
+add_subdirectory(aop)
 
 add_executable(test-aop
     PunchCardTest.cpp

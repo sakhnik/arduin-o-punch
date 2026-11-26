@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hal/prefs.h"
 #include <Preferences.h>
 

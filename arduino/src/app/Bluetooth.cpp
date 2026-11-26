@@ -3,7 +3,7 @@
 #include "Bluetooth.h"
 #include "Settings.h"
 #include "Shell.h"
-#include "Utils.h"
+#include "aop/Utils.h"
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
