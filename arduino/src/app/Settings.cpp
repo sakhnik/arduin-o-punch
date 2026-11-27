@@ -231,14 +231,14 @@ void Settings::SetEcoMinutes(uint32_t minutes)
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
 std::string Settings::GetWifiSsid()
 {
-    LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _wifi_ssid;
 }
 
 void Settings::SetWifiSsid(std::string_view ssid)
 {
     {
-        LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_wifi_ssid == ssid)
             return;
         _wifi_ssid = ssid;
@@ -251,14 +251,14 @@ void Settings::SetWifiSsid(std::string_view ssid)
 
 std::string Settings::GetWifiPass()
 {
-    LockGuard lock{_dataMx};
+    HAL::LockGuard lock{_dataMx};
     return _wifi_pass;
 }
 
 void Settings::SetWifiPass(std::string_view pass)
 {
     {
-        LockGuard lock{_dataMx};
+        HAL::LockGuard lock{_dataMx};
         if (_wifi_pass == pass)
             return;
         _wifi_pass = pass;

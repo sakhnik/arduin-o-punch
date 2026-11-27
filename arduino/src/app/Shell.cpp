@@ -215,7 +215,7 @@ void Shell::_Process(std::string_view buffer)
         _outMux.Print(F("time="));
         _PrintTime(now);
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-        _outMux.print(F("wifissid="));
+        _outMux.Print(F("wifissid="));
         _PrintWifiSsid();
 #endif
         _outMux.Print(F("card-mode="));
@@ -521,7 +521,7 @@ void Shell::_RecorderList()
 }
 
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-void Shell::_SetWifiSsid(const char *str)
+void Shell::_SetWifiSsid(std::string_view str)
 {
     _settings.SetWifiSsid(str);
     _PrintWifiSsid();
@@ -529,10 +529,10 @@ void Shell::_SetWifiSsid(const char *str)
 
 void Shell::_PrintWifiSsid()
 {
-    _outMux.println(_settings.GetWifiSsid().c_str());
+    _outMux.Println(_settings.GetWifiSsid().c_str());
 }
 
-void Shell::_SetWifiPass(const char *str)
+void Shell::_SetWifiPass(std::string_view str)
 {
     _settings.SetWifiPass(str);
     _PrintWifiPass();
@@ -540,7 +540,7 @@ void Shell::_SetWifiPass(const char *str)
 
 void Shell::_PrintWifiPass()
 {
-    _outMux.println(_settings.GetWifiPass().c_str());
+    _outMux.Println(_settings.GetWifiPass().c_str());
 }
 #endif
 
