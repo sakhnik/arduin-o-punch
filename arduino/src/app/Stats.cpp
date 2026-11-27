@@ -1,5 +1,5 @@
-#include "Stats.h"
-#include "OutMux.h"
+#include "Stats.hpp"
+#include "OutMux.hpp"
 #include <endian.h>
 
 #ifdef ESP32

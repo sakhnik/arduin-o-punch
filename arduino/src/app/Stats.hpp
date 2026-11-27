@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OperationMode.h"
+#include "OperationMode.hpp"
 #include <cstdint>
 #include <cstddef>
 

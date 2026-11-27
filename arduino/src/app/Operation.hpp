@@ -2,10 +2,10 @@
 
 #ifdef ESP32
 
-#include "hal/mutex.h"
-#include "OperationMode.h"
-#include "Stats.h"
-#include "Puncher.h"
+#include "hal/mutex.hpp"
+#include "OperationMode.hpp"
+#include "Stats.hpp"
+#include "Puncher.hpp"
 #include <array>
 
 class Buzzer;

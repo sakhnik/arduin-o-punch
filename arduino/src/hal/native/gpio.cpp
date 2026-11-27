@@ -1,6 +1,6 @@
-#include "hal/gpio.h"
+#include "hal/gpio.hpp"
 #include "defs.h"
-#include "BuzzerSim.h"
+#include "BuzzerSim.hpp"
 
 #include <cstdio>
 #include <unistd.h>

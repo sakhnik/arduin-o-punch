@@ -1,5 +1,5 @@
-#include "PunchCard.h"
-#include "ErrorCode.h"
+#include "PunchCard.hpp"
+#include "ErrorCode.hpp"
 #include <algorithm>
 #include <cstring>
 

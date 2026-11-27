@@ -1,0 +1,16 @@
+add_library(aop
+    DateTime.hpp
+    ErrorCode.cpp
+    ErrorCode.hpp
+    IMifare.cpp
+    IMifare.hpp
+    Punch.hpp
+    PunchCard.cpp
+    PunchCard.hpp
+    Recorder.cpp
+    Recorder.hpp
+    RingBuffer.hpp
+    TZ.hpp
+    Utils.cpp
+    Utils.hpp
+)

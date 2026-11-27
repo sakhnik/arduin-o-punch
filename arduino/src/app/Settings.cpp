@@ -1,11 +1,11 @@
-#include "Settings.h"
-#include "Buzzer.h"
-#include "hal/rtc.h"
-#include "hal/prefs.h"
-#include "hal/time.h"
-#include "aop/TZ.h"
+#include "Settings.hpp"
+#include "Buzzer.hpp"
+#include "hal/rtc.hpp"
+#include "hal/prefs.hpp"
+#include "hal/time.hpp"
+#include "aop/TZ.hpp"
 #include <algorithm>
-#include <stddef.h>
+#include <cstddef>
 
 namespace {
 

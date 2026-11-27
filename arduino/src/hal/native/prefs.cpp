@@ -1,4 +1,4 @@
-#include "hal/prefs.h"
+#include "hal/prefs.hpp"
 
 #include <sqlite3.h>
 #include <cstring>

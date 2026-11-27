@@ -1,4 +1,4 @@
-#include "hal/mutex.h"
+#include "hal/mutex.hpp"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>

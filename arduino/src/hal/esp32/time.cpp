@@ -1,4 +1,4 @@
-#include "hal/time.h"
+#include "hal/time.hpp"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>

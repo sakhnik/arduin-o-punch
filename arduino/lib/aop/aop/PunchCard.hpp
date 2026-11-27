@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Punch.h"
-#include "IMifare.h"
-#include "ErrorCode.h"
+#include "Punch.hpp"
+#include "IMifare.hpp"
+#include "ErrorCode.hpp"
 
 #include <bitset>
 #include <vector>

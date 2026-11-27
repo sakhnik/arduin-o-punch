@@ -2,7 +2,7 @@
 
 #ifdef ESP32
 
-#include "OutMux.h"
+#include "OutMux.hpp"
 #include <atomic>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>

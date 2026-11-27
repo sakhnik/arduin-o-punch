@@ -1,4 +1,4 @@
-#include "RtcLog.h"
+#include "RtcLog.hpp"
 
 #ifdef ESP32
 

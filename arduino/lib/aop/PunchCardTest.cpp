@@ -1,6 +1,6 @@
 #ifdef BUILD_TEST
 
-#include "aop/PunchCard.h"
+#include "aop/PunchCard.hpp"
 #include <array>
 #include <string>  // std::to_string()
 #include <cstring>

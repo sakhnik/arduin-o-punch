@@ -1,12 +1,12 @@
 #ifdef ESP32
 
-#include "Puncher.h"
-#include "Settings.h"
-#include "aop/IMifare.h"
-#include "aop/PunchCard.h"
-#include "Buzzer.h"
-#include "Operation.h"
-#include "OutMux.h"
+#include "Puncher.hpp"
+#include "Settings.hpp"
+#include "aop/IMifare.hpp"
+#include "aop/PunchCard.hpp"
+#include "Buzzer.hpp"
+#include "Operation.hpp"
+#include "OutMux.hpp"
 #include "defs.h"
 
 #include <MFRC522v2.h>

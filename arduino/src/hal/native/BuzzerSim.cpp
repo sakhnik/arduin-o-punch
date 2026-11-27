@@ -1,4 +1,4 @@
-#include "BuzzerSim.h"
+#include "BuzzerSim.hpp"
 #include <array>
 #include <cmath>
 

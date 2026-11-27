@@ -1,4 +1,4 @@
-#include "hal/time.h"
+#include "hal/time.hpp"
 #include <unistd.h>
 #include <chrono>
 

@@ -1,10 +1,10 @@
 #ifdef ESP32
-#include "Shell.h"
-#include "Settings.h"
-#include "Buzzer.h"
-#include "OutMux.h"
-#include "aop/PunchCard.h"
-#include "Operation.h"
+#include "Shell.hpp"
+#include "Settings.hpp"
+#include "Buzzer.hpp"
+#include "OutMux.hpp"
+#include "aop/PunchCard.hpp"
+#include "Operation.hpp"
 #include <RTClib.h>
 #include <inttypes.h>
 

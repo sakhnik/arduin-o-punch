@@ -1,4 +1,4 @@
-#include "hal/queue.h"
+#include "hal/queue.hpp"
 
 #include <chrono>
 #include <condition_variable>

@@ -1,15 +1,15 @@
 #ifdef ESP32
 
-#include "Operation.h"
-#include "Buzzer.h"
-#include "Settings.h"
-#include "Bluetooth.h"
-#include "Network.h"
-#include "CpuFreq.h"
+#include "Operation.hpp"
+#include "Buzzer.hpp"
+#include "Settings.hpp"
+#include "Bluetooth.hpp"
+#include "Network.hpp"
+#include "CpuFreq.hpp"
 #include "defs.h"
-#include "ActivityCounter.h"
-#include "RtcLog.h"
-#include "hal/rtc.h"
+#include "ActivityCounter.hpp"
+#include "RtcLog.hpp"
+#include "hal/rtc.hpp"
 #include <SPI.h>
 #include <Wire.h>
 #include <esp_sleep.h>

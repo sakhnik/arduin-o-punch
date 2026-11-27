@@ -1,6 +1,6 @@
 #ifdef ESP32
 
-#include "CpuFreq.h"
+#include "CpuFreq.hpp"
 #include <Arduino.h>
 
 void SetCpuFreq(int mhz)

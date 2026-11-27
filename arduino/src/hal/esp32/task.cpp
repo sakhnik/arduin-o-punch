@@ -1,4 +1,4 @@
-#include "hal/task.h"
+#include "hal/task.hpp"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>

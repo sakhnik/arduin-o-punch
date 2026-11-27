@@ -1,9 +1,9 @@
 #ifdef ESP32
 
-#include "Bluetooth.h"
-#include "Settings.h"
-#include "Shell.h"
-#include "aop/Utils.h"
+#include "Bluetooth.hpp"
+#include "Settings.hpp"
+#include "Shell.hpp"
+#include "aop/Utils.hpp"
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>

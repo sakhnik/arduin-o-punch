@@ -1,7 +1,7 @@
 #ifdef BUILD_TEST
 
 #include <doctest/doctest.h>
-#include "aop/RingBuffer.h"
+#include "aop/RingBuffer.hpp"
 #include <iterator>
 #include <numeric>
 

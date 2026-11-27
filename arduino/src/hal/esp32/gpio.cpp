@@ -1,4 +1,4 @@
-#include "hal/gpio.h"
+#include "hal/gpio.hpp"
 #include <Arduino.h>
 
 namespace HAL {

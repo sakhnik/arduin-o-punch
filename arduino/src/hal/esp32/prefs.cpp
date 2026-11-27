@@ -1,4 +1,4 @@
-#include "hal/prefs.h"
+#include "hal/prefs.hpp"
 #include <Preferences.h>
 
 namespace HAL {

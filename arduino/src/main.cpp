@@ -1,12 +1,12 @@
 
-#include "app/Buzzer.h"
-#include "app/Settings.h"
-#include "app/Shell.h"
-#include "app/Bluetooth.h"
-#include "app/Network.h"
-#include "app/OutMux.h"
-#include "app/Operation.h"
-#include "app/RtcLog.h"
+#include "app/Buzzer.hpp"
+#include "app/Settings.hpp"
+#include "app/Shell.hpp"
+#include "app/Bluetooth.hpp"
+#include "app/Network.hpp"
+#include "app/OutMux.hpp"
+#include "app/Operation.hpp"
+#include "app/RtcLog.hpp"
 
 Buzzer buzzer;
 Settings settings{buzzer};

@@ -1,4 +1,4 @@
-#include "ErrorCode.h"
+#include "ErrorCode.hpp"
 
 #ifdef ARDUINO
 # include <MFRC522v2.h>

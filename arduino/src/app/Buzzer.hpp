@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hal/task.h"
-#include "hal/queue.h"
+#include "hal/task.hpp"
+#include "hal/queue.hpp"
 
 class Buzzer
 {

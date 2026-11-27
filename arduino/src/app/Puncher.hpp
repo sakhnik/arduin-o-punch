@@ -2,7 +2,7 @@
 
 #ifdef ESP32
 
-#include "aop/ErrorCode.h"
+#include "aop/ErrorCode.hpp"
 
 class Settings;
 class Operation;

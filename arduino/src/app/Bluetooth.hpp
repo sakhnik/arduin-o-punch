@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef ESP32
-#include "OutMux.h"
-#include "aop/RingBuffer.h"
-#include "hal/mutex.h"
+#include "OutMux.hpp"
+#include "aop/RingBuffer.hpp"
+#include "hal/mutex.hpp"
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <atomic>

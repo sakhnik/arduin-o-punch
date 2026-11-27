@@ -1,4 +1,4 @@
-#include "hal/rtc.h"
+#include "hal/rtc.hpp"
 #include "defs.h"
 #include <RTClib.h>
 

@@ -1,4 +1,4 @@
-#include "ActivityCounter.h"
+#include "ActivityCounter.hpp"
 
 ActivityCounter& ActivityCounter::Instance()
 {

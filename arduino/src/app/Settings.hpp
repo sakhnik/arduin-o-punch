@@ -1,9 +1,9 @@
 #pragma once
 
-#include "aop/Recorder.h"
-#include "hal/mutex.h"
-#include "aop/PunchCard.h"
-#include "aop/DateTime.h"
+#include "aop/Recorder.hpp"
+#include "hal/mutex.hpp"
+#include "aop/PunchCard.hpp"
+#include "aop/DateTime.hpp"
 
 #include <array>
 #include <functional>

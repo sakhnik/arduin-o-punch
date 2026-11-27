@@ -1,10 +1,10 @@
 #ifdef ESP32
-#include "Network.h"
-#include "Settings.h"
-#include "Shell.h"
-#include "Buzzer.h"
+#include "Network.hpp"
+#include "Settings.hpp"
+#include "Shell.hpp"
+#include "Buzzer.hpp"
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-#include "Utils.h"
+#include "Utils.hpp"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WebServer.h>

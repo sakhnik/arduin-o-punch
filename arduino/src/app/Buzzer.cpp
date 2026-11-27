@@ -1,8 +1,8 @@
-#include "Buzzer.h"
+#include "Buzzer.hpp"
 #include "defs.h"
-#include "ActivityCounter.h"
-#include "hal/gpio.h"
-#include "hal/time.h"
+#include "ActivityCounter.hpp"
+#include "hal/gpio.hpp"
+#include "hal/time.hpp"
 
 Buzzer::Buzzer()
 {

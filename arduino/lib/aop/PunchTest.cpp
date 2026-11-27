@@ -1,7 +1,7 @@
 #ifdef BUILD_TEST
 
 #include "doctest/doctest.h"
-#include "aop/Punch.h"
+#include "aop/Punch.hpp"
 
 using namespace AOP;
 
