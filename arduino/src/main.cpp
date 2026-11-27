@@ -12,10 +12,9 @@
 Buzzer buzzer;
 Settings settings{buzzer};
 OutMux outMux;
-
-#ifdef ESP32
 Shell shell{outMux, settings, buzzer};
 
+#ifdef ESP32
 Bluetooth bluetooth{outMux, settings, shell};
 Network network{outMux, settings, shell, buzzer};
 Operation operation{buzzer, settings, outMux, bluetooth, network};
@@ -44,7 +43,6 @@ void setup()
 #endif
 
     bool initialization_ok = true;
-#ifdef ESP32
 
     if (settings.IsKeyDefault()) {
         buzzer.SignalDefaultKey();
@@ -52,6 +50,8 @@ void setup()
     }
 
     shell.Setup();
+
+#ifdef ESP32
     shell.SetOperation(&operation);
     bluetooth.Setup();
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
@@ -76,16 +76,18 @@ void setup()
 
 void loop()
 {
-#ifdef ESP32
     // Check the serial for input and prohibit light sleep while the serial is active.
-    while (Serial.available()) {
-        auto ch = Serial.read();
+    while (HAL::Serial::Available()) {
+        auto ch = HAL::Serial::Read();
         if (0 < ch && ch < 0xf0) {
             shell.PutChar(ch);
+#ifdef ESP32
             operation.TransitionToActive();
+#endif
         }
     }
 
+#ifdef ESP32
     operation.Loop();
 #endif //ESP32
 }

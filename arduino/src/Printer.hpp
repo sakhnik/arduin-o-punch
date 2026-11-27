@@ -11,6 +11,11 @@
 #include <WString.h>
 #endif
 
+#ifndef ARDUINO
+struct __FlashStringHelper {};
+#define F(str) (reinterpret_cast<const __FlashStringHelper *>(str))
+#endif //ARDUINO
+
 template <typename T>
 class Printer
 {
@@ -21,12 +26,10 @@ public:
                      std::strlen(str));
     }
 
-#ifdef ARDUINO
     size_t Print(const __FlashStringHelper *str)
     {
         return Print(reinterpret_cast<const char *>(str));
     }
-#endif //ARDUINO
 
     size_t Print(char c)
     {

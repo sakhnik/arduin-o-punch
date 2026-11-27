@@ -13,7 +13,7 @@ static BuzzerSim buzzer;
 
 void GpioModeOutput(int pin)
 {
-    printf("GPIO %d: OUTPUT\n", pin);
+    //printf("GPIO %d: OUTPUT\n", pin);
 }
 
 void GpioWrite(int pin, bool value)
@@ -24,7 +24,7 @@ void GpioWrite(int pin, bool value)
         else
             buzzer.Start();
     }
-    printf("GPIO %d: %s\n", pin, value ? "HIGH" : "LOW");
+    //printf("GPIO %d: %s\n", pin, value ? "HIGH" : "LOW");
 }
 
 } //namespace HAL;

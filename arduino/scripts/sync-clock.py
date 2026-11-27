@@ -53,7 +53,7 @@ def run(conn: Connection):
         while True:
             line = conn.read()
             echo_output(line)
-            if b'Arduin-o-punch> ' == line:
+            if b'AOP> ' == line:
                 break
             if line:
                 idle_count = 0

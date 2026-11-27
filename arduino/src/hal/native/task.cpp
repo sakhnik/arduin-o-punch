@@ -114,4 +114,9 @@ bool Task::IsRunning() const
     return impl && impl->running.load(std::memory_order_acquire);
 }
 
+void Task::Yield()
+{
+    sched_yield();
+}
+
 } //namespace HAL;

@@ -21,6 +21,8 @@ public:
 
     bool IsRunning() const;
 
+    static void Yield();
+
 private:
     void *_handle = nullptr;
 };

@@ -1,11 +1,10 @@
-#ifdef ESP32
 #include "Shell.hpp"
 #include "Settings.hpp"
 #include "Buzzer.hpp"
 #include "OutMux.hpp"
 #include "aop/PunchCard.hpp"
 #include "Operation.hpp"
-#include <RTClib.h>
+#include "hal/time.hpp"
 
 namespace {
 
@@ -22,10 +21,10 @@ Shell::Shell(OutMux &_outMux, Settings &settings, Buzzer &buzzer)
 
 void Shell::Setup()
 {
-    _rxQueue = xQueueCreate(128, sizeof(char));
+    _rxQueue.Setup(128, sizeof(char));
 
     // run with low priority to avoid deadlock with tinyusb CDC
-    xTaskCreatePinnedToCore(TaskEntry, "shell", 4096, this, 1, nullptr, 0);
+    _task.Setup(TaskEntry, this, "shell", 4096, 0);
 
     _outMux.Println();
     _PrintPrompt();
@@ -50,7 +49,7 @@ void Shell::TaskEntry(void* arg)
 
 void Shell::_Task()
 {
-    String buffer;
+    std::string buffer;
     buffer.reserve(MAX_SIZE);
     uint8_t echo_idx = 0;
     uint32_t echo_timeout = 0;
@@ -58,28 +57,28 @@ void Shell::_Task()
     for (;;) {
 
         // Compute how long we may block
-        TickType_t wait = portMAX_DELAY;
+        uint32_t waitMs = HAL::Queue::WaitForever;
 
         if (buffer.length()) {
-            int32_t remaining = (int32_t)(echo_timeout - millis());
+            int32_t remaining = (int32_t)(echo_timeout - HAL::Millis());
 
             if (remaining <= 0)
-                wait = 0; // timeout already expired
+                waitMs = 0; // timeout already expired
             else
-                wait = pdMS_TO_TICKS(remaining);
+                waitMs = remaining;
         }
 
         // Wait for input OR timeout
         char ch;
-        bool gotChar = xQueueReceive(_rxQueue, &ch, wait) == pdTRUE;
+        bool gotChar = _rxQueue.Receive(&ch, waitMs);
 
-        uint32_t now = millis();
+        uint32_t now = HAL::Millis();
 
         // Timeout handling
         if (buffer.length() && now >= echo_timeout) {
             while (echo_idx < buffer.length()) {
-                Serial.print(buffer[echo_idx++]);
-                taskYIELD();
+                OUT.Print(buffer[echo_idx++]);
+                HAL::Task::Yield();
             }
         }
 
@@ -89,34 +88,33 @@ void Shell::_Task()
         if (!buffer.length()) {
             // In the automated communication we don't need the echo, neither the prompt.
             // If timeout elapses since the first character, revert to interactive move.
-            echo_timeout = millis() + 100;
+            echo_timeout = HAL::Millis() + 100;
             echo_idx = 0;
         }
 
         buffer += ch;
 
         if (buffer.length() >= MAX_SIZE ||
-            buffer.endsWith("\r") ||
-            buffer.endsWith("\n"))
+            buffer.back() == '\r' ||
+            buffer.back() == '\n')
         {
             // Echo rest if needed
             if (now >= echo_timeout) {
-                Serial.println();
-                taskYIELD();
+                OUT.Println();
+                HAL::Task::Yield();
             }
 
             // Trim whitespace from the right
-            while (buffer.length() > 0 && (buffer.endsWith("\r") || buffer.endsWith("\n")))
-                buffer.remove(buffer.length() - 1);
+            while (buffer.length() > 0 && (buffer.back() == '\r' || buffer.back() == '\n'))
+                buffer.pop_back();
 
             // Trim leading whitespace
             unsigned idx = 0;
-            while (idx < buffer.length() &&
-                   isWhitespace(buffer[idx])) {
+            while (idx < buffer.length() && std::isspace(buffer[idx])) {
                 ++idx;
             }
 
-            buffer.remove(0, idx);
+            buffer.erase(0, idx);
 
             // Execute command
             if (buffer.length() > 0) {
@@ -132,20 +130,33 @@ void Shell::_Task()
 
 void Shell::_PrintPrompt()
 {
-    _outMux.Print(F("Arduin-o-punch> "));
+    _outMux.Print(F("AOP> "));
 }
 
 void Shell::PutChar(char ch)
 {
-    if (!_rxQueue) return;
-
     // never block producer
-    xQueueSend(_rxQueue, &ch, 0);
+    _rxQueue.Send(&ch, 0);
 }
 
-void Shell::_Process(const String &buffer)
+namespace {
+
+bool StartsWith(std::string_view str, std::string_view prefix)
 {
-    if (buffer.startsWith(F("help"))) {
+    return str.size() >= prefix.size() &&
+           str.substr(0, prefix.size()) == prefix;
+}
+
+bool StartsWith(std::string_view str, const __FlashStringHelper *prefix)
+{
+    return StartsWith(str, reinterpret_cast<const char *>(prefix));
+}
+
+} //namespace;
+
+void Shell::_Process(std::string_view buffer)
+{
+    if (StartsWith(buffer, F("help"))) {
         _outMux.Println(F("Commands:"));
         _outMux.Println(F("info              All info"));
         _outMux.Println(F("id                ID"));
@@ -187,7 +198,7 @@ void Shell::_Process(const String &buffer)
         _outMux.Println(F("card-format id    Activate card formatting mode"));
         _outMux.Println(F("known-keys        Print known keys to try for formatting"));
         _outMux.Println(F("known-keys <keys> Set list of known keys"));
-    } else if (buffer.startsWith(F("info"))) {
+    } else if (StartsWith(buffer, F("info"))) {
         _outMux.Print(F("version="));
         _outMux.Print(PROJECT_VERSION);
         _outMux.Print("-");
@@ -221,71 +232,75 @@ void Shell::_Process(const String &buffer)
             _outMux.Println(_settings.GetCardModeArg().c_str());
             break;
         }
-    } else if (buffer.startsWith(F("id "))) {
-        SetId(buffer.c_str() + 3);
+    } else if (StartsWith(buffer, F("id "))) {
+        SetId(buffer.substr(3));
         _PrintId();
-    } else if (buffer.startsWith(F("id"))) {
+    } else if (StartsWith(buffer, F("id"))) {
         _PrintId();
-    } else if (buffer.startsWith(F("t-act "))) {
-        SetActive(buffer.c_str() + 6);
+    } else if (StartsWith(buffer, F("t-act "))) {
+        SetActive(buffer.substr(6));
         _PrintActive();
-    } else if (buffer.startsWith(F("t-act"))) {
+    } else if (StartsWith(buffer, F("t-act"))) {
         _PrintActive();
-    } else if (buffer.startsWith(F("t-eco "))) {
-        SetEco(buffer.c_str() + 6);
+    } else if (StartsWith(buffer, F("t-eco "))) {
+        SetEco(buffer.substr(6));
         _PrintEco();
-    } else if (buffer.startsWith(F("t-eco"))) {
+    } else if (StartsWith(buffer, F("t-eco"))) {
         _PrintEco();
-    } else if (buffer.startsWith(F("key "))) {
-        SetKey(buffer.c_str() + 4);
+    } else if (StartsWith(buffer, F("key "))) {
+        SetKey(buffer.substr(4));
         _PrintKey();
         _buzzer.ConfirmPunch();
-    } else if (buffer.startsWith(F("key"))) {
+    } else if (StartsWith(buffer, F("key"))) {
         _PrintKey();
-    } else if (buffer.startsWith(F("clock "))) {
-        _SetClock(buffer.c_str() + 6);
+    } else if (StartsWith(buffer, F("clock "))) {
+        _SetClock(buffer.substr(6));
         _PrintClock(_settings.GetDateTime());
-    } else if (buffer.startsWith(F("clock"))) {
+    } else if (StartsWith(buffer, F("clock"))) {
         _PrintClock(_settings.GetDateTime());
-    } else if (buffer.startsWith(F("timestamp "))) {
-        _SetTimestamp(buffer.c_str() + 10);
-    } else if (buffer.startsWith(F("timestamp"))) {
+    } else if (StartsWith(buffer, F("timestamp "))) {
+        _SetTimestamp(buffer.substr(10));
+    } else if (StartsWith(buffer, F("timestamp"))) {
         _PrintTimestamp();
-    } else if (buffer.startsWith(F("time"))) {
+    } else if (StartsWith(buffer, F("time"))) {
         _PrintTime(_settings.GetDateTime());
-    } else if (buffer.startsWith(F("date"))) {
+    } else if (StartsWith(buffer, F("date"))) {
         _PrintDate(_settings.GetDateTime());
-    } else if (buffer.startsWith(F("rec "))) {
-        _RecorderCheck(buffer.c_str() + 4);
-    } else if (buffer.startsWith(F("rec"))) {
+    } else if (StartsWith(buffer, F("rec "))) {
+        _RecorderCheck(buffer.substr(4));
+    } else if (StartsWith(buffer, F("rec"))) {
         _RecorderList();
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-    } else if (buffer.startsWith("wifissid ")) {
-        _SetWifiSsid(buffer.c_str() + 9);
-    } else if (buffer.startsWith("wifissid")) {
+    } else if (StartsWith(buffer, "wifissid ")) {
+        _SetWifiSsid(buffer.substr(9));
+    } else if (StartsWith(buffer, "wifissid")) {
         _PrintWifiSsid();
-    } else if (buffer.startsWith("wifipass ")) {
-        _SetWifiPass(buffer.c_str() + 9);
-    } else if (buffer.startsWith("wifipass")) {
+    } else if (StartsWith(buffer, "wifipass ")) {
+        _SetWifiPass(buffer.substr(9));
+    } else if (StartsWith(buffer, "wifipass")) {
         _PrintWifiPass();
 #endif
-    } else if (buffer.startsWith("card-punch")) {
+    } else if (StartsWith(buffer, "card-punch")) {
         _settings.ActivateCardPunchMode();
-    } else if (buffer.startsWith("card-readout")) {
-        _settings.ActivateCardReadOutMode(buffer.c_str() + 12);
-    } else if (buffer.startsWith("card-format")) {
-        _settings.ActivateCardFormatMode(buffer.c_str() + 11);
-    } else if (buffer.startsWith("known-keys ")) {
-        _SetKnownKeys(buffer.c_str() + 11);
-    } else if (buffer.startsWith("known-keys")) {
+    } else if (StartsWith(buffer, "card-readout")) {
+        _settings.ActivateCardReadOutMode(buffer.substr(12));
+    } else if (StartsWith(buffer, "card-format")) {
+        _settings.ActivateCardFormatMode(buffer.substr(11));
+    } else if (StartsWith(buffer, "known-keys ")) {
+        _SetKnownKeys(buffer.substr(11));
+    } else if (StartsWith(buffer, "known-keys")) {
         _PrintKnownKeys();
-    } else if (_operation && buffer.startsWith("stats-reset")) {
+    } else if (_operation && StartsWith(buffer, "stats-reset")) {
+#ifdef ESP32
         _operation->ResetStats();
         auto stats = _operation->GetStats();
         stats.Print(_outMux);
-    } else if (buffer.startsWith("log") || buffer.startsWith("stats")) {
+#endif
+    } else if (_operation && StartsWith(buffer, "log") || StartsWith(buffer, "stats")) {
+#ifdef ESP32
         auto stats = _operation->GetStats();
         stats.Print(_outMux);
+#endif
     } else {
         if (buffer[0] != '\r' && buffer[0] != '\n') {
             _outMux.Print(F("Unknown command: "));
@@ -294,7 +309,8 @@ void Shell::_Process(const String &buffer)
                 _outMux.Print((int)buffer[i], 16);
             }
             _outMux.Print(" <");
-            _outMux.Print(buffer);
+            for (char ch : buffer)
+                _outMux.Print(ch);
             _outMux.Println(">");
         }
     }
@@ -319,10 +335,11 @@ int16_t FromHex(char digit)
 }
 
 template <typename T>
-T ParseNum(const char *&str)
+T ParseNum(std::string_view &str)
 {
     T num = 0;
-    while (char ch = *str++) {
+    for (; !str.empty(); str = str.substr(1)) {
+        char ch = str.front();
         if (ch < '0' || ch > '9')
             break;
         num = num * 10 + (ch - '0');
@@ -357,7 +374,7 @@ Settings::KeyT ParseKey(std::string_view s)
 
 } //namespace;
 
-void Shell::SetKey(const char *hex)
+void Shell::SetKey(std::string_view hex)
 {
     auto key = ParseKey(hex);
     _settings.SetKey(key);
@@ -373,7 +390,7 @@ void Shell::_PrintKey()
     _outMux.Println();
 }
 
-void Shell::_SetClock(const char *str)
+void Shell::_SetClock(std::string_view str)
 {
     _settings.SetClock(ParseNum<uint32_t>(str));
 }
@@ -383,7 +400,7 @@ void Shell::_PrintClock(const AOP::DateTime &time)
     _outMux.Println(_settings.GetClock(&time));
 }
 
-void Shell::_SetTimestamp(const char *str)
+void Shell::_SetTimestamp(std::string_view str)
 {
     _settings.SetDateTime(ParseNum<uint32_t>(str));
     _PrintTimestamp();
@@ -426,7 +443,7 @@ void Shell::_PrintId()
     _outMux.Println(_settings.GetId());
 }
 
-void Shell::SetId(const char *str)
+void Shell::SetId(std::string_view str)
 {
     _settings.SetId(ParseNum<uint8_t>(str));
 }
@@ -436,7 +453,7 @@ void Shell::_PrintActive()
     _outMux.Println(_settings.GetActiveMinutes());
 }
 
-void Shell::SetActive(const char *str)
+void Shell::SetActive(std::string_view str)
 {
     _settings.SetActiveMinutes(ParseNum<uint32_t>(str));
 }
@@ -446,12 +463,12 @@ void Shell::_PrintEco()
     _outMux.Println(_settings.GetEcoMinutes());
 }
 
-void Shell::SetEco(const char *str)
+void Shell::SetEco(std::string_view str)
 {
     _settings.SetEcoMinutes(ParseNum<uint32_t>(str));
 }
 
-void Shell::_RecorderCheck(const char *str)
+void Shell::_RecorderCheck(std::string_view str)
 {
     uint16_t card_id = ParseNum<uint16_t>(str);
     auto timestamps = _settings.GetRecorder().GetTimestamps(card_id);
@@ -542,25 +559,28 @@ void Shell::_PrintKnownKeys()
     _outMux.Println();
 }
 
-void Shell::_SetKnownKeys(const char *str)
+void Shell::_SetKnownKeys(std::string_view str)
 {
     Settings::KeysT keys;
 
-    while (*str) {
-        while (*str && (std::isspace(*str) || *str == ',')) {
-            ++str;
+    while (!str.empty()) {
+        while (!str.empty() && (std::isspace(static_cast<unsigned char>(str.front())) || str.front() == ',')) {
+            str.remove_prefix(1);
         }
 
-        if (!*str)
+        if (str.empty())
             break;
 
-        const char *begin = str;
-        while (*str && !std::isspace(*str) && *str != ',')
-            ++str;
+        auto end = str.find_first_of(" \t\n\r\f\v,");
+        auto token = str.substr(0, end);
 
-        keys.push_back(ParseKey(std::string_view(begin, str - begin)));
+        keys.push_back(ParseKey(token));
+
+        if (end == std::string_view::npos)
+            break;
+
+        str.remove_prefix(end);
     }
 
     _settings.SetKnownKeys(std::move(keys));
 }
-#endif //ESP32

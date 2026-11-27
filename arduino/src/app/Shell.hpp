@@ -1,13 +1,9 @@
 #pragma once
 
 #include "aop/DateTime.hpp"
-
-#ifdef ESP32
-
-#include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-#include <freertos/task.h>
+#include "hal/queue.hpp"
+#include "hal/task.hpp"
+#include <string_view>
 
 class Settings;
 class Buzzer;
@@ -26,10 +22,10 @@ public:
     void ProcessInput(const uint8_t *data, int size);
     void PutChar(char ch);
 
-    void SetId(const char *str);
-    void SetActive(const char *str);
-    void SetEco(const char *str);
-    void SetKey(const char *hex);
+    void SetId(std::string_view);
+    void SetActive(std::string_view);
+    void SetEco(std::string_view);
+    void SetKey(std::string_view hex);
 
 private:
     OutMux &_outMux;
@@ -37,34 +33,33 @@ private:
     Buzzer &_buzzer;
     Operation *_operation = nullptr;
 
-    QueueHandle_t _rxQueue;
+    HAL::Queue _rxQueue;
+    HAL::Task _task;
 
     static void TaskEntry(void *arg);
     void _Task();
 
     void _PrintPrompt();
-    void _Process(const String &);
+    void _Process(std::string_view);
     void _PrintId();
     void _PrintActive();
     void _PrintEco();
     void _PrintKey();
-    void _SetClock(const char *str);
+    void _SetClock(std::string_view);
     void _PrintClock(const AOP::DateTime &time);
-    void _SetTimestamp(const char *str);
+    void _SetTimestamp(std::string_view);
     void _PrintTimestamp();
     void _PrintDate(const AOP::DateTime &time);
     void _PrintTime(const AOP::DateTime &time);
-    void _RecorderCheck(const char *str);
+    void _RecorderCheck(std::string_view);
     void _RecorderList();
     void _PrintDD(uint8_t d);
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-    void _SetWifiSsid(const char *str);
+    void _SetWifiSsid(std::string_view);
     void _PrintWifiSsid();
-    void _SetWifiPass(const char *str);
+    void _SetWifiPass(std::string_view);
     void _PrintWifiPass();
 #endif
     void _PrintKnownKeys();
-    void _SetKnownKeys(const char *str);
+    void _SetKnownKeys(std::string_view);
 };
-
-#endif //ESP32
