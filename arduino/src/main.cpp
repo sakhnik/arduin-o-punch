@@ -7,12 +7,13 @@
 #include "app/OutMux.hpp"
 #include "app/Operation.hpp"
 #include "app/RtcLog.hpp"
+#include "hal/serial.hpp"
 
 Buzzer buzzer;
 Settings settings{buzzer};
+OutMux outMux;
 
 #ifdef ESP32
-OutMux outMux;
 Shell shell{outMux, settings, buzzer};
 
 Bluetooth bluetooth{outMux, settings, shell};
@@ -25,8 +26,8 @@ void setup()
 #ifdef ESP32
     RtcLog::Init();
 
-    Serial.begin(115200);
 #endif //ESP32
+    HAL::Serial::Setup();
 
     buzzer.Setup();
     settings.Setup();

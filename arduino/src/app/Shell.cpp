@@ -6,7 +6,6 @@
 #include "aop/PunchCard.hpp"
 #include "Operation.hpp"
 #include <RTClib.h>
-#include <inttypes.h>
 
 namespace {
 
@@ -28,7 +27,7 @@ void Shell::Setup()
     // run with low priority to avoid deadlock with tinyusb CDC
     xTaskCreatePinnedToCore(TaskEntry, "shell", 4096, this, 1, nullptr, 0);
 
-    _outMux.println();
+    _outMux.Println();
     _PrintPrompt();
 }
 
@@ -133,7 +132,7 @@ void Shell::_Task()
 
 void Shell::_PrintPrompt()
 {
-    _outMux.print(F("Arduin-o-punch> "));
+    _outMux.Print(F("Arduin-o-punch> "));
 }
 
 void Shell::PutChar(char ch)
@@ -147,79 +146,79 @@ void Shell::PutChar(char ch)
 void Shell::_Process(const String &buffer)
 {
     if (buffer.startsWith(F("help"))) {
-        _outMux.println(F("Commands:"));
-        _outMux.println(F("info              All info"));
-        _outMux.println(F("id                ID"));
-        _outMux.print  (F("id 33             Set ID: clear="));
-        _outMux.print(AOP::PunchCard::CLEAR_STATION);
-        _outMux.print(F(" check="));
-        _outMux.print(AOP::PunchCard::CHECK_STATION);
-        _outMux.print(F(" start="));
-        _outMux.print(AOP::PunchCard::START_STATION);
-        _outMux.print(F(" finish="));
-        _outMux.println(AOP::PunchCard::FINISH_STATION);
-        _outMux.println(F("key               Key"));
-        _outMux.println(F("key 112233445566  Set key"));
-        _outMux.println(F("t-act             Active timeout (min)"));
-        _outMux.println(F("t-act 600         Set active timeout (min)"));
-        _outMux.println(F("t-eco             Eco timeout (min)"));
-        _outMux.println(F("t-eco 10800       Set eco timeout (min)"));
-        _outMux.println(F("clock             Clock reading (ms)"));
-        _outMux.println(F("clock 12345000    Set clock (ms)"));
-        _outMux.println(F("date              Current date"));
-        _outMux.println(F("time              Current time"));
-        _outMux.println(F("timestamp         Print UNIX timestamp"));
-        _outMux.println(F("timestamp 12345   Set date and time with UNIX timestamp"));
-        _outMux.println(F("rec               List punched cards"));
-        _outMux.println(F("rec 123           Print punch count for a card"));
+        _outMux.Println(F("Commands:"));
+        _outMux.Println(F("info              All info"));
+        _outMux.Println(F("id                ID"));
+        _outMux.Print  (F("id 33             Set ID: clear="));
+        _outMux.Print(AOP::PunchCard::CLEAR_STATION);
+        _outMux.Print(F(" check="));
+        _outMux.Print(AOP::PunchCard::CHECK_STATION);
+        _outMux.Print(F(" start="));
+        _outMux.Print(AOP::PunchCard::START_STATION);
+        _outMux.Print(F(" finish="));
+        _outMux.Println(AOP::PunchCard::FINISH_STATION);
+        _outMux.Println(F("key               Key"));
+        _outMux.Println(F("key 112233445566  Set key"));
+        _outMux.Println(F("t-act             Active timeout (min)"));
+        _outMux.Println(F("t-act 600         Set active timeout (min)"));
+        _outMux.Println(F("t-eco             Eco timeout (min)"));
+        _outMux.Println(F("t-eco 10800       Set eco timeout (min)"));
+        _outMux.Println(F("clock             Clock reading (ms)"));
+        _outMux.Println(F("clock 12345000    Set clock (ms)"));
+        _outMux.Println(F("date              Current date"));
+        _outMux.Println(F("time              Current time"));
+        _outMux.Println(F("timestamp         Print UNIX timestamp"));
+        _outMux.Println(F("timestamp 12345   Set date and time with UNIX timestamp"));
+        _outMux.Println(F("rec               List punched cards"));
+        _outMux.Println(F("rec 123           Print punch count for a card"));
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-        _outMux.println(F("wifissid          Print current WiFi SSID"));
-        _outMux.println(F("wifissid ssid     Set WiFi SSID to connect to"));
-        _outMux.println(F("wifipass          Print WiFi password"));
-        _outMux.println(F("wifipass pass     Set WiFi password"));
+        _outMux.Println(F("wifissid          Print current WiFi SSID"));
+        _outMux.Println(F("wifissid ssid     Set WiFi SSID to connect to"));
+        _outMux.Println(F("wifipass          Print WiFi password"));
+        _outMux.Println(F("wifipass pass     Set WiFi password"));
 #endif
         if (_operation) {
-            _outMux.println(F("stats             Print energy consumption stats"));
-            _outMux.println(F("stats-reset       Reset energy consumption stats"));
+            _outMux.Println(F("stats             Print energy consumption stats"));
+            _outMux.Println(F("stats-reset       Reset energy consumption stats"));
         }
-        _outMux.println(F("log               Dump log"));
-        _outMux.println(F("card-punch        Activate punch mode"));
-        _outMux.println(F("card-readout cnt  Activate readout mode"));
-        _outMux.println(F("card-format id    Activate card formatting mode"));
-        _outMux.println(F("known-keys        Print known keys to try for formatting"));
-        _outMux.println(F("known-keys <keys> Set list of known keys"));
+        _outMux.Println(F("log               Dump log"));
+        _outMux.Println(F("card-punch        Activate punch mode"));
+        _outMux.Println(F("card-readout cnt  Activate readout mode"));
+        _outMux.Println(F("card-format id    Activate card formatting mode"));
+        _outMux.Println(F("known-keys        Print known keys to try for formatting"));
+        _outMux.Println(F("known-keys <keys> Set list of known keys"));
     } else if (buffer.startsWith(F("info"))) {
-        _outMux.print(F("version="));
-        _outMux.print(PROJECT_VERSION);
-        _outMux.print("-");
-        _outMux.println(GIT_REVISION);
-        _outMux.print(F("id="));
+        _outMux.Print(F("version="));
+        _outMux.Print(PROJECT_VERSION);
+        _outMux.Print("-");
+        _outMux.Println(GIT_REVISION);
+        _outMux.Print(F("id="));
         _PrintId();
-        _outMux.print(F("t-act="));
+        _outMux.Print(F("t-act="));
         _PrintActive();
-        _outMux.print(F("t-eco="));
+        _outMux.Print(F("t-eco="));
         _PrintEco();
         auto now = _settings.GetDateTime();
-        _outMux.print(F("date="));
+        _outMux.Print(F("date="));
         _PrintDate(now);
-        _outMux.print(F("time="));
+        _outMux.Print(F("time="));
         _PrintTime(now);
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
         _outMux.print(F("wifissid="));
         _PrintWifiSsid();
 #endif
-        _outMux.print(F("card-mode="));
+        _outMux.Print(F("card-mode="));
         switch (_settings.GetActiveCardMode()) {
         case Settings::CardMode::Punch:
-            _outMux.println(F("punch"));
+            _outMux.Println(F("punch"));
             break;
         case Settings::CardMode::ReadOut:
-            _outMux.print(F("readout "));
-            _outMux.println(_settings.GetCardModeArg().c_str());
+            _outMux.Print(F("readout "));
+            _outMux.Println(_settings.GetCardModeArg().c_str());
             break;
         case Settings::CardMode::Format:
-            _outMux.print(F("format "));
-            _outMux.println(_settings.GetCardModeArg().c_str());
+            _outMux.Print(F("format "));
+            _outMux.Println(_settings.GetCardModeArg().c_str());
             break;
         }
     } else if (buffer.startsWith(F("id "))) {
@@ -289,17 +288,17 @@ void Shell::_Process(const String &buffer)
         stats.Print(_outMux);
     } else {
         if (buffer[0] != '\r' && buffer[0] != '\n') {
-            _outMux.print(F("Unknown command: "));
+            _outMux.Print(F("Unknown command: "));
             for (int i = 0; i < buffer.length(); ++i) {
-                _outMux.print(' ');
-                _outMux.print((int)buffer[i], HEX);
+                _outMux.Print(' ');
+                _outMux.Print((int)buffer[i], 16);
             }
-            _outMux.print(" <");
-            _outMux.print(buffer);
-            _outMux.println(">");
+            _outMux.Print(" <");
+            _outMux.Print(buffer);
+            _outMux.Println(">");
         }
     }
-    _outMux.println();
+    _outMux.Println();
 }
 
 namespace {
@@ -369,9 +368,9 @@ void Shell::_PrintKey()
     for (uint8_t b : _settings.GetKey()) {
         char buf[3];
         sprintf(buf, "%02X", static_cast<unsigned>(b));
-        _outMux.print(buf);
+        _outMux.Print(buf);
     }
-    _outMux.println();
+    _outMux.Println();
 }
 
 void Shell::_SetClock(const char *str)
@@ -381,7 +380,7 @@ void Shell::_SetClock(const char *str)
 
 void Shell::_PrintClock(const AOP::DateTime &time)
 {
-    _outMux.println(_settings.GetClock(&time));
+    _outMux.Println(_settings.GetClock(&time));
 }
 
 void Shell::_SetTimestamp(const char *str)
@@ -392,39 +391,39 @@ void Shell::_SetTimestamp(const char *str)
 
 void Shell::_PrintTimestamp()
 {
-    _outMux.println(_settings.GetDateTime().ToUnix());
+    _outMux.Println(_settings.GetDateTime().ToUnix());
 }
 
 void Shell::_PrintDD(uint8_t d)
 {
     if (d <= 9)
-        _outMux.print(F("0"));
-    _outMux.print(d);
+        _outMux.Print(F("0"));
+    _outMux.Print(d);
 }
 
 void Shell::_PrintDate(const AOP::DateTime &date)
 {
-    _outMux.print(date.year);
-    _outMux.print(F("-"));
+    _outMux.Print(date.year);
+    _outMux.Print(F("-"));
     _PrintDD(date.month);
-    _outMux.print(F("-"));
+    _outMux.Print(F("-"));
     _PrintDD(date.day);
-    _outMux.println();
+    _outMux.Println();
 }
 
 void Shell::_PrintTime(const AOP::DateTime &time)
 {
     _PrintDD(time.hour);
-    _outMux.print(F(":"));
+    _outMux.Print(F(":"));
     _PrintDD(time.minute);
-    _outMux.print(F(":"));
+    _outMux.Print(F(":"));
     _PrintDD(time.second);
-    _outMux.println();
+    _outMux.Println();
 }
 
 void Shell::_PrintId()
 {
-    _outMux.println(_settings.GetId());
+    _outMux.Println(_settings.GetId());
 }
 
 void Shell::SetId(const char *str)
@@ -434,7 +433,7 @@ void Shell::SetId(const char *str)
 
 void Shell::_PrintActive()
 {
-    _outMux.println(_settings.GetActiveMinutes());
+    _outMux.Println(_settings.GetActiveMinutes());
 }
 
 void Shell::SetActive(const char *str)
@@ -444,7 +443,7 @@ void Shell::SetActive(const char *str)
 
 void Shell::_PrintEco()
 {
-    _outMux.println(_settings.GetEcoMinutes());
+    _outMux.Println(_settings.GetEcoMinutes());
 }
 
 void Shell::SetEco(const char *str)
@@ -461,13 +460,21 @@ void Shell::_RecorderCheck(const char *str)
         ts /= 60;
         auto m = ts % 60;
         ts /= 60;
-        _outMux.printf("%u:%02u:%02u\r\n", ts, m, s);
+        _outMux.Print(ts);
+        _outMux.Print(':');
+        if (m < 10) _outMux.Print('0');
+        _outMux.Print(m);
+        _outMux.Print(':');
+        if (s < 10) _outMux.Print('0');
+        _outMux.Print(s);
+        _outMux.Println();
     }
 }
 
 void Shell::_RecorderList()
 {
-    _outMux.printf("count=%zu\r\n", _settings.GetRecorder().GetCount());
+    _outMux.Print("count=");
+    _outMux.Println(_settings.GetRecorder().GetCount());
 
     struct Printer : AOP::Recorder::IVisitor
     {
@@ -480,7 +487,16 @@ void Shell::_RecorderList()
             ts /= 60;
             auto m = ts % 60;
             ts /= 60;
-            _outMux.printf("%" PRIu16 " %u:%02u:%02u\r\n", card, ts, m, s);
+            _outMux.Print(card);
+            _outMux.Print(' ');
+            _outMux.Print(ts);
+            _outMux.Print(':');
+            if (m < 10) _outMux.Print('0');
+            _outMux.Print(m);
+            _outMux.Print(':');
+            if (s < 10) _outMux.Print('0');
+            _outMux.Print(s);
+            _outMux.Println();
         }
     } printer{_outMux};
 
@@ -515,15 +531,15 @@ void Shell::_PrintKnownKeys()
 {
     const char *comma = "";
     for (const auto &key : _settings.GetKnownKeys()) {
-        _outMux.print(comma);
+        _outMux.Print(comma);
         comma = ",";
         for (auto b : key) {
             char buf[3];
             sprintf(buf, "%02X", static_cast<unsigned>(b));
-            _outMux.print(buf);
+            _outMux.Print(buf);
         }
     }
-    _outMux.println();
+    _outMux.Println();
 }
 
 void Shell::_SetKnownKeys(const char *str)

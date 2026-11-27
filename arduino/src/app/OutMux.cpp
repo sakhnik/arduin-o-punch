@@ -1,18 +1,17 @@
 #include "OutMux.hpp"
-
-#ifdef ESP32
+#include "hal/serial.hpp"
+#include "hal/time.hpp"
 
 OutMux::OutMux()
-    : HardwareSerial{Serial}
 {
 }
 
-size_t OutMux::write(uint8_t ch)
+size_t OutMux::Write(uint8_t ch)
 {
-    return write(&ch, 1);
+    return HAL::Serial::Write(&ch, 1);
 }
 
-size_t OutMux::write(const uint8_t *buffer, size_t size)
+size_t OutMux::Write(const uint8_t *buffer, size_t size)
 {
     // If there's a bluetooth or tcp connection, forward everything there
     if (_client)
@@ -22,9 +21,9 @@ size_t OutMux::write(const uint8_t *buffer, size_t size)
         // If the port it stuck because the terminal was disconnected,
         // stop sending data to it.
         // This will make the other client more reponsive.
-        auto start = millis();
-        auto ret = Serial.write(buffer, size);
-        auto finish = millis();
+        auto start = HAL::Millis();
+        auto ret = HAL::Serial::Write(buffer, size);
+        auto finish = HAL::Millis();
         if (finish - start > 50) {
             _enable_serial = false;
         }
@@ -33,9 +32,7 @@ size_t OutMux::write(const uint8_t *buffer, size_t size)
     return size;
 }
 
-int OutMux::availableForWrite(void)
+bool OutMux::AvailableForWrite()
 {
-    return Serial.availableForWrite();
+    return HAL::Serial::AvailableForWrite();
 }
-
-#endif //ESP32

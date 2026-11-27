@@ -1,10 +1,11 @@
 #pragma once
 
-#ifdef ESP32
+#include "../Printer.hpp"
+#include <cstddef>
+#include <cstdint>
 
-#include <Arduino.h>
-
-class OutMux : public HardwareSerial
+class OutMux
+    : public Printer<OutMux>
 {
 public:
     OutMux();
@@ -19,13 +20,11 @@ public:
         _client = client;
     }
 
+    size_t Write(uint8_t);
+    size_t Write(const uint8_t *buffer, size_t size);
+    bool AvailableForWrite(void);
+
 private:
     IClient *_client = nullptr;
     bool _enable_serial = true;
-
-    size_t write(uint8_t) override;
-    size_t write(const uint8_t *buffer, size_t size) override;
-    int availableForWrite(void) override;
 };
-
-#endif //ESP32

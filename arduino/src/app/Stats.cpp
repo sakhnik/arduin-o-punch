@@ -1,8 +1,9 @@
 #include "Stats.hpp"
 #include "OutMux.hpp"
 #include <endian.h>
-
+#include <array>
 #ifdef ESP32
+#include <esp_system.h>
 
 void Stats::ToN()
 {
@@ -24,25 +25,25 @@ void Stats::FromN()
 
 void Stats::Print(OutMux &outMux)
 {
-    outMux.print("bootCount=");
-    outMux.println(bootCount);
-    outMux.print("lastReset=");
-    outMux.print(lastResetReason);
-    outMux.print(" -> ");
+    outMux.Print("bootCount=");
+    outMux.Println(bootCount);
+    outMux.Print("lastReset=");
+    outMux.Print(lastResetReason);
+    outMux.Print(" -> ");
     switch (static_cast<esp_reset_reason_t>(lastResetReason)) {
-    case ESP_RST_UNKNOWN: 	outMux.print("UNKNOWN");    break;
-    case ESP_RST_POWERON:   outMux.print("POWERON");    break;
-    case ESP_RST_EXT:       outMux.print("EXT");        break;
-    case ESP_RST_SW:        outMux.print("SW");         break;
-    case ESP_RST_PANIC:     outMux.print("PANIC");      break;
-    case ESP_RST_INT_WDT:   outMux.print("INT_WDT"); 	break;
-    case ESP_RST_TASK_WDT:  outMux.print("TASK_WDT"); 	break;
-    case ESP_RST_WDT:       outMux.print("WDT");        break;
-    case ESP_RST_DEEPSLEEP: outMux.print("DEEPSLEEP");  break;
-    case ESP_RST_BROWNOUT:  outMux.print("BROWNOUT");   break;
-    case ESP_RST_SDIO:      outMux.print("SDIO");       break;
+    case ESP_RST_UNKNOWN: 	outMux.Print("UNKNOWN");    break;
+    case ESP_RST_POWERON:   outMux.Print("POWERON");    break;
+    case ESP_RST_EXT:       outMux.Print("EXT");        break;
+    case ESP_RST_SW:        outMux.Print("SW");         break;
+    case ESP_RST_PANIC:     outMux.Print("PANIC");      break;
+    case ESP_RST_INT_WDT:   outMux.Print("INT_WDT"); 	break;
+    case ESP_RST_TASK_WDT:  outMux.Print("TASK_WDT"); 	break;
+    case ESP_RST_WDT:       outMux.Print("WDT");        break;
+    case ESP_RST_DEEPSLEEP: outMux.Print("DEEPSLEEP");  break;
+    case ESP_RST_BROWNOUT:  outMux.Print("BROWNOUT");   break;
+    case ESP_RST_SDIO:      outMux.Print("SDIO");       break;
     }
-    outMux.println();
+    outMux.Println();
 
     DumpTimeStats(outMux);
 }
@@ -74,32 +75,32 @@ void Stats::DumpTimeStats(OutMux &outMux)
         totalEnergy += mah;
         char line[64];
         sprintf(line, "%8d (%4d:%02d:%02d) %6.1f mAh", time, time / (60 * 60), (time / 60) % 60, time % 60, mah);
-        outMux.print(line);
+        outMux.Print(line);
     };
 
-    outMux.print("Active: ");
+    outMux.Print("Active: ");
     printLine(timeStats[static_cast<size_t>(Mode::Active)], 20.f);
-    outMux.println();
-    outMux.print("Eco:    ");
+    outMux.Println();
+    outMux.Print("Eco:    ");
     printLine(timeStats[static_cast<size_t>(Mode::Eco)], 10.f);
-    outMux.println();
-    outMux.print("BLE:    ");
+    outMux.Println();
+    outMux.Print("BLE:    ");
     printLine(timeStats[static_cast<size_t>(Mode::BLE)], 100.f);
-    outMux.println();
-    outMux.print("WiFi:   ");
+    outMux.Println();
+    outMux.Print("WiFi:   ");
     printLine(timeStats[static_cast<size_t>(Mode::WiFi)], 100.f);
-    outMux.println();
-    outMux.print("Sleep:  ");
+    outMux.Println();
+    outMux.Print("Sleep:  ");
     printLine(timeStats[static_cast<size_t>(Mode::Sleep)], 0.05f);
-    outMux.println();
+    outMux.Println();
     auto avgCur = totalEnergy * (60 * 60) / totalTime;
-    outMux.print("Total:  ");
+    outMux.Print("Total:  ");
     printLine(totalTime, avgCur);
-    outMux.print("  I ~ ");
+    outMux.Print("  I ~ ");
     char buf[32];
     sprintf(buf, "%.2f", avgCur);
-    outMux.print(buf);
-    outMux.println(" mA");
+    outMux.Print(buf);
+    outMux.Println(" mA");
 }
 
 #endif //ESP32

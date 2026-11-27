@@ -326,18 +326,20 @@ ErrorCode Puncher::DoReadOut()
     if (res != ErrorCode::OK) {
         return res;
     }
-    _outMux.print(F("card-readout="));
-    _outMux.println(out.size());
+    _outMux.Print(F("card-readout="));
+    _outMux.Println(out.size());
     for (const auto &readOut : out) {
-        _outMux.print(F("card="));
-        _outMux.println(readOut.cardId);
-        _outMux.print(F("punches="));
-        _outMux.println(readOut.punches.size());
+        _outMux.Print(F("card="));
+        _outMux.Println(readOut.cardId);
+        _outMux.Print(F("punches="));
+        _outMux.Println(readOut.punches.size());
         for (const auto &punch : readOut.punches) {
-            _outMux.printf("%d %d\r\n", punch.GetStation(), punch.GetTimestamp());
+            _outMux.Print(punch.GetStation());
+            _outMux.Print(' ');
+            _outMux.Println(punch.GetTimestamp());
         }
     }
-    _outMux.println();
+    _outMux.Println();
     return ErrorCode::OK;
 }
 
@@ -349,24 +351,24 @@ ErrorCode Puncher::DoFormat()
     const auto &arg = _settings.GetCardModeArg();
     if (!arg.empty() && std::isdigit(arg[0])) {
         cardId = std::atoi(arg.c_str());
-        _outMux.print(F("card-format "));
-        _outMux.print(cardId.value());
-        _outMux.print(' ');
+        _outMux.Print(F("card-format "));
+        _outMux.Print(cardId.value());
+        _outMux.Print(' ');
     } else {
-        _outMux.print(F("card-clear "));
+        _outMux.Print(F("card-clear "));
     }
 
     MifareClassic mifareClassic{mfrc522};
     AOP::PunchCard punchCard{&mifareClassic, _settings.GetKey()};
     auto res = punchCard.Format(cardId, _settings.GetKnownKeys());
     if (res != ErrorCode::OK) {
-        _outMux.print(F(" FAIL"));
-        _outMux.println(static_cast<int>(res));
+        _outMux.Print(F(" FAIL"));
+        _outMux.Println(static_cast<int>(res));
         return res;
     } else {
-        _outMux.println(F(" OK"));
+        _outMux.Println(F(" OK"));
     }
-    _outMux.println();
+    _outMux.Println();
     return ErrorCode::OK;
 }
 
