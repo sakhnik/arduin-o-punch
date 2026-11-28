@@ -14,9 +14,9 @@ Settings settings{buzzer};
 OutMux outMux;
 Shell shell{outMux, settings, buzzer};
 
+Network network{outMux, settings, shell, buzzer};
 #ifdef ESP32
 Bluetooth bluetooth{outMux, settings, shell};
-Network network{outMux, settings, shell, buzzer};
 Operation operation{buzzer, settings, outMux, bluetooth, network};
 #endif //ESP32
 
@@ -54,10 +54,13 @@ void setup()
 #ifdef ESP32
     shell.SetOperation(&operation);
     bluetooth.Setup();
+#endif
+
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
     network.Setup();
 #endif
 
+#ifdef ESP32
     operation.SetupLate();
 #endif //ESP32
 

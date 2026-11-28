@@ -1,353 +1,67 @@
-#ifdef ESP32
 #include "Network.hpp"
-#include "Settings.hpp"
-#include "Shell.hpp"
-#include "Buzzer.hpp"
-#if defined(ENABLE_WIFI) && ENABLE_WIFI
-#include "WebUI.hpp"
-#include "aop/Utils.hpp"
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <WebServer.h>
-#include <Update.h>
-#include <ArduinoOTA.h>
-
-WiFiServer shellServer{23};
-WiFiClient shellClient;
-WebServer webServer{80};
+#ifdef ESP32
+# include "../esp32/Network.hpp"
+#elif defined(NATIVE)
+# include "../native/Network.hpp"
+#else
+# include <climits>
 #endif
 
-Network::Network(OutMux &outMux, Settings &settings, Shell &shell, Buzzer &buzzer)
-#if defined(ENABLE_WIFI) && ENABLE_WIFI
-    : _outMux{outMux}
-    , _settings{settings}
-    , _shell{shell}
-    , _buzzer{buzzer}
-#endif
-{
-}
-
-#if defined(ENABLE_WIFI) && ENABLE_WIFI
 namespace {
 
-void handleUpdateEnd()
-{
-    webServer.sendHeader("Connection", "close");
-    if (Update.hasError()) {
-        webServer.send(502, "text/plain", Update.errorString());
-    } else {
-        webServer.sendHeader("Refresh", "10");
-        webServer.sendHeader("Location", "/");
-        webServer.send(307);
-        ESP.restart();
-    }
-}
+#if defined(ESP32)
+using ImplT = Esp32::Network;
+#elif defined(NATIVE)
+using ImplT = Native::Network;
+#else
 
-void handleUpdate()
+struct Impl
 {
-    size_t fsize = UPDATE_SIZE_UNKNOWN;
-    if (webServer.hasArg("size")) {
-        fsize = webServer.arg("size").toInt();
-    }
-    HTTPUpload &upload = webServer.upload();
-    if (upload.status == UPLOAD_FILE_START) {
-        Serial.printf("Receiving Update: %s, Size: %d\n", upload.filename.c_str(), fsize);
-        if (!Update.begin(fsize)) {
-            //otaDone = 0;
-            Update.printError(Serial);
-        }
-    } else if (upload.status == UPLOAD_FILE_WRITE) {
-        if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-            Update.printError(Serial);
-        } else {
-            //otaDone = 100 * Update.progress() / Update.size();
-        }
-    } else if (upload.status == UPLOAD_FILE_END) {
-        if (Update.end(true)) {
-            Serial.printf("Update Success: %u bytes\nRebooting...\n", upload.totalSize);
-        } else {
-            Serial.printf("%s\n", Update.errorString());
-            //otaDone = 0;
-        }
-    }
-}
+    Impl(OutMux &, Settings &, Shell &, Buzzer &) { }
+
+    void Setup() { }
+    void SwitchOn() { }
+    void SwitchOff() { }
+    unsigned GetInactivitySeconds() { return UINT_MAX; }
+};
+using ImplT = Impl;
+
+#endif
 
 } //namespace;
 
+Network::Network(OutMux &outMux, Settings &settings, Shell &shell, Buzzer &buzzer)
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
+    : _impl{new ImplT(outMux, settings, shell, buzzer)}
+#endif
+{
+}
+
+Network::~Network()
+{
+    delete static_cast<ImplT *>(_impl);
+}
+
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
+
 void Network::Setup()
 {
-    WiFi.disconnect(true);
-    WiFi.mode(WIFI_OFF);
-
-    for (const auto &endpoint : ENDPOINTS) {
-        if (endpoint.length == 0) {
-            webServer.on(endpoint.route, [&endpoint] {
-                webServer.send(200, endpoint.contentType, endpoint.content);
-            });
-        } else {
-            webServer.on(endpoint.route, [&endpoint] {
-                webServer.send_P(200, PSTR(endpoint.contentType), endpoint.content, endpoint.length);
-            });
-        }
-    }
-
-    webServer.onNotFound([]() {
-        webServer.send(200, "text/html", index_html);
-    });
-
-    webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
-    webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
-    webServer.on("/record", HTTP_ANY, [this] { _HandleRecord(); });
-    webServer.on("/clock", HTTP_ANY, [this] { _HandleClock(); });
-
-    _lastActivityTimeMs.store(millis());
+    static_cast<ImplT *>(_impl)->Setup();
 }
 
 void Network::SwitchOn()
 {
-    assert(!_taskHandle);
-
-    _lastActivityTimeMs.store(millis());
-    _Start();
-
-    xTaskCreate(_TaskEntry, "wifi", 8192, this, 1, &_taskHandle);
+    static_cast<ImplT *>(_impl)->SwitchOn();
 }
 
 void Network::SwitchOff()
 {
-    assert(_taskHandle);
-
-    _Stop();
-
-    vTaskDelete(_taskHandle);
-    _taskHandle = nullptr;
+    static_cast<ImplT *>(_impl)->SwitchOff();
 }
 
 unsigned Network::GetInactivitySeconds()
 {
-    return (millis() - _lastActivityTimeMs.load()) / 1000;
-}
-
-bool Network::_Start()
-{
-    char hostname[64] = "aop";
-    *AOP::PrintNum(_settings.GetId(), hostname + 3) = 0;
-    Serial.print("hostname: ");
-    Serial.println(hostname);
-    MDNS.begin(hostname);
-    WiFi.setHostname(hostname);
-    WiFi.mode(WIFI_AP_STA);
-    WiFi.setTxPower(WIFI_POWER_8_5dBm);
-    WiFi.begin(_settings.GetWifiSsid().c_str(), _settings.GetWifiPass().c_str());
-    WiFi.softAP(hostname);
-
-    ArduinoOTA.setHostname(hostname);
-    ArduinoOTA.onStart([]() {
-        Serial.println("OTA Start");
-    });
-    ArduinoOTA.onEnd([]() {
-        Serial.println("\nOTA End");
-    });
-    ArduinoOTA.onProgress([this](unsigned int progress, unsigned int total) {
-        _lastActivityTimeMs.store(millis());
-        Serial.printf("Progress: %u%%\r", (progress * 100) / total);
-    });
-    ArduinoOTA.onError([](ota_error_t error) {
-        Serial.printf("Error[%u]\n", error);
-    });
-
-    _last_connecting_dit = millis();
-    _connection_signalled = false;
-    return true;
-}
-
-bool Network::_Stop()
-{
-    _outMux.SetClient(nullptr);
-    shellClient.stop();
-    shellServer.end();
-    webServer.stop();
-    ArduinoOTA.end();
-    WiFi.disconnect(true);
-    WiFi.mode(WIFI_OFF);
-    return false;
-}
-
-void Network::_TaskEntry(void* arg)
-{
-    static_cast<Network*>(arg)->_Task();
-}
-
-void Network::_Task()
-{
-    while (true) {
-
-        // -------------------------
-        // 1. WAIT FOR CONNECTION
-        // -------------------------
-        if (WiFi.status() != WL_CONNECTED) {
-
-            _connection_signalled = false;
-
-            if (millis() - _last_connecting_dit > 1000) {
-                _last_connecting_dit = millis();
-                _buzzer.SignalDit();
-            }
-
-            vTaskDelay(pdMS_TO_TICKS(100));
-            continue;
-        }
-
-        // -------------------------
-        // 2. ON FIRST CONNECT
-        // -------------------------
-        if (!_connection_signalled) {
-            _connection_signalled = true;
-
-            _buzzer.SignalPause();
-            _buzzer.SignalPause();
-
-            Serial.println("Connected");
-            Serial.print("Local IP: ");
-            Serial.println(WiFi.localIP());
-
-            _buzzer.SignalNumber(WiFi.localIP()[3]);
-
-            shellServer.begin();
-            webServer.begin();
-            ArduinoOTA.begin();
-        }
-
-        // -------------------------
-        // 3. TCP SHELL HANDLING
-        // -------------------------
-        if (!shellClient) {
-            shellClient = shellServer.available();
-            if (shellClient) {
-                _outMux.SetClient(this);
-            }
-        }
-
-        if (shellClient) {
-            if (!shellClient.connected()) {
-                shellClient.stop();
-                _outMux.SetClient(nullptr);
-            } else if (shellClient.available()) {
-                uint8_t buf[32];
-                int n = shellClient.read(buf, sizeof(buf));
-                if (n > 0) {
-                    _shell.ProcessInput(buf, n);
-                    _lastActivityTimeMs.store(millis());
-                }
-            }
-        }
-
-        webServer.handleClient();
-        ArduinoOTA.handle();
-
-        vTaskDelay(pdMS_TO_TICKS(2));
-    }
-}
-
-void Network::_HandleGetSettings()
-{
-    String response;
-    const char *nl = "";
-    auto addSetting = [&response](const char *key, const String &val) {
-        if (response.length())
-            response += "\n";
-        response += key;
-        response += "=";
-        response += val;
-    };
-    addSetting("id", String{static_cast<unsigned>(_settings.GetId())});
-    const auto &key = _settings.GetKey();
-    char buf[Settings::KEY_SIZE * 2 + 1];
-    for (int i = 0; i < Settings::KEY_SIZE; ++i) {
-        sprintf(buf + i*2, "%02X", static_cast<unsigned>(key[i]));
-    }
-    buf[Settings::KEY_SIZE * 2] = 0;
-    addSetting("key", buf);
-    addSetting("t-act", String{_settings.GetActiveMinutes()});
-    addSetting("t-eco", String{_settings.GetEcoMinutes()});
-    webServer.send(200, "text/plain", response);
-}
-
-void Network::_HandleSettings()
-{
-    _lastActivityTimeMs.store(millis());
-    if (webServer.method() == HTTP_POST) {
-        _shell.SetId(webServer.arg("id").c_str());
-        _shell.SetKey(webServer.arg("key").c_str());
-        _shell.SetActive(webServer.arg("t-act").c_str());
-        _shell.SetEco(webServer.arg("t-eco").c_str());
-        webServer.send(200, "text/html", index_html);
-    } else if (webServer.method() == HTTP_GET) {
-        _HandleGetSettings();
-    } else {
-        webServer.send(405);
-    }
-}
-
-void Network::_HandleRecord()
-{
-    _lastActivityTimeMs.store(millis());
-    if (webServer.method() == HTTP_GET) {
-        struct Collector : AOP::Recorder::IVisitor
-        {
-            String buffer;
-
-            void OnCard(uint16_t card, uint32_t timestamp, void *ctx) override
-            {
-                if (buffer.length() != 0) {
-                    buffer += ' ';
-                }
-                auto s = timestamp % 60;
-                timestamp /= 60;
-                auto m = timestamp % 60;
-                timestamp /= 60;
-                char sts[64];
-                sprintf(sts, "%" PRIu16 "-%u:%02u:%02u", card, timestamp, m, s);
-                buffer += sts;
-            }
-        } collector;
-        _settings.GetRecorder().List(collector, &collector);
-        webServer.send(200, "text/plain", collector.buffer);
-    } else {
-        webServer.send(405);
-    }
-}
-
-void Network::_HandleClock()
-{
-    _lastActivityTimeMs.store(millis());
-    if (webServer.method() == HTTP_GET) {
-        char buf[64];
-        sprintf(buf, "%d", _settings.GetDateTime().ToUnix());
-        webServer.send(200, "text/plain", buf);
-    } else if (webServer.method() == HTTP_POST) {
-        if (!webServer.hasArg("plain")) {
-            webServer.send(400, "text/plain", "No data");
-            return;
-        }
-        auto body = webServer.arg("plain");
-        uint32_t datetime{};
-        sscanf(body.c_str(), "%d", &datetime);
-        _settings.SetDateTime(datetime);
-        webServer.send(200, "text/plain", body);
-    } else {
-        webServer.send(405);
-    }
+    return static_cast<ImplT *>(_impl)->GetInactivitySeconds();
 }
 
 #endif
-
-void Network::Write(const uint8_t *buffer, size_t size)
-{
-#if defined(ENABLE_WIFI) && ENABLE_WIFI
-    if (shellClient && shellClient.connected()) {
-        shellClient.write(buffer, size);
-    }
-#endif
-}
-#endif //ESP32

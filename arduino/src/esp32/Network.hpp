@@ -1,0 +1,52 @@
+#pragma once
+
+#include "../app/OutMux.hpp"
+#include <atomic>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
+class Settings;
+class Shell;
+class Buzzer;
+
+namespace Esp32 {
+
+class Network
+    : private OutMux::IClient
+{
+public:
+    Network(OutMux &, Settings &, Shell &, Buzzer &);
+
+#if defined(ENABLE_WIFI) && ENABLE_WIFI
+    void Setup();
+    void SwitchOn();
+    void SwitchOff();
+    unsigned GetInactivitySeconds();
+
+private:
+    OutMux &_outMux;
+    Settings &_settings;
+    Shell &_shell;
+    Buzzer &_buzzer;
+    unsigned long _last_connecting_dit = 0;
+    bool _connection_signalled = false;
+    TaskHandle_t _taskHandle = nullptr;
+    SemaphoreHandle_t _wakeSignal = nullptr;
+    std::atomic<unsigned long> _lastActivityTimeMs = 0;
+
+    bool _Start();
+    bool _Stop();
+
+    static void _TaskEntry(void* arg);
+    void _Task();
+    void _HandleGetSettings();
+    void _HandleSettings();
+    void _HandleRecord();
+    void _HandleClock();
+#endif
+
+    // MuxOut::IClient
+    void Write(const uint8_t *buffer, size_t size) override;
+};
+
+} //namespasce Esp32;
