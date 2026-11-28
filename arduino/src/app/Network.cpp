@@ -4,7 +4,8 @@
 #include "Shell.hpp"
 #include "Buzzer.hpp"
 #if defined(ENABLE_WIFI) && ENABLE_WIFI
-#include "Utils.hpp"
+#include "WebUI.hpp"
+#include "aop/Utils.hpp"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WebServer.h>
@@ -73,14 +74,27 @@ void handleUpdate()
 
 } //namespace;
 
-void RegisterWebUI();
-
 void Network::Setup()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
 
-    RegisterWebUI();
+    for (const auto &endpoint : ENDPOINTS) {
+        if (endpoint.length == 0) {
+            webServer.on(endpoint.route, [&endpoint] {
+                webServer.send(200, endpoint.contentType, endpoint.content);
+            });
+        } else {
+            webServer.on(endpoint.route, [&endpoint] {
+                webServer.send_P(200, PSTR(endpoint.contentType), endpoint.content, endpoint.length);
+            });
+        }
+    }
+
+    webServer.onNotFound([]() {
+        webServer.send(200, "text/html", index_html);
+    });
+
     webServer.on("/update", HTTP_POST, handleUpdateEnd, handleUpdate);
     webServer.on("/settings", HTTP_ANY, [this] { _HandleSettings(); });
     webServer.on("/record", HTTP_ANY, [this] { _HandleRecord(); });
@@ -259,8 +273,6 @@ void Network::_HandleGetSettings()
     webServer.send(200, "text/plain", response);
 }
 
-extern const char *index_html;
-
 void Network::_HandleSettings()
 {
     _lastActivityTimeMs.store(millis());
@@ -311,7 +323,7 @@ void Network::_HandleClock()
     _lastActivityTimeMs.store(millis());
     if (webServer.method() == HTTP_GET) {
         char buf[64];
-        sprintf(buf, "%d", _settings.GetDateTime().unixtime());
+        sprintf(buf, "%d", _settings.GetDateTime().ToUnix());
         webServer.send(200, "text/plain", buf);
     } else if (webServer.method() == HTTP_POST) {
         if (!webServer.hasArg("plain")) {
